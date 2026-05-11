@@ -1,0 +1,1289 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的饮食</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,500,0,0" />
+    <style>
+      :root {
+        --bg: #f7f7f7;
+        --card: #ffffff;
+        --text-main: #000000;
+        --text-secondary: rgba(0, 0, 0, 0.6);
+        --text-muted: rgba(0, 0, 0, 0.4);
+        --divider: rgba(0, 0, 0, 0.05);
+        --green: #2ac18b;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+        color: var(--text-main);
+      }
+
+      body::-webkit-scrollbar {
+        display: none;
+      }
+
+      .page {
+        max-width: 402px;
+        min-height: 874px;
+        margin: 0 auto;
+        background: var(--bg);
+        padding-bottom: 134px;
+        position: relative;
+      }
+
+      .nav {
+        height: 72px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding-bottom: 12px;
+        position: relative;
+      }
+
+      .title {
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 1;
+      }
+
+      .nav-settings {
+        position: absolute;
+        right: 12px;
+        bottom: 6px;
+        width: 32px;
+        height: 32px;
+        border: 0;
+        border-radius: 16px;
+        background: rgba(0, 0, 0, 0.04);
+        color: rgba(0, 0, 0, 0.72);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .content {
+        padding: 16px 12px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+
+      .mi {
+        font-family: "Material Symbols Rounded";
+        font-weight: 500;
+        font-style: normal;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        vertical-align: middle;
+      }
+
+      .meal { background: var(--card); border-radius: 2px; overflow: hidden; }
+      .meal-head { padding: 16px; display: flex; align-items: center; justify-content: space-between; }
+      .meal-type { display: flex; align-items: center; gap: 12px; }
+
+      .meal-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: #fff;
+        font-weight: 600;
+      }
+
+      .breakfast { background: #f3a74a; }
+      .lunch { background: #f08b59; }
+      .dinner { background: #5f7ff5; }
+
+      .meal-name { font-size: 16px; font-weight: 500; line-height: 1; }
+      .head-value { display: flex; align-items: center; gap: 2px; font-size: 14px; line-height: 1; }
+      .head-value .main { color: var(--text-main); }
+      .head-value .muted { color: var(--text-muted); }
+
+      .item {
+        border-top: 0.5px solid var(--divider);
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+
+      .food {
+        flex: 1;
+        min-width: 0;
+        color: var(--text-secondary);
+        font-size: 14px;
+        line-height: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .kcal {
+        flex-shrink: 0;
+        color: var(--text-muted);
+        font-size: 12px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+      }
+
+      .arrow { margin-left: 2px; }
+
+      .footer {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 0;
+        width: min(402px, 100vw);
+        background: linear-gradient(to top, var(--bg) 72%, rgba(247, 247, 247, 0));
+        padding: 20px 24px 44px;
+        z-index: 2;
+      }
+
+      .btn {
+        width: 100%;
+        height: 50px;
+        border: 0;
+        border-radius: 999px;
+        background: var(--green);
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+      }
+
+      .sheet-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.18);
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+        z-index: 10;
+      }
+
+      .auth-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.28);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 40;
+        padding: 16px;
+      }
+
+      .auth-card {
+        width: min(402px, 100%);
+        background: #fff;
+        border-radius: 12px;
+        padding: 16px;
+      }
+
+      .auth-title {
+        font-size: 18px;
+        font-weight: 600;
+      }
+
+      .auth-note {
+        margin-top: 6px;
+        color: var(--text-muted);
+        font-size: 12px;
+      }
+
+      .auth-row {
+        margin-top: 12px;
+        display: flex;
+        gap: 8px;
+      }
+
+      .auth-input {
+        flex: 1;
+        height: 40px;
+        border: 0.5px solid rgba(0, 0, 0, 0.15);
+        border-radius: 8px;
+        padding: 0 12px;
+        font-size: 14px;
+      }
+
+      .auth-btn {
+        height: 40px;
+        border: 0;
+        border-radius: 8px;
+        padding: 0 12px;
+        background: #24c789;
+        color: #fff;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 106px;
+        transform: translateX(-50%) translateY(8px);
+        background: rgba(0, 0, 0, 0.78);
+        color: #fff;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 12px;
+        line-height: 1.35;
+        max-width: min(360px, calc(100vw - 24px));
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.18s ease, transform 0.18s ease;
+        z-index: 30;
+        white-space: pre-line;
+      }
+
+      .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .sheet-overlay.show { opacity: 1; pointer-events: auto; }
+
+      .sheet-wrap {
+        width: min(402px, 100vw);
+        transform: translateY(16px);
+        transition: transform 0.22s ease;
+      }
+
+      .sheet-overlay.show .sheet-wrap { transform: translateY(0); }
+
+      .sheet-card {
+        padding-bottom: env(safe-area-inset-bottom, 0);
+        background: #fff;
+        border-radius: 16px 16px 0 0;
+        overflow: hidden;
+      }
+
+      .sheet-head {
+        padding: 19px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .meal-select-wrap {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+      }
+
+      .meal-prefix {
+        font-size: 16px;
+        font-weight: 500;
+        margin-right: 2px;
+      }
+
+      .meal-select {
+        border: 0;
+        background: transparent;
+        font-size: 16px;
+        font-weight: 500;
+        padding-right: 16px;
+        appearance: none;
+        -webkit-appearance: none;
+        color: #000;
+      }
+
+      .meal-select:focus {
+        outline: none;
+      }
+
+      .meal-select-arrow {
+        position: absolute;
+        right: 0;
+        pointer-events: none;
+      }
+
+      .close-btn {
+        width: 28px;
+        height: 28px;
+        border: 0;
+        border-radius: 16px;
+        background: rgba(0, 0, 0, 0.03);
+        color: rgba(0, 0, 0, 0.45);
+        font-size: 20px;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .attach {
+        padding: 0 16px 16px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+
+      .attach::-webkit-scrollbar {
+        display: none;
+      }
+
+      .attach.attach-empty {
+        overflow-x: visible;
+      }
+
+      .attach-item {
+        width: 64px;
+        height: 64px;
+        border: 0.5px solid rgba(0, 0, 0, 0.1);
+        border-radius: 6px;
+        background: rgba(0, 0, 0, 0.02);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: var(--text-muted);
+        font-size: 14px;
+        cursor: pointer;
+        flex-shrink: 0;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .attach-option {
+        flex: 1 0 0;
+        min-width: 0;
+        padding: 0 16px;
+        gap: 8px;
+      }
+
+      .attach-label {
+        font-size: 14px;
+        color: var(--text-muted);
+      }
+
+      .attach-icon {
+        font-size: 24px;
+        line-height: 1;
+      }
+
+      .attach-thumb {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .thumb-delete {
+        position: absolute;
+        right: -6px;
+        top: -6px;
+        width: 24px;
+        height: 24px;
+        border: 0;
+        border-radius: 999px;
+        background: #8b8b8b;
+        color: #fff;
+        font-size: 15px;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .native-file-input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+      }
+
+      .input-row {
+        border-top: 0.5px solid var(--divider);
+        display: flex;
+        align-items: flex-end;
+        padding: 0 12px 0 16px;
+      }
+
+      .prompt-input {
+        flex: 1;
+        height: 44px;
+        border: 0;
+        outline: none;
+        background: transparent;
+        color: var(--text-main);
+        font-size: 16px;
+      }
+
+      .prompt-input::placeholder {
+        color: var(--text-muted);
+      }
+
+      .send {
+        width: 36px;
+        height: 36px;
+        border-radius: 20px;
+        border: 0;
+        background: var(--green);
+        color: #fff;
+        font-size: 22px;
+        margin-bottom: 12px;
+      }
+
+      .send:disabled {
+        opacity: 0.65;
+      }
+
+      .parse-loading {
+        border-top: 0.5px solid var(--divider);
+        padding: 16px;
+        display: none;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-muted);
+        font-size: 14px;
+      }
+
+      .parse-loading.show {
+        display: flex;
+      }
+
+      .result-panel {
+        display: none;
+      }
+
+      .result-panel.show {
+        display: block;
+      }
+
+      .result-item {
+        padding: 0 16px 16px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .result-cover {
+        width: 48px;
+        height: 48px;
+        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.04);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        flex-shrink: 0;
+      }
+
+      .result-text {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .result-name {
+        font-size: 16px;
+        font-weight: 500;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .result-kcal {
+        margin-top: 4px;
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+
+      .result-del {
+        width: 32px;
+        height: 32px;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.02);
+        color: rgba(0, 0, 0, 0.75);
+      }
+
+      .result-actions {
+        border-top: 0.5px solid var(--divider);
+        padding: 16px;
+        display: flex;
+        gap: 8px;
+      }
+
+      .result-error {
+        padding: 0 16px 16px;
+        color: #d93025;
+        font-size: 13px;
+        line-height: 1.4;
+        white-space: pre-wrap;
+      }
+
+      .result-btn {
+        height: 36px;
+        border: 0;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .result-btn.retry {
+        width: 72px;
+        background: rgba(0, 0, 0, 0.03);
+        color: #000;
+      }
+
+      .result-btn.save {
+        flex: 1;
+        background: var(--green);
+        color: #fff;
+      }
+
+      @media (max-width: 402px) {
+        .page { min-height: 100vh; }
+        .title { font-size: 16px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toast" id="toast"></div>
+    <div class="auth-overlay" id="authOverlay">
+      <div class="auth-card">
+        <div class="auth-title">邮箱登录</div>
+        <div class="auth-note">输入邮箱后发送登录验证码（Magic Link）。登录成功后会自动返回本页。</div>
+        <div class="auth-row">
+          <input class="auth-input" id="emailInput" placeholder="you@example.com" />
+          <button class="auth-btn" id="sendOtpBtn" type="button">发送登录链接</button>
+        </div>
+      </div>
+    </div>
+
+    <main class="page" data-node-id="1:6018">
+      <header class="nav" data-node-id="1:6019">
+        <h1 class="title">我的饮食</h1>
+        <button class="nav-settings" id="openConfigBtn" type="button" aria-label="设置">
+          <span class="mi" style="font-size:18px">settings</span>
+        </button>
+      </header>
+
+      <section class="content" id="recordsContent" data-node-id="1:6020"></section>
+    </main>
+
+    <div class="footer" data-node-id="1:6198">
+      <button class="btn" id="openSheetBtn" type="button"><span class="mi" style="font-size:22px">edit</span> 添加数据</button>
+    </div>
+
+    <div class="sheet-overlay" id="sheetOverlay">
+      <div class="sheet-wrap" data-node-id="1:9382">
+        <div class="sheet-card" data-node-id="1:9385">
+          <div class="sheet-head" data-node-id="1:9387">
+            <div class="meal-select-wrap">
+              <span class="meal-prefix">记</span>
+              <select class="meal-select" id="mealSelectNative">
+                <option value="早餐">早餐</option>
+                <option value="午餐">午餐</option>
+                <option value="晚餐">晚餐</option>
+              </select>
+              <span class="mi meal-select-arrow" style="font-size:14px">keyboard_arrow_down</span>
+            </div>
+            <button class="close-btn" id="closeSheetBtn" type="button"><span class="mi" style="font-size:18px">close</span></button>
+          </div>
+
+          <div class="attach" id="attachList" data-node-id="1:10669"></div>
+
+          <div class="result-panel" id="resultPanel" data-node-id="3:3967">
+            <div id="resultList"></div>
+            <div class="result-error" id="resultError" style="display:none"></div>
+            <div class="result-actions">
+              <button class="result-btn retry" id="retryBtn" type="button">重试</button>
+              <button class="result-btn save" id="saveBtn" type="button"><span class="mi" style="font-size:16px">check</span> 保存记录</button>
+            </div>
+          </div>
+
+          <div class="parse-loading" id="parseLoading">
+            <span class="mi" style="font-size:18px">progress_activity</span>
+            <span>AI 正在解析...</span>
+          </div>
+
+          <div class="input-row" id="inputRow" data-node-id="1:9389">
+            <input class="prompt-input" id="dietInput" type="text" placeholder="例：我今天中午吃了 1 个汉堡" />
+            <button class="send" id="sendBtn" type="button"><span class="mi" style="font-size:22px">arrow_upward</span></button>
+          </div>
+
+                    </div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <input id="cameraInput" type="file" accept="image/*" capture="environment" style="display:none" />
+
+    <script>
+      const SUPABASE_URL = "https://fwwsoilsbgympvkajnih.supabase.co";
+      const SUPABASE_ANON_KEY = "sb_publishable_NJQJKRnn5mYgRZ6AErlyZg_dAfrmnmN";
+      const SUPABASE_HEADERS = {
+        apikey: SUPABASE_ANON_KEY,
+        "Content-Type": "application/json"
+      };
+      const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+      });
+
+      const overlay = document.getElementById("sheetOverlay");
+      const authOverlay = document.getElementById("authOverlay");
+      const emailInput = document.getElementById("emailInput");
+      const sendOtpBtn = document.getElementById("sendOtpBtn");
+      const openConfigBtn = document.getElementById("openConfigBtn");
+      const openBtn = document.getElementById("openSheetBtn");
+      const closeBtn = document.getElementById("closeSheetBtn");
+      const mealSelectNative = document.getElementById("mealSelectNative");
+      const cameraInput = document.getElementById("cameraInput");
+      const attachList = document.getElementById("attachList");
+      const inputRow = document.getElementById("inputRow");
+      const sendBtn = document.getElementById("sendBtn");
+      const parseLoading = document.getElementById("parseLoading");
+      const resultPanel = document.getElementById("resultPanel");
+      const resultList = document.getElementById("resultList");
+      const resultError = document.getElementById("resultError");
+      const toast = document.getElementById("toast");
+      const retryBtn = document.getElementById("retryBtn");
+      const saveBtn = document.getElementById("saveBtn");
+      const dietInput = document.getElementById("dietInput");
+      const recordsContent = document.getElementById("recordsContent");
+      const MAX_ATTACHMENTS = 5;
+      const attachments = [];
+      let parseTimer = null;
+      let toastTimer = null;
+      let parsedResults = [];
+      let scrollBeforeKeyboard = 0;
+      let viewportHeightBeforeKeyboard = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      let selectedMeal = "早餐";
+      let backendRecords = [];
+      let currentSession = null;
+      let currentUser = null;
+      let backendConfig = {
+        provider: "gemini",
+        model: "gemini-3-flash-preview"
+      };
+      const FALLBACK_MODELS = [
+        "gemini-3-flash-preview",
+        "gemini-2.5-flash",
+        "gemini-2.5-pro"
+      ];
+
+      function getRestHeaders() {
+        const token = currentSession?.access_token || SUPABASE_ANON_KEY;
+        return {
+          ...SUPABASE_HEADERS,
+          Authorization: "Bearer " + token
+        };
+      }
+
+      function requireAuth() {
+        return Boolean(currentUser?.id);
+      }
+
+      function getStoredRecords() {
+        return Array.isArray(backendRecords) ? backendRecords : [];
+      }
+
+      async function saveStoredRecords(records) {
+        const response = await fetch(SUPABASE_URL + "/rest/v1/diet_records", {
+          method: "DELETE",
+          headers: getRestHeaders()
+        });
+        if (!response.ok) throw new Error("清空旧记录失败");
+        if (records.length === 0) {
+          backendRecords = [];
+          return;
+        }
+        const insertRes = await fetch(SUPABASE_URL + "/rest/v1/diet_records", {
+          method: "POST",
+          headers: {
+            ...getRestHeaders(),
+            Prefer: "return=representation"
+          },
+          body: JSON.stringify(records)
+        });
+        if (!insertRes.ok) throw new Error("写入记录失败");
+        const saved = await insertRes.json();
+        backendRecords = Array.isArray(saved) ? saved : [];
+      }
+
+      function getMealVisual(meal) {
+        if (meal === "早餐") return { cls: "breakfast", icon: "wb_twilight" };
+        if (meal === "午餐") return { cls: "lunch", icon: "light_mode" };
+        return { cls: "dinner", icon: "nightlight" };
+      }
+
+      function renderRecords() {
+        const records = getStoredRecords();
+        recordsContent.innerHTML = "";
+        if (records.length === 0) return;
+        const grouped = { 早餐: [], 午餐: [], 晚餐: [] };
+        records.forEach((record) => {
+          if (!grouped[record.meal]) grouped[record.meal] = [];
+          grouped[record.meal].push(...(Array.isArray(record.items) ? record.items : []));
+        });
+        ["早餐", "午餐", "晚餐"].forEach((meal) => {
+          const items = grouped[meal] || [];
+          if (items.length === 0) return;
+          const visual = getMealVisual(meal);
+          const total = items.reduce((sum, item) => sum + (Number(item.kcal) || 0), 0);
+          const article = document.createElement("article");
+          article.className = "meal";
+          article.innerHTML =
+            '<div class="meal-head"><div class="meal-type"><span class="meal-icon ' + visual.cls + '"><span class="mi" style="font-size:14px">' + visual.icon + '</span></span><span class="meal-name">' + meal + '</span></div><div class="head-value"><span class="main">' + total + '</span><span class="muted"> 千卡</span></div></div>';
+          items.forEach((item) => {
+            const row = document.createElement("div");
+            row.className = "item";
+            const emoji = (item.emoji && String(item.emoji).trim()) || "🍽️";
+            row.innerHTML =
+              '<span class="food">' + emoji + " " + (item.name || "未命名食物") + ' ' + (item.portion || "1份") + '</span>' +
+              '<span class="kcal">' + (Number(item.kcal) || 0) + ' 千卡 <span class="arrow"><span class="mi" style="font-size:14px">chevron_right</span></span></span>';
+            article.appendChild(row);
+          });
+          recordsContent.appendChild(article);
+        });
+      }
+
+      function formatBytes(size) {
+        if (size < 1024) return size + "B";
+        if (size < 1024 * 1024) return (size / 1024).toFixed(1) + "KB";
+        return (size / (1024 * 1024)).toFixed(2) + "MB";
+      }
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toast.classList.remove("show");
+          toastTimer = null;
+        }, 2200);
+      }
+
+      function getDefaultMealByTime() {
+        const hour = new Date().getHours();
+        if (hour < 11) return "早餐";
+        if (hour < 17) return "午餐";
+        return "晚餐";
+      }
+
+      function setMeal(meal) {
+        selectedMeal = meal;
+        mealSelectNative.value = meal;
+      }
+
+      function openSheet() {
+        overlay.classList.add("show");
+        setTimeout(() => {
+          const input = document.getElementById("dietInput");
+          if (input) input.focus();
+        }, 60);
+      }
+
+      function closeSheet() {
+        overlay.classList.remove("show");
+        if (parseTimer) {
+          clearTimeout(parseTimer);
+          parseTimer = null;
+        }
+      }
+
+      openBtn.addEventListener("click", openSheet);
+      closeBtn.addEventListener("click", closeSheet);
+
+      overlay.addEventListener("click", (event) => {
+        if (event.target === overlay) closeSheet();
+      });
+
+      function setPanelMode(mode) {
+        const showInput = mode === "input";
+        const showLoading = mode === "loading";
+        const showResult = mode === "result";
+        inputRow.style.display = showInput ? "flex" : "none";
+        attachList.style.display = showInput ? "flex" : "none";
+        parseLoading.classList.toggle("show", showLoading);
+        resultPanel.classList.toggle("show", showResult);
+      }
+
+      function renderAttachments() {
+        const canAddMore = attachments.length < MAX_ATTACHMENTS;
+        attachList.innerHTML = "";
+        const isEmpty = attachments.length === 0;
+        attachList.classList.toggle("attach-empty", isEmpty);
+
+        attachments.forEach((item, index) => {
+          const thumb = document.createElement("div");
+          thumb.className = "attach-item";
+          thumb.innerHTML = '<img class="attach-thumb" alt="" src="' + item.url + '" /><button class="thumb-delete" type="button"><span class="mi" style="font-size:18px">close</span></button>';
+          thumb.querySelector(".thumb-delete").addEventListener("click", (event) => {
+            event.stopPropagation();
+            URL.revokeObjectURL(item.url);
+            attachments.splice(index, 1);
+            renderAttachments();
+          });
+          attachList.appendChild(thumb);
+        });
+
+        if (canAddMore) {
+          const cameraBtnEl = document.createElement("button");
+          cameraBtnEl.className = isEmpty ? "attach-item attach-option" : "attach-item";
+          cameraBtnEl.type = "button";
+          cameraBtnEl.innerHTML = isEmpty
+            ? '<span class="mi attach-icon">photo_camera</span><span class="attach-label">拍照</span>'
+            : '<span class="mi attach-icon">photo_camera</span>';
+          cameraBtnEl.addEventListener("click", () => cameraInput.click());
+          attachList.appendChild(cameraBtnEl);
+
+          const galleryLabel = document.createElement("label");
+          galleryLabel.className = isEmpty ? "attach-item attach-option" : "attach-item";
+          galleryLabel.innerHTML = isEmpty
+            ? '<span class="mi attach-icon">photo_library</span><span class="attach-label">相册</span><input id="galleryInput" class="native-file-input" type="file" accept="image/*" multiple />'
+            : '<span class="mi attach-icon">photo_library</span><input id="galleryInput" class="native-file-input" type="file" accept="image/*" multiple />';
+          attachList.appendChild(galleryLabel);
+
+          const galleryInputEl = galleryLabel.querySelector("#galleryInput");
+          galleryInputEl.addEventListener("change", handlePickedFile);
+        }
+      }
+
+      async function pushFiles(files) {
+        if (!files || files.length === 0) return;
+        const available = Math.max(0, MAX_ATTACHMENTS - attachments.length);
+        const picked = files.slice(0, available);
+        if (picked.length === 0) return;
+
+        const compressed = await Promise.all(picked.map((file) => compressImageFile(file)));
+        compressed.forEach((item, index) => {
+          const blob = item.blob;
+          attachments.push({
+            file: new File([blob], picked[index].name, { type: item.mimeType }),
+            url: URL.createObjectURL(blob),
+            originalSize: item.originalSize,
+            compressedSize: item.compressedSize
+          });
+        });
+        renderAttachments();
+
+        const totalCompressed = compressed.reduce((sum, item) => sum + item.compressedSize, 0);
+        const itemSizes = compressed.map((item) => formatBytes(item.compressedSize)).join(" / ");
+        showToast("添加时已压缩：" + compressed.length + "张\n总大小 " + formatBytes(totalCompressed) + "\n单张 " + itemSizes);
+      }
+
+      async function handlePickedFile(event) {
+        const files = event.target.files ? Array.from(event.target.files) : [];
+        try {
+          await pushFiles(files);
+        } catch (error) {
+          console.error("compress-on-add-failed", error);
+          showToast("图片压缩失败，请重试");
+        }
+        event.target.value = "";
+      }
+
+      function estimateKcal(name) {
+        const base = 80 + name.length * 18;
+        return Math.max(60, Math.min(460, base));
+      }
+
+      function buildParsedResults(inputText) {
+        const normalized = inputText
+          .replace(/[，、。；;]+/g, ",")
+          .replace(/\s+/g, ",")
+          .split(",")
+          .map((x) => x.trim())
+          .filter(Boolean);
+        const deduped = [...new Set(normalized)];
+        const names = (deduped.length ? deduped : ["西兰花", "鸡胸肉"]).slice(0, 5);
+        return names.map((name) => ({ name, kcal: estimateKcal(name), emoji: "🥦", portion: "1份" }));
+      }
+
+      function getSystemPrompt() {
+        return `你是饮食记录解析助手。只返回合法 JSON（不要 Markdown、不要解释）。
+输出结构固定：
+{
+  "meal": "早餐|午餐|晚餐",
+  "items": [{"name":"string","portion":"string","kcal":123,"confidence":0.0,"emoji":"string"}],
+  "notes": "string"
+}
+约束：
+1) meal 必须等于输入参数 meal。
+2) items 按 confidence 降序；最多 20 条。
+3) 每个 item 必含 name/portion/kcal/confidence/emoji，不能缺字段。
+4) name 用简体中文短名称（<=12字）；portion 用常见单位（份/个/碗/杯/克），不确定填“1份”。
+5) kcal 为 0~3000 的整数；confidence 为 0~1 且保留两位小数。
+6) 同一食物跨图去重合并；文本与图片冲突时以图片为主，图片不清晰再参考文本。
+7) 若图片或文本明确给出热量，优先使用该热量。
+8) emoji 需返回最接近食物语义的单个 emoji（如 🍚🥦🍗🥛🍎），无法判断时用 🍽️。
+9) 无法识别时返回 items: []，并在 notes 说明原因；禁止编造。`;
+      }
+
+      function blobToBase64(blob) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const result = String(reader.result || "");
+            const base64 = result.includes(",") ? result.split(",")[1] : "";
+            resolve(base64);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      }
+
+      function extractJsonText(raw) {
+        const text = String(raw || "").trim();
+        if (!text) return "{}";
+        const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+        if (fenceMatch && fenceMatch[1]) return fenceMatch[1].trim();
+        const first = text.indexOf("{");
+        const last = text.lastIndexOf("}");
+        if (first !== -1 && last !== -1 && last > first) return text.slice(first, last + 1);
+        return text;
+      }
+
+      async function callGeminiParse({ model, meal, inputText, compressedAttachments }) {
+        const imageParts = [];
+        for (const item of compressedAttachments) {
+          const base64 = await blobToBase64(item.blob);
+          imageParts.push({
+            inline_data: {
+              mime_type: item.mimeType || "image/jpeg",
+              data: base64
+            }
+          });
+        }
+
+        const userPrompt = `请解析本次饮食记录。
+
+参数：
+- meal: ${meal}
+- text_input: ${inputText || "(空)"}
+- image_count: ${compressedAttachments.length}
+
+要求：
+- 严格按系统要求返回 JSON。
+- 若 text_input 与图片冲突，以图片为主。
+- 若有多张图片，做跨图去重合并。`;
+
+        const response = await fetch(SUPABASE_URL + "/functions/v1/parse-food", {
+          method: "POST",
+          headers: {
+            ...SUPABASE_HEADERS
+          },
+          body: JSON.stringify({
+            model,
+            meal,
+            text: inputText,
+            images: imageParts.map((p) => ({
+              mimeType: p.inline_data.mime_type,
+              base64: p.inline_data.data
+            }))
+          })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data?.error || data?.message || "parse-food request failed");
+        }
+        if (!data?.ok) throw new Error(data?.error || "parse-food failed");
+        return data?.data || {};
+      }
+
+      function normalizeAiItems(aiObject) {
+        const items = Array.isArray(aiObject?.items) ? aiObject.items : [];
+        return items.map((item) => ({
+          name: String(item?.name || "未命名食物").slice(0, 12),
+          portion: String(item?.portion || "1份"),
+          kcal: Math.max(0, Math.min(3000, Number.parseInt(item?.kcal, 10) || 0)),
+          confidence: Math.max(0, Math.min(1, Number(item?.confidence) || 0)),
+          emoji: String(item?.emoji || "🍽️").trim() || "🍽️"
+        }));
+      }
+
+      async function compressImageFile(file, options = {}) {
+        const maxSide = options.maxSide || 1280;
+        const quality = options.quality || 0.78;
+        const mimeType = options.mimeType || "image/jpeg";
+        let sourceWidth = 0;
+        let sourceHeight = 0;
+        let drawSource = null;
+        if (typeof createImageBitmap === "function") {
+          const bitmap = await createImageBitmap(file);
+          sourceWidth = bitmap.width;
+          sourceHeight = bitmap.height;
+          drawSource = bitmap;
+        } else {
+          const imageUrl = URL.createObjectURL(file);
+          const image = await new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = imageUrl;
+          });
+          sourceWidth = image.naturalWidth || image.width;
+          sourceHeight = image.naturalHeight || image.height;
+          drawSource = image;
+          URL.revokeObjectURL(imageUrl);
+        }
+        const scale = Math.min(1, maxSide / Math.max(sourceWidth, sourceHeight));
+        const targetWidth = Math.max(1, Math.round(sourceWidth * scale));
+        const targetHeight = Math.max(1, Math.round(sourceHeight * scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(drawSource, 0, 0, targetWidth, targetHeight);
+        const compressedBlob = await new Promise((resolve) => {
+          canvas.toBlob((blob) => resolve(blob || file), mimeType, quality);
+        });
+        return {
+          originalSize: file.size,
+          compressedSize: compressedBlob.size || file.size,
+          blob: compressedBlob,
+          width: targetWidth,
+          height: targetHeight,
+          mimeType: compressedBlob.type || mimeType
+        };
+      }
+
+      async function prepareCompressedAttachments() {
+        const compressed = attachments.map((item) => ({
+          originalSize: item.originalSize || item.file.size,
+          compressedSize: item.compressedSize || item.file.size,
+          blob: item.file,
+          mimeType: item.file.type || "image/jpeg"
+        }));
+        const totalOriginal = compressed.reduce((sum, item) => sum + item.originalSize, 0);
+        const totalCompressed = compressed.reduce((sum, item) => sum + item.compressedSize, 0);
+        return { compressed, totalOriginal, totalCompressed };
+      }
+
+      function renderResultList() {
+        resultError.style.display = "none";
+        resultError.textContent = "";
+        resultList.innerHTML = "";
+        parsedResults.forEach((item, index) => {
+          const row = document.createElement("div");
+          row.className = "result-item";
+          row.innerHTML =
+            '<div class="result-cover">' + item.emoji + '</div>' +
+            '<div class="result-text"><div class="result-name">' + item.name +
+            '</div><div class="result-kcal">' + item.kcal + ' 千卡 · ' + (item.portion || "1份") + '</div></div>' +
+            '<button class="result-del" type="button"><span class="mi" style="font-size:18px">delete</span></button>';
+          row.querySelector(".result-del").addEventListener("click", () => {
+            parsedResults.splice(index, 1);
+            renderResultList();
+            if (parsedResults.length === 0) setPanelMode("input");
+          });
+          resultList.appendChild(row);
+        });
+      }
+
+      async function startParse() {
+        const model = backendConfig.model || "gemini-3-flash-preview";
+        const inputText = dietInput.value.trim();
+        const hasInput = inputText.length > 0 || attachments.length > 0;
+        if (!hasInput) return;
+        sendBtn.disabled = true;
+        setPanelMode("loading");
+        try {
+          const { compressed, totalOriginal, totalCompressed } = await prepareCompressedAttachments();
+          if (compressed.length > 0) {
+            const itemSizes = compressed.map((item) => formatBytes(item.compressedSize)).join(" / ");
+            showToast("发送图片：" + compressed.length + "张\n总大小 " + formatBytes(totalCompressed) + "\n单张 " + itemSizes);
+          }
+          console.log("attachments-compressed", {
+            count: compressed.length,
+            totalOriginal,
+            totalCompressed,
+            savingRatio: totalOriginal > 0 ? (1 - totalCompressed / totalOriginal).toFixed(3) : "0.000"
+          });
+          const aiObject = await callGeminiParse({
+            model,
+            meal: selectedMeal,
+            inputText,
+            compressedAttachments: compressed
+          });
+          const normalized = normalizeAiItems(aiObject);
+          if (normalized.length === 0) {
+            const modelReason = String(aiObject?.notes || "").trim() || "模型未返回可用食物条目。";
+            parsedResults = [];
+            resultList.innerHTML = "";
+            resultError.style.display = "block";
+            resultError.textContent = "解析结果不可用：\n" + modelReason;
+          } else {
+            parsedResults = normalized;
+            renderResultList();
+          }
+          setPanelMode("result");
+          sendBtn.disabled = false;
+        } catch (error) {
+          console.error("parse-failed", error);
+          parsedResults = [];
+          resultList.innerHTML = "";
+          resultError.style.display = "block";
+          resultError.textContent = "解析失败：\n" + (error?.message || "未知错误");
+          setPanelMode("result");
+          sendBtn.disabled = false;
+        }
+      }
+
+      cameraInput.addEventListener("change", handlePickedFile);
+      mealSelectNative.addEventListener("change", () => setMeal(mealSelectNative.value));
+      sendBtn.addEventListener("click", startParse);
+      retryBtn.addEventListener("click", () => {
+        setPanelMode("input");
+        setTimeout(() => dietInput.focus(), 60);
+      });
+      saveBtn.addEventListener("click", () => {
+        if (parsedResults.length === 0) {
+          showToast("没有可保存的记录");
+          return;
+        }
+        const records = getStoredRecords();
+        records.push({
+          meal: selectedMeal,
+          items: parsedResults.map((item) => ({
+            name: item.name,
+            portion: item.portion || "1份",
+            kcal: Number(item.kcal) || 0,
+            confidence: Number(item.confidence) || 0,
+            emoji: String(item.emoji || "🍽️")
+          })),
+          createdAt: Date.now()
+        });
+        saveStoredRecords(records)
+          .then(() => {
+            renderRecords();
+            showToast("记录已保存到后端");
+          })
+          .catch((e) => {
+            console.error("save-records-failed", e);
+            showToast("保存失败：" + (e?.message || "未知错误"));
+          });
+        setPanelMode("input");
+        dietInput.value = "";
+        parsedResults = [];
+      });
+      openConfigBtn.addEventListener("click", () => {
+        showToast("模型配置已由后端统一管理");
+      });
+      dietInput.addEventListener("focus", () => {
+        scrollBeforeKeyboard = window.scrollY || window.pageYOffset || 0;
+      });
+      dietInput.addEventListener("blur", () => {
+        setTimeout(() => window.scrollTo(0, scrollBeforeKeyboard), 80);
+      });
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", () => {
+          const current = window.visualViewport.height;
+          const keyboardLikelyClosed = current > viewportHeightBeforeKeyboard + 40;
+          if (keyboardLikelyClosed) {
+            setTimeout(() => window.scrollTo(0, scrollBeforeKeyboard), 60);
+          }
+          viewportHeightBeforeKeyboard = current;
+        });
+      }
+      window.addEventListener("beforeunload", () => {
+        attachments.forEach((item) => URL.revokeObjectURL(item.url));
+      });
+      setPanelMode("input");
+      setMeal(getDefaultMealByTime());
+      async function initBackendState() {
+        if (!requireAuth()) {
+          backendRecords = [];
+          renderRecords();
+          return;
+        }
+        try {
+          const [cfgRes, recordsRes] = await Promise.all([
+            fetch(SUPABASE_URL + "/rest/v1/app_config?id=eq." + encodeURIComponent(currentUser.id) + "&select=id,provider,model", {
+              headers: getRestHeaders()
+            }),
+            fetch(SUPABASE_URL + "/rest/v1/diet_records?select=meal,items,created_at&order=created_at.asc", {
+              headers: getRestHeaders()
+            })
+          ]);
+          if (cfgRes.ok) {
+            const cfgRows = await cfgRes.json();
+            const cfg = Array.isArray(cfgRows) ? cfgRows[0] : null;
+            if (cfg) {
+              backendConfig = {
+                provider: cfg.provider || "gemini",
+                model: cfg.model || "gemini-3-flash-preview"
+              };
+            }
+          }
+          if (recordsRes.ok) {
+            const recRows = await recordsRes.json();
+            backendRecords = Array.isArray(recRows) ? recRows : [];
+          }
+        } catch (e) {
+          console.error("init-backend-failed", e);
+          showToast("后端读取失败，请检查 Supabase 配置");
+        } finally {
+          renderRecords();
+        }
+      }
+      renderAttachments();
+      async function bootstrapAuth() {
+        const { data } = await supabaseClient.auth.getSession();
+        currentSession = data?.session || null;
+        currentUser = currentSession?.user || null;
+        authOverlay.style.display = currentUser ? "none" : "flex";
+        if (currentUser) await initBackendState();
+      }
+
+      sendOtpBtn.addEventListener("click", async () => {
+        const email = emailInput.value.trim();
+        if (!email) return;
+        const { error } = await supabaseClient.auth.signInWithOtp({
+          email,
+          options: {
+            emailRedirectTo: window.location.href
+          }
+        });
+        if (error) {
+          showToast("发送失败：" + error.message);
+        } else {
+          showToast("登录链接已发送到邮箱");
+        }
+      });
+
+      supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+        currentSession = session || null;
+        currentUser = currentSession?.user || null;
+        authOverlay.style.display = currentUser ? "none" : "flex";
+        if (currentUser) await initBackendState();
+      });
+
+      bootstrapAuth();
+
+    </script>
+  </body>
+</html>
