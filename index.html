@@ -711,7 +711,9 @@
       }
 
       async function saveStoredRecords(records) {
-        const response = await fetch(SUPABASE_URL + "/rest/v1/diet_records", {
+        if (!currentUser?.id) throw new Error("未登录，无法保存");
+        const userFilter = "?user_id=eq." + encodeURIComponent(currentUser.id);
+        const response = await fetch(SUPABASE_URL + "/rest/v1/diet_records" + userFilter, {
           method: "DELETE",
           headers: getRestHeaders()
         });
@@ -726,7 +728,14 @@
             ...getRestHeaders(),
             Prefer: "return=representation"
           },
-          body: JSON.stringify(records)
+          body: JSON.stringify(
+            records.map((record) => ({
+              user_id: currentUser.id,
+              meal: record.meal,
+              items: Array.isArray(record.items) ? record.items : [],
+              created_at: record.created_at || new Date().toISOString()
+            }))
+          )
         });
         if (!insertRes.ok) throw new Error("写入记录失败");
         const saved = await insertRes.json();
@@ -891,8 +900,6 @@
         renderAttachments();
 
         const totalCompressed = compressed.reduce((sum, item) => sum + item.compressedSize, 0);
-        const itemSizes = compressed.map((item) => formatBytes(item.compressedSize)).join(" / ");
-        showToast("添加时已压缩：" + compressed.length + "张\n总大小 " + formatBytes(totalCompressed) + "\n单张 " + itemSizes);
       }
 
       async function handlePickedFile(event) {
@@ -1111,10 +1118,6 @@
         setPanelMode("loading");
         try {
           const { compressed, totalOriginal, totalCompressed } = await prepareCompressedAttachments();
-          if (compressed.length > 0) {
-            const itemSizes = compressed.map((item) => formatBytes(item.compressedSize)).join(" / ");
-            showToast("发送图片：" + compressed.length + "张\n总大小 " + formatBytes(totalCompressed) + "\n单张 " + itemSizes);
-          }
           console.log("attachments-compressed", {
             count: compressed.length,
             totalOriginal,
@@ -1172,12 +1175,11 @@
             confidence: Number(item.confidence) || 0,
             emoji: String(item.emoji || "🍽️")
           })),
-          createdAt: Date.now()
+          created_at: new Date().toISOString()
         });
         saveStoredRecords(records)
           .then(() => {
             renderRecords();
-            showToast("记录已保存到后端");
           })
           .catch((e) => {
             console.error("save-records-failed", e);
