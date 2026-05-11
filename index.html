@@ -693,15 +693,6 @@
       let backendRecords = [];
       let currentSession = null;
       let currentUser = null;
-      let backendConfig = {
-        provider: "gemini",
-        model: "gemini-3-flash-preview"
-      };
-      const FALLBACK_MODELS = [
-        "gemini-3-flash-preview",
-        "gemini-2.5-flash",
-        "gemini-2.5-pro"
-      ];
 
       function getRestHeaders() {
         const token = currentSession?.access_token || SUPABASE_ANON_KEY;
@@ -976,7 +967,7 @@
         return text;
       }
 
-      async function callGeminiParse({ model, meal, inputText, compressedAttachments }) {
+      async function callGeminiParse({ meal, inputText, compressedAttachments }) {
         const imageParts = [];
         for (const item of compressedAttachments) {
           const base64 = await blobToBase64(item.blob);
@@ -1006,7 +997,6 @@
             ...SUPABASE_HEADERS
           },
           body: JSON.stringify({
-            model,
             meal,
             text: inputText,
             images: imageParts.map((p) => ({
@@ -1114,7 +1104,6 @@
       }
 
       async function startParse() {
-        const model = backendConfig.model || "gemini-3-flash-preview";
         const inputText = dietInput.value.trim();
         const hasInput = inputText.length > 0 || attachments.length > 0;
         if (!hasInput) return;
@@ -1133,7 +1122,6 @@
             savingRatio: totalOriginal > 0 ? (1 - totalCompressed / totalOriginal).toFixed(3) : "0.000"
           });
           const aiObject = await callGeminiParse({
-            model,
             meal: selectedMeal,
             inputText,
             compressedAttachments: compressed
@@ -1230,24 +1218,9 @@
           return;
         }
         try {
-          const [cfgRes, recordsRes] = await Promise.all([
-            fetch(SUPABASE_URL + "/rest/v1/app_config?id=eq." + encodeURIComponent(currentUser.id) + "&select=id,provider,model", {
-              headers: getRestHeaders()
-            }),
-            fetch(SUPABASE_URL + "/rest/v1/diet_records?select=meal,items,created_at&order=created_at.asc", {
-              headers: getRestHeaders()
-            })
-          ]);
-          if (cfgRes.ok) {
-            const cfgRows = await cfgRes.json();
-            const cfg = Array.isArray(cfgRows) ? cfgRows[0] : null;
-            if (cfg) {
-              backendConfig = {
-                provider: cfg.provider || "gemini",
-                model: cfg.model || "gemini-3-flash-preview"
-              };
-            }
-          }
+          const recordsRes = await fetch(SUPABASE_URL + "/rest/v1/diet_records?select=meal,items,created_at&order=created_at.asc", {
+            headers: getRestHeaders()
+          });
           if (recordsRes.ok) {
             const recRows = await recordsRes.json();
             backendRecords = Array.isArray(recRows) ? recRows : [];
