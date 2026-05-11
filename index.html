@@ -571,11 +571,17 @@
     <div class="toast" id="toast"></div>
     <div class="auth-overlay" id="authOverlay">
       <div class="auth-card">
-        <div class="auth-title">邮箱登录</div>
-        <div class="auth-note">输入邮箱后发送登录验证码（Magic Link）。登录成功后会自动返回本页。</div>
+        <div class="auth-title">账号登录</div>
+        <div class="auth-note">使用邮箱 + 密码登录。首次使用请先注册。</div>
         <div class="auth-row">
           <input class="auth-input" id="emailInput" placeholder="you@example.com" />
-          <button class="auth-btn" id="sendOtpBtn" type="button">发送登录链接</button>
+        </div>
+        <div class="auth-row">
+          <input class="auth-input" id="passwordInput" type="password" placeholder="请输入密码" />
+        </div>
+        <div class="auth-row">
+          <button class="auth-btn" id="signUpBtn" type="button">注册</button>
+          <button class="auth-btn" id="signInBtn" type="button">登录</button>
         </div>
       </div>
     </div>
@@ -644,6 +650,7 @@
     <script>
       const SUPABASE_URL = "https://fwwsoilsbgympvkajnih.supabase.co";
       const SUPABASE_ANON_KEY = "sb_publishable_NJQJKRnn5mYgRZ6AErlyZg_dAfrmnmN";
+      const APP_PUBLIC_URL = "https://record-food-demo.spg4qzypsy.workers.dev";
       const SUPABASE_HEADERS = {
         apikey: SUPABASE_ANON_KEY,
         "Content-Type": "application/json"
@@ -655,7 +662,9 @@
       const overlay = document.getElementById("sheetOverlay");
       const authOverlay = document.getElementById("authOverlay");
       const emailInput = document.getElementById("emailInput");
-      const sendOtpBtn = document.getElementById("sendOtpBtn");
+      const passwordInput = document.getElementById("passwordInput");
+      const signUpBtn = document.getElementById("signUpBtn");
+      const signInBtn = document.getElementById("signInBtn");
       const openConfigBtn = document.getElementById("openConfigBtn");
       const openBtn = document.getElementById("openSheetBtn");
       const closeBtn = document.getElementById("closeSheetBtn");
@@ -1259,20 +1268,38 @@
         if (currentUser) await initBackendState();
       }
 
-      sendOtpBtn.addEventListener("click", async () => {
+      signUpBtn.addEventListener("click", async () => {
         const email = emailInput.value.trim();
-        if (!email) return;
-        const { error } = await supabaseClient.auth.signInWithOtp({
-          email,
-          options: {
-            emailRedirectTo: window.location.href
-          }
-        });
-        if (error) {
-          showToast("发送失败：" + error.message);
-        } else {
-          showToast("登录链接已发送到邮箱");
+        const password = passwordInput.value;
+        if (!email || !password) {
+          showToast("请输入邮箱和密码");
+          return;
         }
+        const { error } = await supabaseClient.auth.signUp({ email, password });
+        if (error) {
+          showToast("注册失败：" + error.message);
+        } else {
+          showToast("注册成功，请登录");
+        }
+      });
+
+      signInBtn.addEventListener("click", async () => {
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+        if (!email || !password) {
+          showToast("请输入邮箱和密码");
+          return;
+        }
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) {
+          showToast("登录失败：" + error.message);
+          return;
+        }
+        currentSession = data?.session || null;
+        currentUser = currentSession?.user || null;
+        authOverlay.style.display = currentUser ? "none" : "flex";
+        showToast("登录成功");
+        await initBackendState();
       });
 
       supabaseClient.auth.onAuthStateChange(async (_event, session) => {
