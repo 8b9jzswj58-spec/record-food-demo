@@ -4,17 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>我的饮食</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,500,0,0" />
     <style>
       :root {
-        --bg: #f7f7f7;
-        --card: #ffffff;
-        --text-main: #000000;
-        --text-secondary: rgba(0, 0, 0, 0.6);
-        --text-muted: rgba(0, 0, 0, 0.4);
-        --divider: rgba(0, 0, 0, 0.05);
-        --green: #2ac18b;
+        --bg: #f5f6ef;
+        --bg-glow: radial-gradient(circle at 8% 12%, #d7f2d8 0%, rgba(215, 242, 216, 0) 36%),
+          radial-gradient(circle at 88% 2%, #ffe7c8 0%, rgba(255, 231, 200, 0) 40%),
+          linear-gradient(150deg, #f7f5ea 0%, #eef6ee 42%, #eef4f7 100%);
+        --card: rgba(255, 255, 255, 0.92);
+        --text-main: #18231f;
+        --text-secondary: rgba(24, 35, 31, 0.7);
+        --text-muted: rgba(24, 35, 31, 0.5);
+        --divider: rgba(15, 31, 24, 0.08);
+        --green: #24b37e;
+        --green-strong: #1ea772;
+        --shadow-soft: 0 12px 32px rgba(31, 67, 49, 0.08);
       }
 
       * { box-sizing: border-box; }
@@ -22,66 +26,15 @@
       body {
         margin: 0;
         min-height: 100vh;
-        background: var(--bg);
-        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+        background: var(--bg-glow);
         color: var(--text-main);
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
       }
 
-      body::-webkit-scrollbar {
-        display: none;
-      }
-
-      .page {
-        max-width: 402px;
-        min-height: 874px;
-        margin: 0 auto;
-        background: var(--bg);
-        padding-bottom: 134px;
-        position: relative;
-      }
-
-      .nav {
-        height: 72px;
-        display: flex;
-        align-items: flex-end;
-        justify-content: center;
-        padding-bottom: 12px;
-        position: relative;
-      }
-
-      .title {
-        font-size: 16px;
-        font-weight: 600;
-        line-height: 1;
-      }
-
-      .nav-settings {
-        position: absolute;
-        right: 12px;
-        bottom: 6px;
-        width: 32px;
-        height: 32px;
-        border: 0;
-        border-radius: 16px;
-        background: rgba(0, 0, 0, 0.04);
-        color: rgba(0, 0, 0, 0.72);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .content {
-        padding: 16px 12px 0;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-
+      body::-webkit-scrollbar { display: none; }
 
       .mi {
         font-family: "Material Symbols Rounded";
-        font-weight: 500;
-        font-style: normal;
         line-height: 1;
         display: inline-flex;
         align-items: center;
@@ -89,38 +42,284 @@
         vertical-align: middle;
       }
 
-      .meal { background: var(--card); border-radius: 2px; overflow: hidden; }
-      .meal-head { padding: 16px; display: flex; align-items: center; justify-content: space-between; }
+      .page {
+        max-width: 420px;
+        margin: 0 auto;
+        min-height: 100vh;
+        padding-bottom: 138px;
+      }
+
+      .hero {
+        margin: 6px 12px 0;
+        border-radius: 18px;
+        padding: 16px;
+        background: linear-gradient(140deg, rgba(255, 255, 255, 0.92) 0%, rgba(245, 253, 249, 0.9) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .hero-title {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      .hero-main {
+        margin-top: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 12px;
+      }
+
+      .hero-kcal {
+        font-size: 34px;
+        line-height: 1;
+        letter-spacing: -0.6px;
+        font-weight: 700;
+      }
+
+      .hero-kcal small {
+        margin-left: 4px;
+        font-size: 14px;
+        color: var(--text-muted);
+        font-weight: 500;
+      }
+
+      .hero-meta {
+        font-size: 12px;
+        color: var(--text-secondary);
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(36, 179, 126, 0.1);
+      }
+
+      .hero-nav {
+        margin-top: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .hero-nav-btn {
+        width: 34px;
+        height: 34px;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--text-main);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .hero-date-btn {
+        flex: 1;
+        border: 0;
+        height: 34px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.92);
+        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: 600;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+      }
+
+      .nav {
+        height: 86px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 0 16px 14px;
+        position: sticky;
+        top: 0;
+        z-index: 3;
+        backdrop-filter: blur(10px);
+      }
+
+      .title {
+        margin: 0;
+        font-size: 18px;
+        line-height: 1;
+        font-weight: 800;
+        letter-spacing: 0.2px;
+      }
+
+      .nav-settings {
+        position: absolute;
+        right: 14px;
+        bottom: 8px;
+        width: 34px;
+        height: 34px;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.86);
+        box-shadow: var(--shadow-soft);
+        color: rgba(24, 35, 31, 0.76);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.18s ease;
+      }
+
+      .nav-settings:active { transform: scale(0.94); }
+
+      .menu-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 25;
+      }
+
+      .settings-menu {
+        position: fixed;
+        right: calc((100vw - min(420px, 100vw)) / 2 + 14px);
+        top: 68px;
+        width: 168px;
+        background: rgba(255, 255, 255, 0.98);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+        box-shadow: 0 18px 34px rgba(15, 27, 21, 0.14);
+        padding: 6px;
+        z-index: 26;
+      }
+
+      .menu-item {
+        width: 100%;
+        height: 38px;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        text-align: left;
+        padding: 0 10px;
+        color: var(--text-main);
+        font-size: 13px;
+      }
+
+      .menu-item:active {
+        background: rgba(0, 0, 0, 0.05);
+      }
+
+      .content {
+        padding: 8px 12px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .day-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .day-title {
+        margin: 6px 2px 0;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
+
+      .meal {
+        background: var(--card);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--shadow-soft);
+        border: 1px solid rgba(255, 255, 255, 0.75);
+        animation: fadeInUp 0.35s ease both;
+        transition: transform 0.22s ease, box-shadow 0.22s ease;
+      }
+
+      .meal:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 34px rgba(31, 67, 49, 0.12);
+      }
+
+      .meal-head {
+        padding: 15px 15px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
       .meal-type { display: flex; align-items: center; gap: 12px; }
 
       .meal-icon {
-        width: 24px;
-        height: 24px;
+        width: 26px;
+        height: 26px;
         border-radius: 999px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
         color: #fff;
-        font-weight: 600;
       }
 
-      .breakfast { background: #f3a74a; }
-      .lunch { background: #f08b59; }
-      .dinner { background: #5f7ff5; }
+      .breakfast { background: linear-gradient(140deg, #f0a240 0%, #ed8957 100%); }
+      .lunch { background: linear-gradient(140deg, #e98563 0%, #d26d4e 100%); }
+      .dinner { background: linear-gradient(140deg, #5a77ea 0%, #4963d4 100%); }
 
-      .meal-name { font-size: 16px; font-weight: 500; line-height: 1; }
-      .head-value { display: flex; align-items: center; gap: 2px; font-size: 14px; line-height: 1; }
-      .head-value .main { color: var(--text-main); }
+      .meal-name { font-size: 16px; font-weight: 600; }
+      .head-value { display: flex; align-items: center; gap: 3px; font-size: 14px; }
+      .head-value .main { color: var(--text-main); font-weight: 600; }
       .head-value .muted { color: var(--text-muted); }
 
       .item {
-        border-top: 0.5px solid var(--divider);
-        padding: 16px;
+        padding: 14px 15px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 24px;
+        gap: 22px;
+        transition: background 0.16s ease;
+        background: rgba(255, 255, 255, 0.96);
+        transform: translateX(0);
+        transition: transform 0.2s ease, background 0.16s ease;
+        position: relative;
+        z-index: 2;
+      }
+
+      .item:active { background: rgba(36, 179, 126, 0.05); }
+
+      .item-swipe {
+        position: relative;
+        overflow: hidden;
+        border-top: 1px solid var(--divider);
+        touch-action: pan-y;
+      }
+
+      .item-swipe.open .item {
+        transform: translateX(-78px);
+      }
+
+      .item-action {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 78px;
+        display: flex;
+        align-items: stretch;
+        justify-content: stretch;
+        z-index: 3;
+        transform: translateX(100%);
+        transition: transform 0.2s ease;
+        pointer-events: none;
+      }
+
+      .item-swipe.open .item-action {
+        transform: translateX(0);
+        pointer-events: auto;
+      }
+
+      .item-delete-btn {
+        width: 100%;
+        border: 0;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        background: linear-gradient(160deg, #ff5a56 0%, #ea3f3f 100%);
       }
 
       .food {
@@ -128,7 +327,6 @@
         min-width: 0;
         color: var(--text-secondary);
         font-size: 14px;
-        line-height: 1;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -138,263 +336,150 @@
         flex-shrink: 0;
         color: var(--text-muted);
         font-size: 12px;
-        line-height: 1;
         display: flex;
         align-items: center;
         gap: 2px;
       }
 
-      .arrow { margin-left: 2px; }
+      .empty {
+        margin: 38px 12px 0;
+        padding: 24px 18px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.76);
+        border: 1px dashed rgba(24, 35, 31, 0.14);
+        text-align: center;
+        color: var(--text-muted);
+      }
+
+      .empty .mi {
+        font-size: 26px;
+        margin-bottom: 8px;
+        color: rgba(36, 179, 126, 0.82);
+      }
 
       .footer {
         position: fixed;
         left: 50%;
         transform: translateX(-50%);
         bottom: 0;
-        width: min(402px, 100vw);
-        background: linear-gradient(to top, var(--bg) 72%, rgba(247, 247, 247, 0));
-        padding: 20px 24px 44px;
-        z-index: 2;
+        width: min(420px, 100vw);
+        background: linear-gradient(to top, #eff4ec 68%, rgba(239, 244, 236, 0));
+        padding: 18px 20px 40px;
+        z-index: 4;
+        backdrop-filter: blur(8px);
       }
 
       .btn {
         width: 100%;
-        height: 50px;
+        height: 52px;
         border: 0;
         border-radius: 999px;
-        background: var(--green);
+        background: linear-gradient(130deg, var(--green) 0%, var(--green-strong) 100%);
         color: #fff;
         font-size: 14px;
-        font-weight: 600;
-        line-height: 1;
+        font-weight: 700;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
+        box-shadow: 0 14px 30px rgba(36, 179, 126, 0.32);
         cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .btn:active {
+        transform: translateY(1px) scale(0.99);
+        box-shadow: 0 10px 20px rgba(36, 179, 126, 0.24);
       }
 
       .sheet-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.18);
+        background: rgba(12, 20, 16, 0.26);
         display: flex;
         justify-content: center;
         align-items: flex-end;
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.2s ease;
-        z-index: 10;
-      }
-
-      .auth-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.28);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 40;
-        padding: 16px;
-      }
-
-      .auth-card {
-        width: min(402px, 100%);
-        background: #fff;
-        border-radius: 12px;
-        padding: 16px;
-      }
-
-      .auth-title {
-        font-size: 18px;
-        font-weight: 600;
-      }
-
-      .auth-note {
-        margin-top: 6px;
-        color: var(--text-muted);
-        font-size: 12px;
-      }
-
-      .auth-row {
-        margin-top: 12px;
-        display: flex;
-        gap: 8px;
-      }
-
-      .auth-input {
-        flex: 1;
-        height: 40px;
-        border: 0.5px solid rgba(0, 0, 0, 0.15);
-        border-radius: 8px;
-        padding: 0 12px;
-        font-size: 14px;
-      }
-
-      .auth-btn {
-        height: 40px;
-        border: 0;
-        border-radius: 8px;
-        padding: 0 12px;
-        background: #24c789;
-        color: #fff;
-        font-size: 13px;
-        white-space: nowrap;
-      }
-
-      .toast {
-        position: fixed;
-        left: 50%;
-        bottom: 106px;
-        transform: translateX(-50%) translateY(8px);
-        background: rgba(0, 0, 0, 0.78);
-        color: #fff;
-        border-radius: 10px;
-        padding: 10px 12px;
-        font-size: 12px;
-        line-height: 1.35;
-        max-width: min(360px, calc(100vw - 24px));
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.18s ease, transform 0.18s ease;
-        z-index: 30;
-        white-space: pre-line;
-      }
-
-      .toast.show {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
+        transition: opacity 0.22s ease;
+        z-index: 20;
       }
 
       .sheet-overlay.show { opacity: 1; pointer-events: auto; }
-
       .sheet-wrap {
-        width: min(402px, 100vw);
-        transform: translateY(16px);
-        transition: transform 0.22s ease;
+        width: min(420px, 100vw);
+        transform: translateY(24px);
+        transition: transform 0.24s ease;
       }
-
       .sheet-overlay.show .sheet-wrap { transform: translateY(0); }
 
       .sheet-card {
-        padding-bottom: env(safe-area-inset-bottom, 0);
-        background: #fff;
-        border-radius: 16px 16px 0 0;
+        background: linear-gradient(180deg, #ffffff 0%, #fbfffd 100%);
+        border-radius: 20px 20px 0 0;
         overflow: hidden;
+        box-shadow: 0 -20px 38px rgba(20, 42, 31, 0.14);
+        padding-bottom: env(safe-area-inset-bottom, 0);
       }
 
       .sheet-head {
-        padding: 19px 16px;
+        padding: 18px 16px;
         display: flex;
         align-items: center;
         justify-content: space-between;
       }
 
-      .meal-select-wrap {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-      }
-
-      .meal-prefix {
-        font-size: 16px;
-        font-weight: 500;
-        margin-right: 2px;
-      }
-
+      .meal-select-wrap { position: relative; display: inline-flex; align-items: center; }
+      .meal-prefix, .meal-select { font-size: 16px; font-weight: 600; }
       .meal-select {
         border: 0;
         background: transparent;
-        font-size: 16px;
-        font-weight: 500;
         padding-right: 16px;
         appearance: none;
-        -webkit-appearance: none;
-        color: #000;
+        color: #0e1914;
       }
-
-      .meal-select:focus {
-        outline: none;
-      }
-
-      .meal-select-arrow {
-        position: absolute;
-        right: 0;
-        pointer-events: none;
-      }
+      .meal-select:focus { outline: none; }
+      .meal-select-arrow { position: absolute; right: 0; pointer-events: none; }
 
       .close-btn {
-        width: 28px;
-        height: 28px;
+        width: 30px;
+        height: 30px;
         border: 0;
-        border-radius: 16px;
-        background: rgba(0, 0, 0, 0.03);
-        color: rgba(0, 0, 0, 0.45);
-        font-size: 20px;
-        line-height: 1;
-        cursor: pointer;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.04);
+        color: rgba(0, 0, 0, 0.52);
       }
 
       .attach {
         padding: 0 16px 16px;
         display: flex;
         gap: 10px;
-        align-items: center;
-        flex-wrap: nowrap;
         overflow-x: auto;
         scrollbar-width: none;
       }
-
-      .attach::-webkit-scrollbar {
-        display: none;
-      }
-
-      .attach.attach-empty {
-        overflow-x: visible;
-      }
+      .attach::-webkit-scrollbar { display: none; }
+      .attach.attach-empty { overflow-x: visible; }
 
       .attach-item {
-        width: 64px;
-        height: 64px;
-        border: 0.5px solid rgba(0, 0, 0, 0.1);
-        border-radius: 6px;
+        width: 66px;
+        height: 66px;
+        border: 1px solid rgba(0, 0, 0, 0.09);
+        border-radius: 8px;
         background: rgba(0, 0, 0, 0.02);
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
+        gap: 6px;
         color: var(--text-muted);
         font-size: 14px;
-        cursor: pointer;
         flex-shrink: 0;
         position: relative;
         overflow: hidden;
       }
 
-      .attach-option {
-        flex: 1 0 0;
-        min-width: 0;
-        padding: 0 16px;
-        gap: 8px;
-      }
-
-      .attach-label {
-        font-size: 14px;
-        color: var(--text-muted);
-      }
-
-      .attach-icon {
-        font-size: 24px;
-        line-height: 1;
-      }
-
-      .attach-thumb {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
+      .attach-option { flex: 1 0 0; min-width: 0; padding: 0 16px; }
+      .attach-label { font-size: 14px; color: var(--text-muted); }
+      .attach-icon { font-size: 24px; line-height: 1; }
+      .attach-thumb { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
       .thumb-delete {
         position: absolute;
@@ -404,395 +489,243 @@
         height: 24px;
         border: 0;
         border-radius: 999px;
-        background: #8b8b8b;
+        background: rgba(0, 0, 0, 0.58);
         color: #fff;
-        font-size: 15px;
-        line-height: 1;
-        cursor: pointer;
       }
 
       .native-file-input {
         position: absolute;
         inset: 0;
-        opacity: 0;
         width: 100%;
         height: 100%;
-        cursor: pointer;
+        opacity: 0;
       }
 
       .input-row {
-        border-top: 0.5px solid var(--divider);
+        border-top: 1px solid var(--divider);
         display: flex;
-        align-items: flex-end;
+        align-items: center;
         padding: 0 12px 0 16px;
+        min-height: 56px;
       }
 
       .prompt-input {
         flex: 1;
-        height: 44px;
+        height: 46px;
         border: 0;
         outline: none;
         background: transparent;
-        color: var(--text-main);
         font-size: 16px;
+        color: var(--text-main);
       }
-
-      .prompt-input::placeholder {
-        color: var(--text-muted);
-      }
+      .prompt-input::placeholder { color: var(--text-muted); }
 
       .send {
-        width: 36px;
-        height: 36px;
-        border-radius: 20px;
+        width: 37px;
+        height: 37px;
         border: 0;
-        background: var(--green);
+        border-radius: 999px;
+        margin-bottom: 0;
+        background: linear-gradient(130deg, var(--green) 0%, var(--green-strong) 100%);
         color: #fff;
-        font-size: 22px;
-        margin-bottom: 12px;
+        box-shadow: 0 8px 16px rgba(36, 179, 126, 0.28);
       }
+      .send:disabled { opacity: 0.62; }
 
-      .send:disabled {
-        opacity: 0.65;
+      .send.loading .mi {
+        animation: spin 0.9s linear infinite;
       }
 
       .parse-loading {
-        border-top: 0.5px solid var(--divider);
+        border-top: 1px solid var(--divider);
         padding: 16px;
         display: none;
         align-items: center;
         gap: 8px;
         color: var(--text-muted);
-        font-size: 14px;
       }
+      .parse-loading.show { display: flex; }
 
-      .parse-loading.show {
-        display: flex;
-      }
-
-      .result-panel {
-        display: none;
-      }
-
-      .result-panel.show {
-        display: block;
-      }
+      .result-panel { display: none; }
+      .result-panel.show { display: block; }
 
       .result-item {
-        padding: 0 16px 16px;
+        padding: 0 16px 15px;
         display: flex;
         align-items: center;
-        gap: 16px;
+        gap: 14px;
+        animation: fadeInUp 0.25s ease both;
       }
 
       .result-cover {
-        width: 48px;
-        height: 48px;
-        border-radius: 4px;
-        background: rgba(0, 0, 0, 0.04);
+        width: 50px;
+        height: 50px;
+        border-radius: 8px;
+        background: rgba(36, 179, 126, 0.1);
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 24px;
-        flex-shrink: 0;
       }
 
-      .result-text {
-        flex: 1;
-        min-width: 0;
-      }
-
-      .result-name {
-        font-size: 16px;
-        font-weight: 500;
-        line-height: 1.2;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .result-kcal {
-        margin-top: 4px;
-        font-size: 12px;
-        color: var(--text-muted);
-      }
+      .result-text { flex: 1; min-width: 0; }
+      .result-name { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .result-kcal { margin-top: 3px; font-size: 12px; color: var(--text-muted); }
 
       .result-del {
         width: 32px;
         height: 32px;
         border: 0;
         border-radius: 999px;
-        background: rgba(0, 0, 0, 0.02);
-        color: rgba(0, 0, 0, 0.75);
+        background: rgba(0, 0, 0, 0.03);
+        color: rgba(0, 0, 0, 0.74);
       }
 
       .result-actions {
-        border-top: 0.5px solid var(--divider);
+        border-top: 1px solid var(--divider);
         padding: 16px;
         display: flex;
         gap: 8px;
       }
 
-      .result-error {
-        padding: 0 16px 16px;
-        color: #d93025;
-        font-size: 13px;
-        line-height: 1.4;
-        white-space: pre-wrap;
-      }
+      .result-error { padding: 0 16px 16px; color: #cb2f31; font-size: 13px; white-space: pre-wrap; }
 
       .result-btn {
-        height: 36px;
+        height: 38px;
         border: 0;
         border-radius: 999px;
         font-size: 14px;
-        font-weight: 500;
+        font-weight: 600;
+      }
+      .result-btn.retry { width: 72px; background: rgba(0, 0, 0, 0.04); }
+      .result-btn.save { flex: 1; color: #fff; background: linear-gradient(130deg, var(--green) 0%, var(--green-strong) 100%); }
+
+      .auth-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(7, 16, 12, 0.34);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 40;
+        padding: 16px;
       }
 
-      .result-btn.retry {
-        width: 72px;
-        background: rgba(0, 0, 0, 0.03);
-        color: #000;
+      .auth-card {
+        width: min(420px, 100%);
+        background: rgba(255, 255, 255, 0.98);
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 24px 56px rgba(18, 42, 30, 0.2);
       }
 
-      .result-btn.save {
+      .auth-title { font-size: 20px; font-weight: 700; }
+      .auth-note { margin-top: 6px; color: var(--text-muted); font-size: 12px; }
+
+      .auth-row { margin-top: 12px; display: flex; gap: 8px; }
+      .auth-input {
         flex: 1;
-        background: var(--green);
+        height: 42px;
+        border: 1px solid rgba(0, 0, 0, 0.13);
+        border-radius: 10px;
+        padding: 0 12px;
+        font-size: 14px;
+      }
+      .auth-btn {
+        height: 40px;
+        border: 0;
+        border-radius: 10px;
+        padding: 0 12px;
+        background: linear-gradient(130deg, var(--green) 0%, var(--green-strong) 100%);
         color: #fff;
+        font-size: 13px;
       }
 
-      @media (max-width: 402px) {
-        .page { min-height: 100vh; }
-        .title { font-size: 16px; }
+      .toast-action-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .toast-action-btn {
+        border: 0;
+        background: rgba(255, 255, 255, 0.18);
+        color: #fff;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        pointer-events: auto;
+        position: relative;
+        z-index: 2;
+      }
+
+      .undo-toast {
+        position: fixed;
+        left: 50%;
+        bottom: 108px;
+        transform: translateX(-50%);
+        max-width: min(360px, calc(100vw - 24px));
+        background: rgba(8, 14, 11, 0.9);
+        color: #fff;
+        border-radius: 12px;
+        padding: 10px 12px;
+        font-size: 12px;
+        line-height: 1.35;
+        z-index: 9999;
+        pointer-events: auto;
+        isolation: isolate;
+      }
+
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * { animation: none !important; transition: none !important; }
+      }
+
+      @media (max-width: 420px) {
+        .page { max-width: 100vw; }
       }
     </style>
   </head>
   <body>
-    <div class="toast" id="toast"></div>
-    <div class="auth-overlay" id="authOverlay">
-      <div class="auth-card">
-        <div class="auth-title">账号登录</div>
-        <div class="auth-note">使用邮箱 + 密码登录。首次使用请先注册。</div>
-        <div class="auth-row">
-          <input class="auth-input" id="emailInput" placeholder="you@example.com" />
-        </div>
-        <div class="auth-row">
-          <input class="auth-input" id="passwordInput" type="password" placeholder="请输入密码" />
-        </div>
-        <div class="auth-row">
-          <button class="auth-btn" id="signUpBtn" type="button">注册</button>
-          <button class="auth-btn" id="signInBtn" type="button">登录</button>
-        </div>
-      </div>
-    </div>
+    <div id="root"></div>
 
-    <main class="page" data-node-id="1:6018">
-      <header class="nav" data-node-id="1:6019">
-        <h1 class="title">我的饮食</h1>
-        <button class="nav-settings" id="openConfigBtn" type="button" aria-label="设置">
-          <span class="mi" style="font-size:18px">settings</span>
-        </button>
-      </header>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-      <section class="content" id="recordsContent" data-node-id="1:6020"></section>
-    </main>
+    <script type="text/babel">
+      const { useEffect, useMemo, useRef, useState } = React;
 
-    <div class="footer" data-node-id="1:6198">
-      <button class="btn" id="openSheetBtn" type="button"><span class="mi" style="font-size:22px">edit</span> 添加数据</button>
-    </div>
-
-    <div class="sheet-overlay" id="sheetOverlay">
-      <div class="sheet-wrap" data-node-id="1:9382">
-        <div class="sheet-card" data-node-id="1:9385">
-          <div class="sheet-head" data-node-id="1:9387">
-            <div class="meal-select-wrap">
-              <span class="meal-prefix">记</span>
-              <select class="meal-select" id="mealSelectNative">
-                <option value="早餐">早餐</option>
-                <option value="午餐">午餐</option>
-                <option value="晚餐">晚餐</option>
-              </select>
-              <span class="mi meal-select-arrow" style="font-size:14px">keyboard_arrow_down</span>
-            </div>
-            <button class="close-btn" id="closeSheetBtn" type="button"><span class="mi" style="font-size:18px">close</span></button>
-          </div>
-
-          <div class="attach" id="attachList" data-node-id="1:10669"></div>
-
-          <div class="result-panel" id="resultPanel" data-node-id="3:3967">
-            <div id="resultList"></div>
-            <div class="result-error" id="resultError" style="display:none"></div>
-            <div class="result-actions">
-              <button class="result-btn retry" id="retryBtn" type="button">重试</button>
-              <button class="result-btn save" id="saveBtn" type="button"><span class="mi" style="font-size:16px">check</span> 保存记录</button>
-            </div>
-          </div>
-
-          <div class="parse-loading" id="parseLoading">
-            <span class="mi" style="font-size:18px">progress_activity</span>
-            <span>AI 正在解析...</span>
-          </div>
-
-          <div class="input-row" id="inputRow" data-node-id="1:9389">
-            <input class="prompt-input" id="dietInput" type="text" placeholder="例：我今天中午吃了 1 个汉堡" />
-            <button class="send" id="sendBtn" type="button"><span class="mi" style="font-size:22px">arrow_upward</span></button>
-          </div>
-
-                    </div>
-        </div>
-      </div>
-    </div>
-
-
-
-    <input id="cameraInput" type="file" accept="image/*" capture="environment" style="display:none" />
-
-    <script>
       const SUPABASE_URL = "https://fwwsoilsbgympvkajnih.supabase.co";
       const SUPABASE_ANON_KEY = "sb_publishable_NJQJKRnn5mYgRZ6AErlyZg_dAfrmnmN";
-      const APP_PUBLIC_URL = "https://record-food-demo.spg4qzypsy.workers.dev";
       const SUPABASE_HEADERS = {
         apikey: SUPABASE_ANON_KEY,
         "Content-Type": "application/json"
       };
+
       const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
       });
 
-      const overlay = document.getElementById("sheetOverlay");
-      const authOverlay = document.getElementById("authOverlay");
-      const emailInput = document.getElementById("emailInput");
-      const passwordInput = document.getElementById("passwordInput");
-      const signUpBtn = document.getElementById("signUpBtn");
-      const signInBtn = document.getElementById("signInBtn");
-      const openConfigBtn = document.getElementById("openConfigBtn");
-      const openBtn = document.getElementById("openSheetBtn");
-      const closeBtn = document.getElementById("closeSheetBtn");
-      const mealSelectNative = document.getElementById("mealSelectNative");
-      const cameraInput = document.getElementById("cameraInput");
-      const attachList = document.getElementById("attachList");
-      const inputRow = document.getElementById("inputRow");
-      const sendBtn = document.getElementById("sendBtn");
-      const parseLoading = document.getElementById("parseLoading");
-      const resultPanel = document.getElementById("resultPanel");
-      const resultList = document.getElementById("resultList");
-      const resultError = document.getElementById("resultError");
-      const toast = document.getElementById("toast");
-      const retryBtn = document.getElementById("retryBtn");
-      const saveBtn = document.getElementById("saveBtn");
-      const dietInput = document.getElementById("dietInput");
-      const recordsContent = document.getElementById("recordsContent");
       const MAX_ATTACHMENTS = 5;
-      const attachments = [];
-      let parseTimer = null;
-      let toastTimer = null;
-      let parsedResults = [];
-      let scrollBeforeKeyboard = 0;
-      let viewportHeightBeforeKeyboard = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-      let selectedMeal = "早餐";
-      let backendRecords = [];
-      let currentSession = null;
-      let currentUser = null;
-
-      function getRestHeaders() {
-        const token = currentSession?.access_token || SUPABASE_ANON_KEY;
-        return {
-          ...SUPABASE_HEADERS,
-          Authorization: "Bearer " + token
-        };
-      }
-
-      function requireAuth() {
-        return Boolean(currentUser?.id);
-      }
-
-      function getStoredRecords() {
-        return Array.isArray(backendRecords) ? backendRecords : [];
-      }
-
-      async function saveStoredRecords(records) {
-        if (!currentUser?.id) throw new Error("未登录，无法保存");
-        const userFilter = "?user_id=eq." + encodeURIComponent(currentUser.id);
-        const response = await fetch(SUPABASE_URL + "/rest/v1/diet_records" + userFilter, {
-          method: "DELETE",
-          headers: getRestHeaders()
-        });
-        if (!response.ok) throw new Error("清空旧记录失败");
-        if (records.length === 0) {
-          backendRecords = [];
-          return;
-        }
-        const insertRes = await fetch(SUPABASE_URL + "/rest/v1/diet_records", {
-          method: "POST",
-          headers: {
-            ...getRestHeaders(),
-            Prefer: "return=representation"
-          },
-          body: JSON.stringify(
-            records.map((record) => ({
-              user_id: currentUser.id,
-              meal: record.meal,
-              items: Array.isArray(record.items) ? record.items : [],
-              created_at: record.created_at || new Date().toISOString()
-            }))
-          )
-        });
-        if (!insertRes.ok) throw new Error("写入记录失败");
-        const saved = await insertRes.json();
-        backendRecords = Array.isArray(saved) ? saved : [];
-      }
+      const MEALS = ["早餐", "午餐", "晚餐"];
 
       function getMealVisual(meal) {
         if (meal === "早餐") return { cls: "breakfast", icon: "wb_twilight" };
         if (meal === "午餐") return { cls: "lunch", icon: "light_mode" };
         return { cls: "dinner", icon: "nightlight" };
-      }
-
-      function renderRecords() {
-        const records = getStoredRecords();
-        recordsContent.innerHTML = "";
-        if (records.length === 0) return;
-        const grouped = { 早餐: [], 午餐: [], 晚餐: [] };
-        records.forEach((record) => {
-          if (!grouped[record.meal]) grouped[record.meal] = [];
-          grouped[record.meal].push(...(Array.isArray(record.items) ? record.items : []));
-        });
-        ["早餐", "午餐", "晚餐"].forEach((meal) => {
-          const items = grouped[meal] || [];
-          if (items.length === 0) return;
-          const visual = getMealVisual(meal);
-          const total = items.reduce((sum, item) => sum + (Number(item.kcal) || 0), 0);
-          const article = document.createElement("article");
-          article.className = "meal";
-          article.innerHTML =
-            '<div class="meal-head"><div class="meal-type"><span class="meal-icon ' + visual.cls + '"><span class="mi" style="font-size:14px">' + visual.icon + '</span></span><span class="meal-name">' + meal + '</span></div><div class="head-value"><span class="main">' + total + '</span><span class="muted"> 千卡</span></div></div>';
-          items.forEach((item) => {
-            const row = document.createElement("div");
-            row.className = "item";
-            const emoji = (item.emoji && String(item.emoji).trim()) || "🍽️";
-            row.innerHTML =
-              '<span class="food">' + emoji + " " + (item.name || "未命名食物") + ' ' + (item.portion || "1份") + '</span>' +
-              '<span class="kcal">' + (Number(item.kcal) || 0) + ' 千卡 <span class="arrow"><span class="mi" style="font-size:14px">chevron_right</span></span></span>';
-            article.appendChild(row);
-          });
-          recordsContent.appendChild(article);
-        });
-      }
-
-      function formatBytes(size) {
-        if (size < 1024) return size + "B";
-        if (size < 1024 * 1024) return (size / 1024).toFixed(1) + "KB";
-        return (size / (1024 * 1024)).toFixed(2) + "MB";
-      }
-
-      function showToast(message) {
-        toast.textContent = message;
-        toast.classList.add("show");
-        if (toastTimer) clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => {
-          toast.classList.remove("show");
-          toastTimer = null;
-        }, 2200);
       }
 
       function getDefaultMealByTime() {
@@ -802,152 +735,27 @@
         return "晚餐";
       }
 
-      function setMeal(meal) {
-        selectedMeal = meal;
-        mealSelectNative.value = meal;
+      function getDateKey(dateValue) {
+        const date = new Date(dateValue || Date.now());
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, "0");
+        const d = String(date.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
       }
 
-      function openSheet() {
-        overlay.classList.add("show");
-        setTimeout(() => {
-          const input = document.getElementById("dietInput");
-          if (input) input.focus();
-        }, 60);
+      function getDateLabel(dateKey) {
+        const todayKey = getDateKey(Date.now());
+        if (dateKey === todayKey) return "今天";
+        const d = new Date(dateKey + "T00:00:00");
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${d.getFullYear()}-${m}-${day}`;
       }
 
-      function closeSheet() {
-        overlay.classList.remove("show");
-        if (parseTimer) {
-          clearTimeout(parseTimer);
-          parseTimer = null;
-        }
-      }
-
-      openBtn.addEventListener("click", openSheet);
-      closeBtn.addEventListener("click", closeSheet);
-
-      overlay.addEventListener("click", (event) => {
-        if (event.target === overlay) closeSheet();
-      });
-
-      function setPanelMode(mode) {
-        const showInput = mode === "input";
-        const showLoading = mode === "loading";
-        const showResult = mode === "result";
-        inputRow.style.display = showInput ? "flex" : "none";
-        attachList.style.display = showInput ? "flex" : "none";
-        parseLoading.classList.toggle("show", showLoading);
-        resultPanel.classList.toggle("show", showResult);
-      }
-
-      function renderAttachments() {
-        const canAddMore = attachments.length < MAX_ATTACHMENTS;
-        attachList.innerHTML = "";
-        const isEmpty = attachments.length === 0;
-        attachList.classList.toggle("attach-empty", isEmpty);
-
-        attachments.forEach((item, index) => {
-          const thumb = document.createElement("div");
-          thumb.className = "attach-item";
-          thumb.innerHTML = '<img class="attach-thumb" alt="" src="' + item.url + '" /><button class="thumb-delete" type="button"><span class="mi" style="font-size:18px">close</span></button>';
-          thumb.querySelector(".thumb-delete").addEventListener("click", (event) => {
-            event.stopPropagation();
-            URL.revokeObjectURL(item.url);
-            attachments.splice(index, 1);
-            renderAttachments();
-          });
-          attachList.appendChild(thumb);
-        });
-
-        if (canAddMore) {
-          const cameraBtnEl = document.createElement("button");
-          cameraBtnEl.className = isEmpty ? "attach-item attach-option" : "attach-item";
-          cameraBtnEl.type = "button";
-          cameraBtnEl.innerHTML = isEmpty
-            ? '<span class="mi attach-icon">photo_camera</span><span class="attach-label">拍照</span>'
-            : '<span class="mi attach-icon">photo_camera</span>';
-          cameraBtnEl.addEventListener("click", () => cameraInput.click());
-          attachList.appendChild(cameraBtnEl);
-
-          const galleryLabel = document.createElement("label");
-          galleryLabel.className = isEmpty ? "attach-item attach-option" : "attach-item";
-          galleryLabel.innerHTML = isEmpty
-            ? '<span class="mi attach-icon">photo_library</span><span class="attach-label">相册</span><input id="galleryInput" class="native-file-input" type="file" accept="image/*" multiple />'
-            : '<span class="mi attach-icon">photo_library</span><input id="galleryInput" class="native-file-input" type="file" accept="image/*" multiple />';
-          attachList.appendChild(galleryLabel);
-
-          const galleryInputEl = galleryLabel.querySelector("#galleryInput");
-          galleryInputEl.addEventListener("change", handlePickedFile);
-        }
-      }
-
-      async function pushFiles(files) {
-        if (!files || files.length === 0) return;
-        const available = Math.max(0, MAX_ATTACHMENTS - attachments.length);
-        const picked = files.slice(0, available);
-        if (picked.length === 0) return;
-
-        const compressed = await Promise.all(picked.map((file) => compressImageFile(file)));
-        compressed.forEach((item, index) => {
-          const blob = item.blob;
-          attachments.push({
-            file: new File([blob], picked[index].name, { type: item.mimeType }),
-            url: URL.createObjectURL(blob),
-            originalSize: item.originalSize,
-            compressedSize: item.compressedSize
-          });
-        });
-        renderAttachments();
-
-        const totalCompressed = compressed.reduce((sum, item) => sum + item.compressedSize, 0);
-      }
-
-      async function handlePickedFile(event) {
-        const files = event.target.files ? Array.from(event.target.files) : [];
-        try {
-          await pushFiles(files);
-        } catch (error) {
-          console.error("compress-on-add-failed", error);
-          showToast("图片压缩失败，请重试");
-        }
-        event.target.value = "";
-      }
-
-      function estimateKcal(name) {
-        const base = 80 + name.length * 18;
-        return Math.max(60, Math.min(460, base));
-      }
-
-      function buildParsedResults(inputText) {
-        const normalized = inputText
-          .replace(/[，、。；;]+/g, ",")
-          .replace(/\s+/g, ",")
-          .split(",")
-          .map((x) => x.trim())
-          .filter(Boolean);
-        const deduped = [...new Set(normalized)];
-        const names = (deduped.length ? deduped : ["西兰花", "鸡胸肉"]).slice(0, 5);
-        return names.map((name) => ({ name, kcal: estimateKcal(name), emoji: "🥦", portion: "1份" }));
-      }
-
-      function getSystemPrompt() {
-        return `你是饮食记录解析助手。只返回合法 JSON（不要 Markdown、不要解释）。
-输出结构固定：
-{
-  "meal": "早餐|午餐|晚餐",
-  "items": [{"name":"string","portion":"string","kcal":123,"confidence":0.0,"emoji":"string"}],
-  "notes": "string"
-}
-约束：
-1) meal 必须等于输入参数 meal。
-2) items 按 confidence 降序；最多 20 条。
-3) 每个 item 必含 name/portion/kcal/confidence/emoji，不能缺字段。
-4) name 用简体中文短名称（<=12字）；portion 用常见单位（份/个/碗/杯/克），不确定填“1份”。
-5) kcal 为 0~3000 的整数；confidence 为 0~1 且保留两位小数。
-6) 同一食物跨图去重合并；文本与图片冲突时以图片为主，图片不清晰再参考文本。
-7) 若图片或文本明确给出热量，优先使用该热量。
-8) emoji 需返回最接近食物语义的单个 emoji（如 🍚🥦🍗🥛🍎），无法判断时用 🍽️。
-9) 无法识别时返回 items: []，并在 notes 说明原因；禁止编造。`;
+      function shiftDateKey(dateKey, offsetDays) {
+        const d = new Date((dateKey || getDateKey(Date.now())) + "T00:00:00");
+        d.setDate(d.getDate() + offsetDays);
+        return getDateKey(d);
       }
 
       function blobToBase64(blob) {
@@ -963,55 +771,67 @@
         });
       }
 
-      function extractJsonText(raw) {
-        const text = String(raw || "").trim();
-        if (!text) return "{}";
-        const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
-        if (fenceMatch && fenceMatch[1]) return fenceMatch[1].trim();
-        const first = text.indexOf("{");
-        const last = text.lastIndexOf("}");
-        if (first !== -1 && last !== -1 && last > first) return text.slice(first, last + 1);
-        return text;
+      async function compressImageFile(file, options = {}) {
+        const maxSide = options.maxSide || 1280;
+        const quality = options.quality || 0.78;
+        const mimeType = options.mimeType || "image/jpeg";
+        let sourceWidth = 0;
+        let sourceHeight = 0;
+        let drawSource = null;
+
+        if (typeof createImageBitmap === "function") {
+          const bitmap = await createImageBitmap(file);
+          sourceWidth = bitmap.width;
+          sourceHeight = bitmap.height;
+          drawSource = bitmap;
+        } else {
+          const imageUrl = URL.createObjectURL(file);
+          const image = await new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = imageUrl;
+          });
+          sourceWidth = image.naturalWidth || image.width;
+          sourceHeight = image.naturalHeight || image.height;
+          drawSource = image;
+          URL.revokeObjectURL(imageUrl);
+        }
+
+        const scale = Math.min(1, maxSide / Math.max(sourceWidth, sourceHeight));
+        const targetWidth = Math.max(1, Math.round(sourceWidth * scale));
+        const targetHeight = Math.max(1, Math.round(sourceHeight * scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(drawSource, 0, 0, targetWidth, targetHeight);
+
+        const compressedBlob = await new Promise((resolve) => {
+          canvas.toBlob((blob) => resolve(blob || file), mimeType, quality);
+        });
+
+        return {
+          originalSize: file.size,
+          compressedSize: compressedBlob.size || file.size,
+          blob: compressedBlob,
+          mimeType: compressedBlob.type || mimeType
+        };
       }
 
       async function callGeminiParse({ meal, inputText, compressedAttachments }) {
         const imageParts = [];
         for (const item of compressedAttachments) {
           const base64 = await blobToBase64(item.blob);
-          imageParts.push({
-            inline_data: {
-              mime_type: item.mimeType || "image/jpeg",
-              data: base64
-            }
-          });
+          imageParts.push({ mimeType: item.mimeType || "image/jpeg", base64 });
         }
-
-        const userPrompt = `请解析本次饮食记录。
-
-参数：
-- meal: ${meal}
-- text_input: ${inputText || "(空)"}
-- image_count: ${compressedAttachments.length}
-
-要求：
-- 严格按系统要求返回 JSON。
-- 若 text_input 与图片冲突，以图片为主。
-- 若有多张图片，做跨图去重合并。`;
 
         const response = await fetch(SUPABASE_URL + "/functions/v1/parse-food", {
           method: "POST",
-          headers: {
-            ...SUPABASE_HEADERS
-          },
-          body: JSON.stringify({
-            meal,
-            text: inputText,
-            images: imageParts.map((p) => ({
-              mimeType: p.inline_data.mime_type,
-              base64: p.inline_data.data
-            }))
-          })
+          headers: { ...SUPABASE_HEADERS },
+          body: JSON.stringify({ meal, text: inputText, images: imageParts })
         });
+
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data?.error || data?.message || "parse-food request failed");
@@ -1031,261 +851,724 @@
         }));
       }
 
-      async function compressImageFile(file, options = {}) {
-        const maxSide = options.maxSide || 1280;
-        const quality = options.quality || 0.78;
-        const mimeType = options.mimeType || "image/jpeg";
-        let sourceWidth = 0;
-        let sourceHeight = 0;
-        let drawSource = null;
-        if (typeof createImageBitmap === "function") {
-          const bitmap = await createImageBitmap(file);
-          sourceWidth = bitmap.width;
-          sourceHeight = bitmap.height;
-          drawSource = bitmap;
-        } else {
-          const imageUrl = URL.createObjectURL(file);
-          const image = await new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => resolve(img);
-            img.onerror = reject;
-            img.src = imageUrl;
+      function App() {
+        const [sheetOpen, setSheetOpen] = useState(false);
+        const [panelMode, setPanelMode] = useState("input");
+        const [selectedMeal, setSelectedMeal] = useState(getDefaultMealByTime());
+        const [attachments, setAttachments] = useState([]);
+        const [parsedResults, setParsedResults] = useState([]);
+        const [inputText, setInputText] = useState("");
+        const [isSending, setIsSending] = useState(false);
+        const [records, setRecords] = useState([]);
+        const [authVisible, setAuthVisible] = useState(true);
+        const [email, setEmail] = useState("");
+        const [password, setPassword] = useState("");
+        const [currentSession, setCurrentSession] = useState(null);
+        const [currentUser, setCurrentUser] = useState(null);
+        const [currentDateKey, setCurrentDateKey] = useState(getDateKey(Date.now()));
+        const [swipedItemKey, setSwipedItemKey] = useState("");
+        const [pendingDeletion, setPendingDeletion] = useState(null);
+        const [undoToast, setUndoToast] = useState(null);
+        const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
+        const [parseError, setParseError] = useState("");
+
+        const cameraInputRef = useRef(null);
+        const galleryInputRef = useRef(null);
+        const dateInputRef = useRef(null);
+        const touchStartXRef = useRef(null);
+        const rowTouchRef = useRef({ key: "", x: 0, y: 0 });
+        const pendingDeletionRef = useRef(null);
+        const rowPointerRef = useRef({ key: "", x: 0, y: 0, moved: false });
+
+        const selectedDateTotalKcal = useMemo(() => {
+          return records
+            .filter((record) => getDateKey(record?.created_at) === currentDateKey)
+            .reduce((sum, record) => {
+            const recordTotal = Array.isArray(record?.items)
+              ? record.items.reduce((sub, item) => sub + (Number(item?.kcal) || 0), 0)
+              : 0;
+            return sum + recordTotal;
+          }, 0);
+        }, [records, currentDateKey]);
+
+        const selectedDateRecordCount = useMemo(() => {
+          return records
+            .filter((record) => getDateKey(record?.created_at) === currentDateKey)
+            .reduce((sum, record) => sum + (Array.isArray(record?.items) ? record.items.length : 0), 0);
+        }, [records, currentDateKey]);
+
+        const currentDayMeals = useMemo(() => {
+          const target = records.filter((record) => getDateKey(record?.created_at) === currentDateKey);
+          const grouped = { 早餐: [], 午餐: [], 晚餐: [] };
+          target.forEach((record) => {
+            const meal = record?.meal;
+            if (!grouped[meal]) grouped[meal] = [];
+            const recordIndex = records.indexOf(record);
+            (Array.isArray(record.items) ? record.items : []).forEach((item, itemIndex) => {
+              grouped[meal].push({
+                item,
+                recordIndex,
+                itemIndex,
+                key: `${recordIndex}-${itemIndex}-${meal}`
+              });
+            });
           });
-          sourceWidth = image.naturalWidth || image.width;
-          sourceHeight = image.naturalHeight || image.height;
-          drawSource = image;
-          URL.revokeObjectURL(imageUrl);
+          return grouped;
+        }, [records, currentDateKey]);
+
+        function closeSheetPanel() { setSheetOpen(false); }
+
+        useEffect(() => {
+          pendingDeletionRef.current = pendingDeletion;
+        }, [pendingDeletion]);
+
+        function getRestHeaders(sessionArg = currentSession) {
+          const token = sessionArg?.access_token || SUPABASE_ANON_KEY;
+          return {
+            ...SUPABASE_HEADERS,
+            Authorization: "Bearer " + token
+          };
         }
-        const scale = Math.min(1, maxSide / Math.max(sourceWidth, sourceHeight));
-        const targetWidth = Math.max(1, Math.round(sourceWidth * scale));
-        const targetHeight = Math.max(1, Math.round(sourceHeight * scale));
-        const canvas = document.createElement("canvas");
-        canvas.width = targetWidth;
-        canvas.height = targetHeight;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(drawSource, 0, 0, targetWidth, targetHeight);
-        const compressedBlob = await new Promise((resolve) => {
-          canvas.toBlob((blob) => resolve(blob || file), mimeType, quality);
-        });
-        return {
-          originalSize: file.size,
-          compressedSize: compressedBlob.size || file.size,
-          blob: compressedBlob,
-          width: targetWidth,
-          height: targetHeight,
-          mimeType: compressedBlob.type || mimeType
-        };
-      }
 
-      async function prepareCompressedAttachments() {
-        const compressed = attachments.map((item) => ({
-          originalSize: item.originalSize || item.file.size,
-          compressedSize: item.compressedSize || item.file.size,
-          blob: item.file,
-          mimeType: item.file.type || "image/jpeg"
-        }));
-        const totalOriginal = compressed.reduce((sum, item) => sum + item.originalSize, 0);
-        const totalCompressed = compressed.reduce((sum, item) => sum + item.compressedSize, 0);
-        return { compressed, totalOriginal, totalCompressed };
-      }
+        function cleanupAttachments(next = attachments) {
+          next.forEach((item) => {
+            if (item?.url) URL.revokeObjectURL(item.url);
+          });
+        }
 
-      function renderResultList() {
-        resultError.style.display = "none";
-        resultError.textContent = "";
-        resultList.innerHTML = "";
-        parsedResults.forEach((item, index) => {
-          const row = document.createElement("div");
-          row.className = "result-item";
-          row.innerHTML =
-            '<div class="result-cover">' + item.emoji + '</div>' +
-            '<div class="result-text"><div class="result-name">' + item.name +
-            '</div><div class="result-kcal">' + item.kcal + ' 千卡 · ' + (item.portion || "1份") + '</div></div>' +
-            '<button class="result-del" type="button"><span class="mi" style="font-size:18px">delete</span></button>';
-          row.querySelector(".result-del").addEventListener("click", () => {
-            parsedResults.splice(index, 1);
-            renderResultList();
-            if (parsedResults.length === 0) setPanelMode("input");
-          });
-          resultList.appendChild(row);
-        });
-      }
+        function cloneRecords(srcRecords) {
+          return srcRecords.map((record) => ({
+            ...record,
+            items: Array.isArray(record.items) ? record.items.map((item) => ({ ...item })) : []
+          }));
+        }
 
-      async function startParse() {
-        const inputText = dietInput.value.trim();
-        const hasInput = inputText.length > 0 || attachments.length > 0;
-        if (!hasInput) return;
-        sendBtn.disabled = true;
-        setPanelMode("loading");
-        try {
-          const { compressed, totalOriginal, totalCompressed } = await prepareCompressedAttachments();
-          console.log("attachments-compressed", {
-            count: compressed.length,
-            totalOriginal,
-            totalCompressed,
-            savingRatio: totalOriginal > 0 ? (1 - totalCompressed / totalOriginal).toFixed(3) : "0.000"
-          });
-          const aiObject = await callGeminiParse({
-            meal: selectedMeal,
-            inputText,
-            compressedAttachments: compressed
-          });
-          const normalized = normalizeAiItems(aiObject);
-          if (normalized.length === 0) {
-            const modelReason = String(aiObject?.notes || "").trim() || "模型未返回可用食物条目。";
-            parsedResults = [];
-            resultList.innerHTML = "";
-            resultError.style.display = "block";
-            resultError.textContent = "解析结果不可用：\n" + modelReason;
-          } else {
-            parsedResults = normalized;
-            renderResultList();
+        function buildRecordsAfterDelete(srcRecords, recordIndex, itemIndex) {
+          const next = cloneRecords(srcRecords);
+          const targetRecord = next[recordIndex];
+          if (!targetRecord || !Array.isArray(targetRecord.items) || !targetRecord.items[itemIndex]) return null;
+          targetRecord.items.splice(itemIndex, 1);
+          return next.filter((record) => Array.isArray(record.items) && record.items.length > 0);
+        }
+
+        async function initBackendState(nextUser = currentUser, nextSession = currentSession) {
+          if (!nextUser?.id) {
+            setRecords([]);
+            return;
           }
-          setPanelMode("result");
-          sendBtn.disabled = false;
-        } catch (error) {
-          console.error("parse-failed", error);
-          parsedResults = [];
-          resultList.innerHTML = "";
-          resultError.style.display = "block";
-          resultError.textContent = "解析失败：\n" + (error?.message || "未知错误");
-          setPanelMode("result");
-          sendBtn.disabled = false;
-        }
-      }
-
-      cameraInput.addEventListener("change", handlePickedFile);
-      mealSelectNative.addEventListener("change", () => setMeal(mealSelectNative.value));
-      sendBtn.addEventListener("click", startParse);
-      retryBtn.addEventListener("click", () => {
-        setPanelMode("input");
-        setTimeout(() => dietInput.focus(), 60);
-      });
-      saveBtn.addEventListener("click", () => {
-        if (parsedResults.length === 0) {
-          showToast("没有可保存的记录");
-          return;
-        }
-        const records = getStoredRecords();
-        records.push({
-          meal: selectedMeal,
-          items: parsedResults.map((item) => ({
-            name: item.name,
-            portion: item.portion || "1份",
-            kcal: Number(item.kcal) || 0,
-            confidence: Number(item.confidence) || 0,
-            emoji: String(item.emoji || "🍽️")
-          })),
-          created_at: new Date().toISOString()
-        });
-        saveStoredRecords(records)
-          .then(() => {
-            renderRecords();
-          })
-          .catch((e) => {
-            console.error("save-records-failed", e);
-            showToast("保存失败：" + (e?.message || "未知错误"));
-          });
-        setPanelMode("input");
-        dietInput.value = "";
-        parsedResults = [];
-      });
-      openConfigBtn.addEventListener("click", () => {
-        showToast("模型配置已由后端统一管理");
-      });
-      dietInput.addEventListener("focus", () => {
-        scrollBeforeKeyboard = window.scrollY || window.pageYOffset || 0;
-      });
-      dietInput.addEventListener("blur", () => {
-        setTimeout(() => window.scrollTo(0, scrollBeforeKeyboard), 80);
-      });
-      if (window.visualViewport) {
-        window.visualViewport.addEventListener("resize", () => {
-          const current = window.visualViewport.height;
-          const keyboardLikelyClosed = current > viewportHeightBeforeKeyboard + 40;
-          if (keyboardLikelyClosed) {
-            setTimeout(() => window.scrollTo(0, scrollBeforeKeyboard), 60);
+          try {
+            const recordsRes = await fetch(
+              SUPABASE_URL + "/rest/v1/diet_records?select=meal,items,created_at&order=created_at.asc",
+              { headers: getRestHeaders(nextSession) }
+            );
+            if (recordsRes.ok) {
+              const recRows = await recordsRes.json();
+              setRecords(Array.isArray(recRows) ? recRows : []);
+            }
+          } catch (error) {
+            console.error("init-backend-failed", error);
           }
-          viewportHeightBeforeKeyboard = current;
-        });
-      }
-      window.addEventListener("beforeunload", () => {
-        attachments.forEach((item) => URL.revokeObjectURL(item.url));
-      });
-      setPanelMode("input");
-      setMeal(getDefaultMealByTime());
-      async function initBackendState() {
-        if (!requireAuth()) {
-          backendRecords = [];
-          renderRecords();
-          return;
         }
-        try {
-          const recordsRes = await fetch(SUPABASE_URL + "/rest/v1/diet_records?select=meal,items,created_at&order=created_at.asc", {
+
+        async function saveStoredRecords(nextRecords) {
+          if (!currentUser?.id) throw new Error("未登录，无法保存");
+          const userFilter = "?user_id=eq." + encodeURIComponent(currentUser.id);
+          const response = await fetch(SUPABASE_URL + "/rest/v1/diet_records" + userFilter, {
+            method: "DELETE",
             headers: getRestHeaders()
           });
-          if (recordsRes.ok) {
-            const recRows = await recordsRes.json();
-            backendRecords = Array.isArray(recRows) ? recRows : [];
+          if (!response.ok) throw new Error("清空旧记录失败");
+          if (nextRecords.length === 0) {
+            setRecords([]);
+            return;
           }
-        } catch (e) {
-          console.error("init-backend-failed", e);
-          showToast("后端读取失败，请检查 Supabase 配置");
-        } finally {
-          renderRecords();
+          const insertRes = await fetch(SUPABASE_URL + "/rest/v1/diet_records", {
+            method: "POST",
+            headers: { ...getRestHeaders(), Prefer: "return=representation" },
+            body: JSON.stringify(
+              nextRecords.map((record) => ({
+                user_id: currentUser.id,
+                meal: record.meal,
+                items: Array.isArray(record.items) ? record.items : [],
+                created_at: record.created_at || new Date().toISOString()
+              }))
+            )
+          });
+          if (!insertRes.ok) throw new Error("写入记录失败");
+          const saved = await insertRes.json();
+          setRecords(Array.isArray(saved) ? saved : []);
         }
+
+        async function pushFiles(fileList) {
+          if (!fileList || fileList.length === 0) return;
+          const available = Math.max(0, MAX_ATTACHMENTS - attachments.length);
+          const picked = fileList.slice(0, available);
+          if (picked.length === 0) return;
+          const compressed = await Promise.all(picked.map((file) => compressImageFile(file)));
+
+          setAttachments((prev) => [
+            ...prev,
+            ...compressed.map((item, index) => {
+              const blob = item.blob;
+              return {
+                file: new File([blob], picked[index].name, { type: item.mimeType }),
+                url: URL.createObjectURL(blob),
+                originalSize: item.originalSize,
+                compressedSize: item.compressedSize
+              };
+            })
+          ]);
+        }
+
+        async function handlePickedFile(event) {
+          const files = event.target.files ? Array.from(event.target.files) : [];
+          try {
+            await pushFiles(files);
+          } catch (error) {
+            console.error("compress-on-add-failed", error);
+          }
+          event.target.value = "";
+        }
+
+        async function startParse() {
+          const text = inputText.trim();
+          if (!text && attachments.length === 0) return;
+          setIsSending(true);
+          setPanelMode("loading");
+          setParseError("");
+
+          try {
+            const compressed = attachments.map((item) => ({
+              blob: item.file,
+              mimeType: item.file.type || "image/jpeg",
+              originalSize: item.originalSize || item.file.size,
+              compressedSize: item.compressedSize || item.file.size
+            }));
+            const aiObject = await callGeminiParse({
+              meal: selectedMeal,
+              inputText: text,
+              compressedAttachments: compressed
+            });
+            const normalized = normalizeAiItems(aiObject);
+            if (normalized.length === 0) {
+              const modelReason = String(aiObject?.notes || "").trim() || "模型未返回可用食物条目。";
+              setParsedResults([]);
+              setParseError("解析结果不可用：\n" + modelReason);
+            } else {
+              setParsedResults(normalized);
+            }
+            setPanelMode("result");
+          } catch (error) {
+            console.error("parse-failed", error);
+            setParsedResults([]);
+            setParseError("解析失败：\n" + (error?.message || "未知错误"));
+            setPanelMode("result");
+          } finally {
+            setIsSending(false);
+          }
+        }
+
+        async function saveResults() {
+          if (parsedResults.length === 0) {
+            return;
+          }
+          const nextRecords = [
+            ...records,
+            {
+              meal: selectedMeal,
+              items: parsedResults.map((item) => ({
+                name: item.name,
+                portion: item.portion || "1份",
+                kcal: Number(item.kcal) || 0,
+                confidence: Number(item.confidence) || 0,
+                emoji: String(item.emoji || "🍽️")
+              })),
+              created_at: new Date().toISOString()
+            }
+          ];
+
+          try {
+            await saveStoredRecords(nextRecords);
+            setPanelMode("input");
+            setInputText("");
+            setParsedResults([]);
+            setParseError("");
+          } catch (error) {
+            console.error("save-records-failed", error);
+          }
+        }
+
+        async function bootstrapAuth() {
+          const { data } = await supabaseClient.auth.getSession();
+          const nextSession = data?.session || null;
+          const nextUser = nextSession?.user || null;
+          setCurrentSession(nextSession);
+          setCurrentUser(nextUser);
+          setAuthVisible(!nextUser);
+          if (nextUser) await initBackendState(nextUser, nextSession);
+        }
+
+        useEffect(() => {
+          bootstrapAuth();
+          const { data } = supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+            const nextSession = session || null;
+            const nextUser = nextSession?.user || null;
+            setCurrentSession(nextSession);
+            setCurrentUser(nextUser);
+            setAuthVisible(!nextUser);
+            if (nextUser) {
+              await initBackendState(nextUser, nextSession);
+            } else {
+              setRecords([]);
+            }
+          });
+
+          return () => {
+            if (pendingDeletionRef.current?.timerId) clearTimeout(pendingDeletionRef.current.timerId);
+            cleanupAttachments();
+            data?.subscription?.unsubscribe?.();
+          };
+        }, []);
+
+        useEffect(() => {
+          if (records.length === 0) {
+            setCurrentDateKey(getDateKey(Date.now()));
+            return;
+          }
+          const hasCurrent = records.some((record) => getDateKey(record?.created_at) === currentDateKey);
+          if (!hasCurrent) {
+            setCurrentDateKey(getDateKey(records[records.length - 1]?.created_at));
+          }
+        }, [records]);
+
+        function goPrevDate() {
+          setCurrentDateKey((prev) => shiftDateKey(prev, -1));
+        }
+
+        function goNextDate() {
+          const todayKey = getDateKey(Date.now());
+          setCurrentDateKey((prev) => {
+            const next = shiftDateKey(prev, 1);
+            return next > todayKey ? todayKey : next;
+          });
+        }
+
+        function onSwipeStart(event) {
+          if (event.target?.closest && event.target.closest(".item-swipe")) return;
+          if (swipedItemKey) setSwipedItemKey("");
+          const x = event.touches?.[0]?.clientX;
+          if (typeof x === "number") touchStartXRef.current = x;
+        }
+
+        function onSwipeEnd(event) {
+          if (event.target?.closest && event.target.closest(".item-swipe")) return;
+          const startX = touchStartXRef.current;
+          const endX = event.changedTouches?.[0]?.clientX;
+          touchStartXRef.current = null;
+          if (typeof startX !== "number" || typeof endX !== "number") return;
+          const delta = endX - startX;
+          if (Math.abs(delta) < 42) return;
+          if (delta < 0) {
+            goPrevDate();
+          } else {
+            goNextDate();
+          }
+        }
+
+        async function commitPendingDeletion(target) {
+          if (!target) return;
+          try {
+            await saveStoredRecords(target.nextRecords);
+          } catch (error) {
+            console.error("delete-record-item-failed", error);
+            setRecords(target.prevRecords);
+          }
+        }
+
+        async function handleDeleteSavedItem(entry) {
+          const nextRecords = buildRecordsAfterDelete(records, entry.recordIndex, entry.itemIndex);
+          if (!nextRecords) return;
+          setSwipedItemKey("");
+
+          if (pendingDeletion) {
+            clearTimeout(pendingDeletion.timerId);
+            setPendingDeletion(null);
+            setUndoToast(null);
+            await commitPendingDeletion(pendingDeletion);
+          }
+
+          const prevRecords = cloneRecords(records);
+          const nextRecordsSnapshot = cloneRecords(nextRecords);
+          setRecords(nextRecordsSnapshot);
+          const deletionId = "del-" + Date.now();
+          const timerId = setTimeout(async () => {
+            setPendingDeletion((prev) => (prev?.id === deletionId ? null : prev));
+            setUndoToast((prev) => (prev?.id === deletionId ? null : prev));
+            await commitPendingDeletion({
+              id: deletionId,
+              prevRecords,
+              nextRecords: nextRecordsSnapshot
+            });
+          }, 5000);
+
+          setPendingDeletion({
+            id: deletionId,
+            prevRecords,
+            nextRecords: nextRecordsSnapshot,
+            timerId
+          });
+          setUndoToast({
+            id: deletionId,
+            message: "已删除 1 条食物记录",
+            deadline: Date.now() + 5000
+          });
+        }
+
+        function undoDeletion() {
+          if (!pendingDeletion) return;
+          clearTimeout(pendingDeletion.timerId);
+          setRecords(pendingDeletion.prevRecords);
+          setPendingDeletion(null);
+          setUndoToast(null);
+        }
+
+        function onRowTouchStart(key, event) {
+          const touch = event.touches?.[0];
+          if (!touch) return;
+          rowTouchRef.current = { key, x: touch.clientX, y: touch.clientY };
+        }
+
+        function onRowTouchEnd(key, event) {
+          const start = rowTouchRef.current;
+          rowTouchRef.current = { key: "", x: 0, y: 0 };
+          const touch = event.changedTouches?.[0];
+          if (!touch || start.key !== key) return;
+          const deltaX = touch.clientX - start.x;
+          const deltaY = touch.clientY - start.y;
+          if (Math.abs(deltaY) > 36) return;
+          if (deltaX < -34) {
+            setSwipedItemKey(key);
+          } else if (deltaX > 24 && swipedItemKey === key) {
+            setSwipedItemKey("");
+          }
+        }
+
+        function onRowPointerDown(key, event) {
+          if (event.pointerType === "mouse" && event.button !== 0) return;
+          rowPointerRef.current = { key, x: event.clientX, y: event.clientY, moved: false };
+        }
+
+        function onRowPointerMove(key, event) {
+          const state = rowPointerRef.current;
+          if (state.key !== key) return;
+          const deltaX = event.clientX - state.x;
+          const deltaY = event.clientY - state.y;
+          if (!state.moved && Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY)) {
+            state.moved = true;
+            rowPointerRef.current = state;
+          }
+          if (!state.moved) return;
+          if (deltaX < -30) {
+            setSwipedItemKey(key);
+          } else if (deltaX > 26 && swipedItemKey === key) {
+            setSwipedItemKey("");
+          }
+        }
+
+        function onRowPointerUp() {
+          rowPointerRef.current = { key: "", x: 0, y: 0, moved: false };
+        }
+
+        async function signUp() {
+          const emailText = email.trim();
+          if (!emailText || !password) {
+            return;
+          }
+          const { error } = await supabaseClient.auth.signUp({ email: emailText, password });
+          if (error) {
+            console.error("sign-up-failed", error);
+          }
+        }
+
+        async function signIn() {
+          const emailText = email.trim();
+          if (!emailText || !password) {
+            return;
+          }
+          const { data, error } = await supabaseClient.auth.signInWithPassword({ email: emailText, password });
+          if (error) {
+            console.error("sign-in-failed", error);
+            return;
+          }
+          const nextSession = data?.session || null;
+          const nextUser = nextSession?.user || null;
+          setCurrentSession(nextSession);
+          setCurrentUser(nextUser);
+          setAuthVisible(!nextUser);
+          await initBackendState(nextUser, nextSession);
+        }
+
+        async function signOut() {
+          setSettingsMenuOpen(false);
+          const { error } = await supabaseClient.auth.signOut();
+          if (error) {
+            console.error("sign-out-failed", error);
+            return;
+          }
+          setCurrentSession(null);
+          setCurrentUser(null);
+          setRecords([]);
+          setAuthVisible(true);
+        }
+
+        return (
+          <>
+            {undoToast && (
+              <div className="undo-toast">
+                <span className="toast-action-wrap">
+                  <span>{undoToast.message}</span>
+                  <button
+                    className="toast-action-btn"
+                    type="button"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={undoDeletion}
+                  >
+                    撤销
+                  </button>
+                </span>
+              </div>
+            )}
+
+            {authVisible && (
+              <div className="auth-overlay">
+                <div className="auth-card">
+                  <div className="auth-title">账号登录</div>
+                  <div className="auth-note">使用邮箱 + 密码登录。首次使用请先注册。</div>
+                  <div className="auth-row">
+                    <input className="auth-input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+                  </div>
+                  <div className="auth-row">
+                    <input className="auth-input" value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="请输入密码" />
+                  </div>
+                  <div className="auth-row">
+                    <button className="auth-btn" type="button" onClick={signUp}>注册</button>
+                    <button className="auth-btn" type="button" onClick={signIn}>登录</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <main className="page">
+              {settingsMenuOpen && <div className="menu-overlay" onClick={() => setSettingsMenuOpen(false)} />}
+              {settingsMenuOpen && (
+                <div className="settings-menu">
+                  <button className="menu-item" type="button" onClick={signOut}>退出登录</button>
+                </div>
+              )}
+              <header className="nav">
+                <h1 className="title">我的饮食</h1>
+                <button className="nav-settings" type="button" onClick={() => setSettingsMenuOpen((prev) => !prev)} aria-label="设置">
+                  <span className="mi" style={{ fontSize: 18 }}>settings</span>
+                </button>
+              </header>
+
+              <section className="hero">
+                <div className="hero-title">总摄入</div>
+                <div className="hero-main">
+                  <div className="hero-kcal">
+                    {selectedDateTotalKcal}
+                    <small>千卡</small>
+                  </div>
+                  <div className="hero-meta">
+                    <span className="mi" style={{ fontSize: 14 }}>restaurant</span>
+                    {selectedDateRecordCount} 条记录
+                  </div>
+                </div>
+                <div className="hero-nav">
+                  <button className="hero-nav-btn" type="button" onClick={goPrevDate} aria-label="上一天">
+                    <span className="mi" style={{ fontSize: 18 }}>chevron_left</span>
+                  </button>
+                  <button className="hero-date-btn" type="button" onClick={() => dateInputRef.current && dateInputRef.current.showPicker ? dateInputRef.current.showPicker() : dateInputRef.current.click()}>
+                    {getDateLabel(currentDateKey)}
+                  </button>
+                  <button className="hero-nav-btn" type="button" onClick={goNextDate} aria-label="下一天">
+                    <span className="mi" style={{ fontSize: 18 }}>chevron_right</span>
+                  </button>
+                </div>
+                <input
+                  ref={dateInputRef}
+                  type="date"
+                  value={currentDateKey}
+                  max={getDateKey(Date.now())}
+                  onChange={(e) => setCurrentDateKey(e.target.value || getDateKey(Date.now()))}
+                  style={{ position: "absolute", opacity: 0, pointerEvents: "none", width: 1, height: 1 }}
+                />
+              </section>
+
+              <section className="content" onTouchStart={onSwipeStart} onTouchEnd={onSwipeEnd}>
+                <div className="day-group">
+                  <div className="day-title">{getDateLabel(currentDateKey)}</div>
+                  {MEALS.map((meal) => {
+                    const items = currentDayMeals[meal] || [];
+                    if (items.length === 0) return null;
+                    const visual = getMealVisual(meal);
+                    const total = items.reduce((sum, entry) => sum + (Number(entry?.item?.kcal) || 0), 0);
+                    return (
+                      <article className="meal" key={currentDateKey + "-" + meal}>
+                        <div className="meal-head">
+                          <div className="meal-type">
+                            <span className={"meal-icon " + visual.cls}>
+                              <span className="mi" style={{ fontSize: 14 }}>{visual.icon}</span>
+                            </span>
+                            <span className="meal-name">{meal}</span>
+                          </div>
+                          <div className="head-value">
+                            <span className="main">{total}</span>
+                            <span className="muted">千卡</span>
+                          </div>
+                        </div>
+
+                        {items.map((entry, idx) => {
+                          const item = entry.item || {};
+                          const rowKey = currentDateKey + "-" + meal + "-" + idx + "-" + entry.key;
+                          const open = swipedItemKey === rowKey;
+                          return (
+                            <div
+                              className={"item-swipe" + (open ? " open" : "")}
+                              key={rowKey}
+                              onTouchStart={(event) => onRowTouchStart(rowKey, event)}
+                              onTouchEnd={(event) => onRowTouchEnd(rowKey, event)}
+                              onPointerDown={(event) => onRowPointerDown(rowKey, event)}
+                              onPointerMove={(event) => onRowPointerMove(rowKey, event)}
+                              onPointerUp={onRowPointerUp}
+                              onPointerCancel={onRowPointerUp}
+                            >
+                              <div className="item-action">
+                                <button className="item-delete-btn" type="button" onClick={() => handleDeleteSavedItem(entry)}>删除</button>
+                              </div>
+                              <div className="item">
+                                <span className="food">{((item.emoji && String(item.emoji).trim()) || "🍽️") + " " + (item.name || "未命名食物") + " " + (item.portion || "1份")}</span>
+                                <span className="kcal">{Number(item.kcal) || 0} 千卡 <span className="mi" style={{ fontSize: 14 }}>chevron_right</span></span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
+
+              {records.length === 0 && (
+                <div className="empty">
+                  <div><span className="mi">nutrition</span></div>
+                  还没有饮食记录，点底部按钮添加一条。
+                </div>
+              )}
+            </main>
+
+            <div className="footer">
+              <button className="btn" type="button" onClick={() => setSheetOpen(true)}>
+                <span className="mi" style={{ fontSize: 22 }}>edit</span>
+                添加数据
+              </button>
+            </div>
+
+            <div className={"sheet-overlay" + (sheetOpen ? " show" : "")} onClick={(e) => { if (e.target === e.currentTarget) closeSheetPanel(); }}>
+              <div className="sheet-wrap">
+                <div className="sheet-card">
+                  <div className="sheet-head">
+                    <div className="meal-select-wrap">
+                      <span className="meal-prefix">记</span>
+                      <select className="meal-select" value={selectedMeal} onChange={(e) => setSelectedMeal(e.target.value)}>
+                        {MEALS.map((meal) => <option value={meal} key={meal}>{meal}</option>)}
+                      </select>
+                      <span className="mi meal-select-arrow" style={{ fontSize: 14 }}>keyboard_arrow_down</span>
+                    </div>
+                    <button className="close-btn" type="button" onClick={closeSheetPanel}>
+                      <span className="mi" style={{ fontSize: 18 }}>close</span>
+                    </button>
+                  </div>
+
+                  <div className={"attach" + (attachments.length === 0 ? " attach-empty" : "") } style={{ display: panelMode === "input" ? "flex" : "none" }}>
+                    {attachments.map((item, index) => (
+                      <div className="attach-item" key={item.url}>
+                        <img className="attach-thumb" alt="" src={item.url} />
+                        <button className="thumb-delete" type="button" onClick={(event) => {
+                          event.stopPropagation();
+                          URL.revokeObjectURL(item.url);
+                          setAttachments((prev) => prev.filter((_, i) => i !== index));
+                        }}>
+                          <span className="mi" style={{ fontSize: 18 }}>close</span>
+                        </button>
+                      </div>
+                    ))}
+                    {attachments.length < MAX_ATTACHMENTS && (
+                      <button className={"attach-item" + (attachments.length === 0 ? " attach-option" : "")} type="button" onClick={() => cameraInputRef.current && cameraInputRef.current.click()}>
+                        <span className="mi attach-icon">photo_camera</span>
+                        {attachments.length === 0 && <span className="attach-label">拍照</span>}
+                      </button>
+                    )}
+                    {attachments.length < MAX_ATTACHMENTS && (
+                      <label className={"attach-item" + (attachments.length === 0 ? " attach-option" : "") }>
+                        <span className="mi attach-icon">photo_library</span>
+                        {attachments.length === 0 && <span className="attach-label">相册</span>}
+                        <input ref={galleryInputRef} className="native-file-input" type="file" accept="image/*" multiple onChange={handlePickedFile} />
+                      </label>
+                    )}
+                  </div>
+
+                  <div className={"result-panel" + (panelMode === "result" ? " show" : "") }>
+                    <div>
+                      {parsedResults.map((item, index) => (
+                        <div className="result-item" key={item.name + index}>
+                          <div className="result-cover">{item.emoji}</div>
+                          <div className="result-text">
+                            <div className="result-name">{item.name}</div>
+                            <div className="result-kcal">{item.kcal} 千卡 · {item.portion || "1份"}</div>
+                          </div>
+                          <button className="result-del" type="button" onClick={() => {
+                            const next = parsedResults.filter((_, i) => i !== index);
+                            setParsedResults(next);
+                            if (next.length === 0) setPanelMode("input");
+                          }}>
+                            <span className="mi" style={{ fontSize: 18 }}>delete</span>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    {parseError && <div className="result-error" style={{ display: "block" }}>{parseError}</div>}
+                    <div className="result-actions">
+                      <button className="result-btn retry" type="button" onClick={() => setPanelMode("input")}>重试</button>
+                      <button className="result-btn save" type="button" onClick={saveResults}>
+                        <span className="mi" style={{ fontSize: 16 }}>check</span> 保存记录
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className={"parse-loading" + (panelMode === "loading" ? " show" : "") }>
+                    <span className="mi" style={{ fontSize: 18 }}>progress_activity</span>
+                    <span>AI 正在解析...</span>
+                  </div>
+
+                  <div className="input-row" style={{ display: panelMode === "input" ? "flex" : "none" }}>
+                    <input className="prompt-input" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => {
+                      if (e.key === "Enter" && !isSending) startParse();
+                    }} type="text" placeholder="例：我今天中午吃了 1 个汉堡" />
+                    <button className={"send" + (isSending ? " loading" : "")} type="button" onClick={startParse} disabled={isSending}>
+                      <span className="mi" style={{ fontSize: 22 }}>{isSending ? "progress_activity" : "arrow_upward"}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={handlePickedFile} />
+          </>
+        );
       }
-      renderAttachments();
-      async function bootstrapAuth() {
-        const { data } = await supabaseClient.auth.getSession();
-        currentSession = data?.session || null;
-        currentUser = currentSession?.user || null;
-        authOverlay.style.display = currentUser ? "none" : "flex";
-        if (currentUser) await initBackendState();
-      }
 
-      signUpBtn.addEventListener("click", async () => {
-        const email = emailInput.value.trim();
-        const password = passwordInput.value;
-        if (!email || !password) {
-          showToast("请输入邮箱和密码");
-          return;
-        }
-        const { error } = await supabaseClient.auth.signUp({ email, password });
-        if (error) {
-          showToast("注册失败：" + error.message);
-        } else {
-          showToast("注册成功，请登录");
-        }
-      });
-
-      signInBtn.addEventListener("click", async () => {
-        const email = emailInput.value.trim();
-        const password = passwordInput.value;
-        if (!email || !password) {
-          showToast("请输入邮箱和密码");
-          return;
-        }
-        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (error) {
-          showToast("登录失败：" + error.message);
-          return;
-        }
-        currentSession = data?.session || null;
-        currentUser = currentSession?.user || null;
-        authOverlay.style.display = currentUser ? "none" : "flex";
-        showToast("登录成功");
-        await initBackendState();
-      });
-
-      supabaseClient.auth.onAuthStateChange(async (_event, session) => {
-        currentSession = session || null;
-        currentUser = currentSession?.user || null;
-        authOverlay.style.display = currentUser ? "none" : "flex";
-        if (currentUser) await initBackendState();
-      });
-
-      bootstrapAuth();
-
+      ReactDOM.createRoot(document.getElementById("root")).render(<App />);
     </script>
   </body>
 </html>
