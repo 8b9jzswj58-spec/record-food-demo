@@ -3,8 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="记饮食" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#eef4ee" />
     <title>我的饮食</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,1,0" />
     <style>
       :root {
         --bg: #f5f6ef;
@@ -22,11 +28,22 @@
         --option-size: 14px;
         --option-weight: 400;
         --option-color: var(--text-secondary);
+        --nav-safe-height: calc(86px + env(safe-area-inset-top, 0px));
       }
 
       * { box-sizing: border-box; }
       html { -webkit-text-size-adjust: 100%; }
       * { -webkit-tap-highlight-color: transparent; }
+      html, body {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      html::-webkit-scrollbar,
+      body::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
+      }
 
       body {
         margin: 0;
@@ -39,8 +56,6 @@
       button, input, textarea, select {
         font-family: inherit;
       }
-
-      body::-webkit-scrollbar { display: none; }
 
       .mi {
         font-family: "Material Symbols Outlined";
@@ -67,7 +82,10 @@
         margin: 0 auto;
         min-height: 100vh;
         padding-bottom: 138px;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
       }
+      .page::-webkit-scrollbar { display: none; width: 0; height: 0; }
 
       .hero {
         margin: 6px 12px 0;
@@ -237,15 +255,30 @@
       }
 
       .nav {
-        height: 86px;
+        height: var(--nav-safe-height);
         display: flex;
         align-items: flex-end;
         justify-content: center;
-        padding: 0 16px 14px;
+        padding: env(safe-area-inset-top, 0px) 16px 14px;
         position: sticky;
         top: 0;
         z-index: 3;
-        backdrop-filter: blur(10px);
+        background: transparent;
+        isolation: isolate;
+      }
+
+      .nav::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(-1 * env(safe-area-inset-top, 0px));
+        bottom: 0;
+        pointer-events: none;
+        background: rgba(255, 255, 255, 0.01);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        z-index: -1;
       }
 
       .title {
@@ -316,7 +349,10 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
       }
+      .content::-webkit-scrollbar { display: none; width: 0; height: 0; }
 
       .day-group {
         display: flex;
@@ -363,6 +399,10 @@
         align-items: center;
         justify-content: center;
         color: #fff;
+      }
+      .meal-icon .mi {
+        font-family: "Material Symbols Rounded" !important;
+        font-variation-settings: "wght" 400, "FILL" 1, "GRAD" 0, "opsz" 24 !important;
       }
 
       .breakfast { background: linear-gradient(140deg, #f0a240 0%, #ed8957 100%); }
@@ -486,10 +526,21 @@
         transform: translateX(-50%);
         bottom: 0;
         width: min(420px, 100vw);
-        background: linear-gradient(to top, #eff4ec 68%, rgba(239, 244, 236, 0));
-        padding: 18px 20px 40px;
+        background: transparent;
+        padding: 18px 20px calc(40px + env(safe-area-inset-bottom, 0px));
         z-index: 4;
-        backdrop-filter: blur(8px);
+        isolation: isolate;
+      }
+
+      .footer::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: rgba(255, 255, 255, 0.01);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        z-index: -1;
       }
 
       .btn {
@@ -532,6 +583,7 @@
       .sheet-overlay.show { opacity: 1; pointer-events: auto; }
       .sheet-wrap {
         width: min(420px, 100vw);
+        max-height: calc(100dvh - var(--nav-safe-height));
         transform: translateY(24px);
         transition: transform 0.24s cubic-bezier(0.22, 0.9, 0.34, 1);
       }
@@ -540,10 +592,11 @@
       .sheet-card {
         background: linear-gradient(180deg, #ffffff 0%, #fbfffd 100%);
         border-radius: 20px 20px 0 0;
-        overflow: hidden;
+        overflow: visible;
         box-shadow: 0 -20px 38px rgba(20, 42, 31, 0.14);
         padding-bottom: env(safe-area-inset-bottom, 0);
         transform-origin: bottom center;
+        max-height: calc(100dvh - var(--nav-safe-height));
       }
 
       .sheet-head {
@@ -675,6 +728,7 @@
 
       .library-sheet-wrap {
         width: min(420px, 100vw);
+        max-height: calc(100dvh - var(--nav-safe-height));
         transform: translateY(20px);
         transition: transform 0.22s cubic-bezier(0.22, 0.9, 0.34, 1);
       }
@@ -687,6 +741,7 @@
         background: #fff;
         border-radius: 20px 20px 0 0;
         height: 520px;
+        max-height: calc(100dvh - var(--nav-safe-height));
         padding-bottom: env(safe-area-inset-bottom, 0);
         overflow: hidden;
         display: flex;
@@ -706,7 +761,7 @@
       .meal-quick-tab {
         flex: 1;
         min-width: 0;
-        height: 38px;
+        height: 48px;
         border: 1px solid rgba(0, 0, 0, 0.09);
         border-radius: 8px;
         background: rgba(255, 255, 255, 0.92);
@@ -714,9 +769,20 @@
         font-size: var(--option-size);
         font-weight: var(--option-weight);
         color: var(--option-color);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
         transition: transform 0.16s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
       }
       .meal-quick-tab:active { transform: scale(0.98); }
+      .meal-quick-tab .meal-tab-icon {
+        font-size: calc(var(--option-size) * 1.5);
+        font-weight: 400;
+        font-variation-settings: "wght" 400, "FILL" 0, "GRAD" 0, "opsz" 24;
+        color: currentColor;
+        line-height: 1;
+      }
 
       .meal-quick-tab.active {
         border-color: var(--green);
@@ -852,13 +918,22 @@
         font-size: 14px;
         flex-shrink: 0;
         position: relative;
-        overflow: hidden;
+        overflow: visible;
         transition: transform 0.16s ease, border-color 0.2s ease, background-color 0.2s ease;
       }
       .attach-item:active { transform: scale(0.98); }
 
       .attach-item.has-image {
         border: 0;
+      }
+      .attach-item.has-image::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        box-shadow: inset 0 0 0 1.5px rgba(0, 0, 0, 0.18);
+        pointer-events: none;
+        z-index: 1;
       }
 
       .attach-option { flex: 1 0 0; min-width: 0; padding: 0 16px; }
@@ -870,14 +945,22 @@
         color: var(--option-color);
         line-height: 1;
       }
-      .attach-thumb { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+      .attach-thumb {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: inherit;
+        cursor: zoom-in;
+      }
 
       .thumb-delete {
         position: absolute;
-        right: -12px;
-        top: -12px;
-        width: 24px;
-        height: 24px;
+        right: -10px;
+        top: -10px;
+        width: 20px;
+        height: 20px;
         border: 0;
         border-radius: 999px;
         background: rgba(0, 0, 0, 0.58);
@@ -888,6 +971,70 @@
         justify-content: center;
         padding: 0;
         line-height: 1;
+      }
+      .thumb-delete .mi { font-size: 14px !important; }
+
+      .image-preview-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 85;
+        background: rgba(8, 10, 9, 0.92);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: max(env(safe-area-inset-top, 0px), 12px) 14px max(env(safe-area-inset-bottom, 0px), 14px);
+      }
+      .image-preview-stage {
+        position: relative;
+        width: min(420px, 100%);
+        height: min(82vh, 680px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .image-preview-img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: 12px;
+      }
+      .image-preview-close {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 32px;
+        height: 32px;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.16);
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .image-preview-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 34px;
+        height: 34px;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.16);
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .image-preview-nav.prev { left: 6px; }
+      .image-preview-nav.next { right: 6px; }
+      .image-preview-meta {
+        position: absolute;
+        bottom: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: rgba(255, 255, 255, 0.88);
+        font-size: 12px;
       }
 
       .native-file-input {
@@ -981,7 +1128,11 @@
       .parse-loading.show { display: flex; }
 
       .result-panel { display: none; }
-      .result-panel.show { display: block; }
+      .result-panel.show { display: block; padding-top: 8px; }
+      .result-items-list {
+        display: grid;
+        gap: 10px;
+      }
 
       .result-item {
         padding: 0 16px 15px;
@@ -1068,10 +1219,91 @@
       .result-actions {
         padding: 16px;
         display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
         gap: 8px;
       }
 
       .result-error { padding: 0 16px 16px; color: #cb2f31; font-size: 13px; white-space: pre-wrap; }
+      .parse-status {
+        margin: 2px 16px 12px;
+        border-radius: 14px;
+        padding: 12px;
+        background: linear-gradient(135deg, rgba(36, 179, 126, 0.14) 0%, rgba(30, 167, 114, 0.08) 55%, rgba(36, 179, 126, 0.05) 100%);
+        border: 1px solid rgba(36, 179, 126, 0.24);
+        color: #0f4f37;
+        font-size: 13px;
+        display: grid;
+        gap: 8px;
+      }
+      .parse-status-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .parse-status-left {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+      }
+      .parse-phase-chip {
+        border-radius: 999px;
+        padding: 2px 8px;
+        background: rgba(36, 179, 126, 0.16);
+        color: #0f6848;
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      .parse-progress-track {
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(19, 68, 50, 0.14);
+        overflow: hidden;
+      }
+      .parse-progress-bar {
+        height: 100%;
+        width: 34%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, rgba(36, 179, 126, 0.2) 0%, rgba(36, 179, 126, 1) 56%, rgba(36, 179, 126, 0.2) 100%);
+        background-size: 180% 100%;
+        animation: parseFlow 1.1s linear infinite;
+      }
+      .parse-status .mi { font-size: 16px; }
+      .parse-status.loading .mi { animation: spin 0.9s linear infinite; }
+      .result-skeleton {
+        padding: 0 16px 16px;
+        display: grid;
+        gap: 10px;
+      }
+      .result-skeleton-row {
+        height: 72px;
+        border-radius: 10px;
+        background: linear-gradient(90deg, rgba(0,0,0,.05) 0%, rgba(0,0,0,.08) 38%, rgba(0,0,0,.05) 100%);
+        background-size: 240% 100%;
+        animation: shimmer 1.2s linear infinite;
+      }
+      .task-entry {
+        margin: 0 12px 10px;
+        border-radius: 999px;
+        padding: 8px 12px;
+        background: rgba(12, 20, 16, 0.86);
+        color: #fff;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .task-entry-btn {
+        border: 0;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.16);
+        color: #fff;
+        padding: 4px 10px;
+        font-size: 12px;
+      }
 
       .result-btn {
         height: 48px;
@@ -1082,8 +1314,8 @@
         transition: transform 0.16s ease, opacity 0.2s ease;
       }
       .result-btn:active { transform: scale(0.985); }
-      .result-btn.retry { width: 88px; background: rgba(0, 0, 0, 0.04); color: var(--text-secondary); }
-      .result-btn.save { flex: 1; color: #fff; background: linear-gradient(130deg, var(--green) 0%, var(--green-strong) 100%); }
+      .result-btn.retry { width: 88px; flex: 0 0 88px; background: rgba(0, 0, 0, 0.04); color: var(--text-secondary); }
+      .result-btn.save { flex: 1 1 auto; min-width: 0; color: #fff; background: linear-gradient(130deg, var(--green) 0%, var(--green-strong) 100%); }
 
       .auth-overlay {
         position: fixed;
@@ -1172,6 +1404,14 @@
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
       }
+      @keyframes shimmer {
+        from { background-position: 100% 0; }
+        to { background-position: -120% 0; }
+      }
+      @keyframes parseFlow {
+        from { background-position: 100% 0; transform: translateX(-8%); }
+        to { background-position: -100% 0; transform: translateX(180%); }
+      }
 
       @media (prefers-reduced-motion: reduce) {
         * { animation: none !important; transition: none !important; }
@@ -1211,6 +1451,7 @@
       const MEALS = ["早餐", "午餐", "晚餐"];
       const RECORDS_CACHE_KEY_PREFIX = "diet-records-cache-v1";
       const GOAL_KCAL_CACHE_KEY = "diet-goal-kcal-v1";
+      const SHEET_DRAFT_KEY_PREFIX = "diet-sheet-draft-v1";
 
       function getMealVisual(meal) {
         if (meal === "早餐") return { cls: "breakfast", icon: "wb_twilight" };
@@ -1252,6 +1493,10 @@
         return `${RECORDS_CACHE_KEY_PREFIX}:${userId || "guest"}`;
       }
 
+      function getSheetDraftKey(userId) {
+        return `${SHEET_DRAFT_KEY_PREFIX}:${userId || "guest"}`;
+      }
+
       function readCachedRecords(userId) {
         try {
           const raw = localStorage.getItem(getRecordsCacheKey(userId));
@@ -1286,6 +1531,33 @@
           localStorage.setItem(GOAL_KCAL_CACHE_KEY, String(Math.max(1, Number.parseInt(String(value || "0"), 10) || 1600)));
         } catch (_error) {
           // ignore cache write errors
+        }
+      }
+
+      function readSheetDraft(userId) {
+        try {
+          const raw = localStorage.getItem(getSheetDraftKey(userId));
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          return parsed && typeof parsed === "object" ? parsed : null;
+        } catch (_error) {
+          return null;
+        }
+      }
+
+      function writeSheetDraft(userId, payload) {
+        try {
+          localStorage.setItem(getSheetDraftKey(userId), JSON.stringify(payload || {}));
+        } catch (_error) {
+          // ignore draft write errors
+        }
+      }
+
+      function clearSheetDraft(userId) {
+        try {
+          localStorage.removeItem(getSheetDraftKey(userId));
+        } catch (_error) {
+          // ignore draft remove errors
         }
       }
 
@@ -1350,7 +1622,7 @@
         };
       }
 
-      async function callGeminiParse({ meal, inputText, compressedAttachments }) {
+      async function callGeminiParse({ meal, inputText, compressedAttachments, signal }) {
         const imageParts = [];
         for (const item of compressedAttachments) {
           const base64 = await blobToBase64(item.blob);
@@ -1360,6 +1632,7 @@
         const response = await fetch(SUPABASE_URL + "/functions/v1/parse-food", {
           method: "POST",
           headers: { ...SUPABASE_HEADERS },
+          signal,
           body: JSON.stringify({ meal, text: inputText, images: imageParts })
         });
 
@@ -1375,11 +1648,43 @@
         const items = Array.isArray(aiObject?.items) ? aiObject.items : [];
         return items.map((item) => ({
           name: String(item?.name || "未命名食物").slice(0, 12),
-          portion: String(item?.portion || "1份"),
+          portion: normalizePortionText(String(item?.portion || "1份")),
           kcal: Math.max(0, Math.min(3000, Number.parseInt(item?.kcal, 10) || 0)),
           confidence: Math.max(0, Math.min(1, Number(item?.confidence) || 0)),
           emoji: String(item?.emoji || "🍽️").trim() || "🍽️"
         }));
+      }
+
+      function normalizePortionText(rawPortion) {
+        const raw = String(rawPortion || "").trim() || "1份";
+        const lower = raw.toLowerCase();
+        const unitMap = [
+          ["milliliters", "毫升"],
+          ["milliliter", "毫升"],
+          ["liters", "升"],
+          ["liter", "升"],
+          ["grams", "克"],
+          ["gram", "克"],
+          ["ml", "毫升"],
+          ["l", "升"],
+          ["kg", "千克"],
+          ["g", "克"],
+          ["oz", "盎司"],
+          ["lb", "磅"]
+        ];
+
+        let normalized = raw;
+        for (const [en, zh] of unitMap) {
+          const reg = new RegExp(en, "ig");
+          normalized = normalized.replace(reg, zh);
+        }
+
+        const compact = normalized.replace(/\s+/g, "");
+        const matched = compact.match(/^([0-9]+(?:\.[0-9]+)?)([\u4e00-\u9fa5]+)$/);
+        if (matched) {
+          return `${matched[1]} ${matched[2]}`;
+        }
+        return normalized;
       }
 
       function normalizeEditableFood(item) {
@@ -1389,7 +1694,7 @@
         const kcal = Math.max(0, Math.round(servings * unitKcal));
         return {
           name: String(item?.name || "未命名食物").slice(0, 12),
-          portion: String(item?.portion || "1份"),
+          portion: normalizePortionText(String(item?.portion || "1份")),
           servings,
           unitKcal,
           unitName,
@@ -1400,9 +1705,10 @@
       }
 
       function buildStoredItemFromEditable(item) {
+        const normalizedPortion = normalizePortionText(`${Number(item.servings) || 1}${item.unitName || "份"}`);
         return {
           name: item.name,
-          portion: `${Number(item.servings) || 1}${item.unitName || "份"}`,
+          portion: normalizedPortion,
           servings: Number(item.servings) || 1,
           unitKcal: Number(item.unitKcal) || 0,
           unitName: String(item.unitName || "份"),
@@ -1416,19 +1722,38 @@
         return (Array.isArray(srcItems) ? srcItems : []).map((item) => ({ ...item }));
       }
 
+      async function fileToDataUrl(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ""));
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function dataUrlToFile(dataUrl, name, mimeType) {
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        return new File([blob], name || "draft-image.jpg", { type: mimeType || blob.type || "image/jpeg" });
+      }
+
       function MealTabs({ value, onChange, className = "" }) {
         return (
           <div className={"meal-quick-tabs" + (className ? " " + className : "")}>
-            {MEALS.map((meal) => (
-              <button
-                key={meal}
-                className={"meal-quick-tab" + (value === meal ? " active" : "")}
-                type="button"
-                onClick={() => onChange(meal)}
-              >
-                {meal}
-              </button>
-            ))}
+            {MEALS.map((meal) => {
+              const visual = getMealVisual(meal);
+              return (
+                <button
+                  key={meal}
+                  className={"meal-quick-tab" + (value === meal ? " active" : "")}
+                  type="button"
+                  onClick={() => onChange(meal)}
+                >
+                  <span className="mi meal-tab-icon">{visual.icon}</span>
+                  <span>{meal}</span>
+                </button>
+              );
+            })}
           </div>
         );
       }
@@ -1609,6 +1934,18 @@
         return <span className={className}>{animated}</span>;
       }
 
+      function createIdleParseTask() {
+        return {
+          status: "idle",
+          phase: "",
+          progressText: "",
+          backgrounded: false,
+          startedAt: 0,
+          finishedAt: 0,
+          requestId: ""
+        };
+      }
+
       function App() {
         const [sheetOpen, setSheetOpen] = useState(false);
         const [panelMode, setPanelMode] = useState("input");
@@ -1635,6 +1972,7 @@
         const [selectedLibraryFoods, setSelectedLibraryFoods] = useState([]);
         const [selectedQuickFoods, setSelectedQuickFoods] = useState([]);
         const [parseError, setParseError] = useState("");
+        const [parseTask, setParseTask] = useState(createIdleParseTask());
         const [goalKcal, setGoalKcal] = useState(readGoalKcal());
         const [goalSheetOpen, setGoalSheetOpen] = useState(false);
         const [goalDraft, setGoalDraft] = useState(String(readGoalKcal()));
@@ -1649,8 +1987,12 @@
         const [entryServingDraft, setEntryServingDraft] = useState("");
         const [entryServingEditing, setEntryServingEditing] = useState(false);
         const [entryNameComposing, setEntryNameComposing] = useState(false);
+        const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
+        const [imagePreviewIndex, setImagePreviewIndex] = useState(0);
         const [editingMeal, setEditingMeal] = useState("早餐");
         const entryEditSessionRef = useRef({ key: "", before: null });
+        const draftHydratedRef = useRef(false);
+        const draftSaveTimerRef = useRef(0);
 
         const cameraInputRef = useRef(null);
         const galleryInputRef = useRef(null);
@@ -1661,6 +2003,8 @@
         const rowPointerRef = useRef({ key: "", x: 0, y: 0, moved: false });
         const parsedResultsRef = useRef([]);
         const parsedEditSessionRef = useRef({ key: "", before: null });
+        const parseAbortRef = useRef(null);
+        const parseTaskRef = useRef(parseTask);
 
         const selectedDateTotalKcal = useMemo(() => {
           return records
@@ -1750,7 +2094,28 @@
           return [...base, ...appendedSelected];
         }, [foodLibrary.foods, libraryLoadedCount, selectedQuickFoods]);
 
-        function closeSheetPanel() { setSheetOpen(false); }
+        function closeSheetPanel() {
+          if (parseTaskRef.current.status === "parsing") {
+            setParseTask((prev) => ({ ...prev, backgrounded: true }));
+          }
+          setSheetOpen(false);
+        }
+
+        function openAddSheetPanel() {
+          setSheetOpen(true);
+          if (parseTaskRef.current.status === "parsing") {
+            setParseTask((prev) => ({ ...prev, backgrounded: false }));
+            setPanelMode("result");
+          } else if (
+            (parseTaskRef.current.status === "success" || parseTaskRef.current.status === "error") &&
+            parseTaskRef.current.backgrounded
+          ) {
+            setParseTask((prev) => ({ ...prev, backgrounded: false }));
+            setPanelMode("result");
+          } else if (parseTaskRef.current.status === "success" && parsedResultsRef.current.length > 0) {
+            setPanelMode("result");
+          }
+        }
         function startGoalEdit() {
           setGoalDraft(String(goalKcal));
           setGoalSheetOpen(true);
@@ -1825,7 +2190,11 @@
         }, [pendingDeletion]);
 
         useEffect(() => {
-          const shouldLock = sheetOpen || librarySheetOpen || entryEditOpen || goalSheetOpen || authVisible;
+          parseTaskRef.current = parseTask;
+        }, [parseTask]);
+
+        useEffect(() => {
+          const shouldLock = sheetOpen || librarySheetOpen || entryEditOpen || goalSheetOpen || imagePreviewOpen || authVisible;
           if (!shouldLock) return;
           const prevOverflow = document.body.style.overflow;
           const prevTouchAction = document.body.style.touchAction;
@@ -1835,7 +2204,7 @@
             document.body.style.overflow = prevOverflow;
             document.body.style.touchAction = prevTouchAction;
           };
-        }, [sheetOpen, librarySheetOpen, entryEditOpen, goalSheetOpen, authVisible]);
+        }, [sheetOpen, librarySheetOpen, entryEditOpen, goalSheetOpen, imagePreviewOpen, authVisible]);
 
         function getRestHeaders(sessionArg = currentSession) {
           const token = sessionArg?.access_token || SUPABASE_ANON_KEY;
@@ -1956,6 +2325,7 @@
         }
 
         async function startParse() {
+          if (parseTaskRef.current.status === "parsing") return;
           const text = inputText.trim();
           const quickItems = buildQuickSelectedItems();
           const hasQuick = quickItems.length > 0;
@@ -1965,25 +2335,51 @@
           if (!hasAiInput && hasQuick) {
             applyParsedResults(quickItems);
             setParseError("");
+            setParseTask(createIdleParseTask());
             setPanelMode("result");
             return;
           }
 
+          const requestId = "parse-" + Date.now();
+          const controller = new AbortController();
+          parseAbortRef.current = controller;
           setIsSending(true);
-          setPanelMode("loading");
+          setPanelMode("result");
           setParseError("");
+          setParseTask({
+            status: "parsing",
+            phase: "preparing",
+            progressText: "正在准备解析…",
+            backgrounded: false,
+            startedAt: Date.now(),
+            finishedAt: 0,
+            requestId
+          });
 
           try {
+            updateParseTaskFor(requestId, {
+              phase: "uploading",
+              progressText: attachments.length > 0 ? "正在上传图片…" : "正在整理文本…"
+            });
             const compressed = attachments.map((item) => ({
               blob: item.file,
               mimeType: item.file.type || "image/jpeg",
               originalSize: item.originalSize || item.file.size,
               compressedSize: item.compressedSize || item.file.size
             }));
+            updateParseTaskFor(requestId, {
+              phase: "recognizing",
+              progressText: "AI 正在识别食物…"
+            });
             const aiObject = await callGeminiParse({
               meal: selectedMeal,
               inputText: text,
-              compressedAttachments: compressed
+              compressedAttachments: compressed,
+              signal: controller.signal
+            });
+            updateParseTaskFor(requestId, {
+              phase: "normalizing",
+              progressText: "正在整理结果…"
             });
             const normalized = normalizeAiItems(aiObject).map(normalizeEditableFood);
             if (normalized.length === 0 && !hasQuick) {
@@ -1999,7 +2395,20 @@
               }
             }
             setPanelMode("result");
+            updateParseTaskFor(requestId, {
+              status: "success",
+              progressText: "解析完成",
+              finishedAt: Date.now()
+            });
           } catch (error) {
+            if (error?.name === "AbortError") {
+              updateParseTaskFor(requestId, {
+                status: "canceled",
+                progressText: "已取消解析",
+                finishedAt: Date.now()
+              });
+              return;
+            }
             console.error("parse-failed", error);
             if (hasQuick) {
               applyParsedResults(quickItems);
@@ -2009,8 +2418,14 @@
               setParseError("解析失败：\n" + (error?.message || "未知错误"));
             }
             setPanelMode("result");
+            updateParseTaskFor(requestId, {
+              status: "error",
+              progressText: "解析失败，可重试",
+              finishedAt: Date.now()
+            });
           } finally {
             setIsSending(false);
+            if (parseAbortRef.current === controller) parseAbortRef.current = null;
           }
         }
 
@@ -2247,6 +2662,136 @@
           setLibraryLoadedCount((prev) => Math.min(prev + 20, foodLibrary.foods.length));
         }
 
+        function resetAddSheetContent() {
+          cleanupAttachments(attachments);
+          setAttachments([]);
+          setInputText("");
+          applyParsedResults([]);
+          setSelectedQuickFoods([]);
+          setSelectedLibraryFoods([]);
+          setParseError("");
+          setPanelMode("input");
+          setParseTask(createIdleParseTask());
+          setImagePreviewOpen(false);
+          setImagePreviewIndex(0);
+          clearSheetDraft(currentUser?.id || "guest");
+        }
+
+        async function restoreSheetDraftForUser(userId) {
+          const draft = readSheetDraft(userId);
+          if (!draft) {
+            draftHydratedRef.current = true;
+            return;
+          }
+          try {
+            const nextAttachmentsRaw = Array.isArray(draft.attachments) ? draft.attachments.slice(0, MAX_ATTACHMENTS) : [];
+            const nextAttachments = await Promise.all(
+              nextAttachmentsRaw.map(async (item, idx) => {
+                const dataUrl = String(item?.dataUrl || "");
+                const file = await dataUrlToFile(
+                  dataUrl,
+                  String(item?.name || `draft-${idx + 1}.jpg`),
+                  String(item?.mimeType || "image/jpeg")
+                );
+                return {
+                  file,
+                  url: dataUrl,
+                  originalSize: Number(item?.originalSize) || file.size,
+                  compressedSize: Number(item?.compressedSize) || file.size
+                };
+              })
+            );
+            cleanupAttachments(attachments);
+            setAttachments(nextAttachments);
+            setInputText(String(draft.inputText || ""));
+            const draftMeal = String(draft.selectedMeal || "");
+            if (MEALS.includes(draftMeal)) setSelectedMeal(draftMeal);
+            const draftQuickFoods = Array.isArray(draft.selectedQuickFoods) ? draft.selectedQuickFoods : [];
+            setSelectedQuickFoods(
+              draftQuickFoods
+                .map((food) => ({ key: getFoodSelectionKey(food), food }))
+                .filter((row) => row.key)
+            );
+            setLibraryLoadedCount((prev) => Math.max(20, prev, draftQuickFoods.length));
+          } catch (error) {
+            console.error("restore-sheet-draft-failed", error);
+            clearSheetDraft(userId);
+          } finally {
+            draftHydratedRef.current = true;
+          }
+        }
+
+        function openImagePreview(index) {
+          if (!attachments[index]) return;
+          setImagePreviewIndex(index);
+          setImagePreviewOpen(true);
+        }
+
+        function closeImagePreview() {
+          setImagePreviewOpen(false);
+        }
+
+        function previewPrev() {
+          setImagePreviewIndex((prev) => {
+            if (attachments.length <= 1) return prev;
+            return (prev - 1 + attachments.length) % attachments.length;
+          });
+        }
+
+        function previewNext() {
+          setImagePreviewIndex((prev) => {
+            if (attachments.length <= 1) return prev;
+            return (prev + 1) % attachments.length;
+          });
+        }
+
+        function removeAttachmentAt(index) {
+          const snapshot = attachments;
+          const target = snapshot[index];
+          if (!target) return;
+          URL.revokeObjectURL(target.url);
+          setAttachments((prev) => prev.filter((_, i) => i !== index));
+          if (!imagePreviewOpen) return;
+          if (snapshot.length <= 1) {
+            setImagePreviewOpen(false);
+            setImagePreviewIndex(0);
+            return;
+          }
+          if (index < imagePreviewIndex) {
+            setImagePreviewIndex((prev) => Math.max(0, prev - 1));
+          } else if (index === imagePreviewIndex) {
+            setImagePreviewIndex((prev) => {
+              const nextLen = snapshot.length - 1;
+              return Math.min(prev, nextLen - 1);
+            });
+          }
+        }
+
+        function updateParseTaskFor(requestId, patch) {
+          setParseTask((prev) => (prev.requestId === requestId ? { ...prev, ...patch } : prev));
+        }
+
+        function cancelParseTask() {
+          const current = parseTaskRef.current;
+          if (current.status !== "parsing") return;
+          if (parseAbortRef.current) parseAbortRef.current.abort();
+          setIsSending(false);
+          setParseTask({
+            ...createIdleParseTask(),
+            status: "canceled",
+            progressText: "已取消解析",
+            finishedAt: Date.now()
+          });
+          setPanelMode("input");
+        }
+
+        function backgroundParseTask() {
+          const current = parseTaskRef.current;
+          if (current.status !== "parsing") return;
+          setParseTask((prev) => ({ ...prev, backgrounded: true }));
+          setSheetOpen(false);
+        }
+
         async function saveResults() {
           if (parsedResults.length === 0) {
             return;
@@ -2272,11 +2817,8 @@
 
           try {
             await saveStoredRecords(nextRecords);
-            setPanelMode("input");
-            setInputText("");
-            applyParsedResults([]);
-            setSelectedQuickFoods([]);
-            setParseError("");
+            resetAddSheetContent();
+            setSheetOpen(false);
           } catch (error) {
             console.error("save-records-failed", error);
           }
@@ -2302,6 +2844,8 @@
           setCurrentSession(nextSession);
           setCurrentUser(nextUser);
           setAuthVisible(TEST_MODE_AUTH_BYPASS ? false : !nextUser);
+          draftHydratedRef.current = false;
+          await restoreSheetDraftForUser(nextUser?.id || "guest");
           if (nextUser) await initBackendState(nextUser, nextSession);
         }
 
@@ -2316,6 +2860,8 @@
             setCurrentSession(nextSession);
             setCurrentUser(nextUser);
             setAuthVisible(TEST_MODE_AUTH_BYPASS ? false : !nextUser);
+            draftHydratedRef.current = false;
+            await restoreSheetDraftForUser(nextUser?.id || "guest");
             if (nextUser) {
               await initBackendState(nextUser, nextSession);
             } else {
@@ -2325,6 +2871,7 @@
 
           return () => {
             if (pendingDeletionRef.current?.timerId) clearTimeout(pendingDeletionRef.current.timerId);
+            if (parseAbortRef.current) parseAbortRef.current.abort();
             cleanupAttachments();
             data?.subscription?.unsubscribe?.();
           };
@@ -2333,6 +2880,64 @@
         useEffect(() => {
           parsedResultsRef.current = cloneParsedItems(parsedResults);
         }, [parsedResults]);
+
+        useEffect(() => {
+          if (!imagePreviewOpen) return;
+          const onKeyDown = (event) => {
+            if (event.key === "Escape") closeImagePreview();
+            if (event.key === "ArrowLeft") previewPrev();
+            if (event.key === "ArrowRight") previewNext();
+          };
+          window.addEventListener("keydown", onKeyDown);
+          return () => window.removeEventListener("keydown", onKeyDown);
+        }, [imagePreviewOpen, attachments.length, imagePreviewIndex]);
+
+        useEffect(() => {
+          if (!draftHydratedRef.current) return;
+          const userId = currentUser?.id || "guest";
+          if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
+          draftSaveTimerRef.current = setTimeout(async () => {
+            const hasDraftContent =
+              inputText.trim().length > 0 ||
+              attachments.length > 0 ||
+              selectedQuickFoods.length > 0 ||
+              (MEALS.includes(selectedMeal) && selectedMeal !== getDefaultMealByTime());
+            if (!hasDraftContent) {
+              clearSheetDraft(userId);
+              return;
+            }
+            if (panelMode !== "input" || parseTask.status === "parsing") return;
+            try {
+              const attachmentDrafts = await Promise.all(
+                attachments.map(async (item, idx) => {
+                  const dataUrl = String(item?.url || "").startsWith("data:")
+                    ? String(item.url)
+                    : await fileToDataUrl(item.file);
+                  return {
+                    dataUrl,
+                    name: item?.file?.name || `draft-${idx + 1}.jpg`,
+                    mimeType: item?.file?.type || "image/jpeg",
+                    originalSize: item?.originalSize || item?.file?.size || 0,
+                    compressedSize: item?.compressedSize || item?.file?.size || 0
+                  };
+                })
+              );
+              writeSheetDraft(userId, {
+                selectedMeal,
+                inputText,
+                selectedQuickFoods: selectedQuickFoods.map(({ food }) => food),
+                attachments: attachmentDrafts,
+                updatedAt: Date.now()
+              });
+            } catch (error) {
+              console.error("write-sheet-draft-failed", error);
+            }
+          }, 280);
+
+          return () => {
+            if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
+          };
+        }, [currentUser?.id, selectedMeal, inputText, selectedQuickFoods, attachments, panelMode, parseTask.status]);
 
         useEffect(() => {
           if (records.length === 0) {
@@ -2662,7 +3267,7 @@
                                 <button className="item-delete-btn" type="button" onClick={() => handleDeleteSavedItem(entry)}>删除</button>
                               </div>
                               <div className="item" onClick={() => onItemRowClick(entry, rowKey)}>
-                                <span className="food">{((item.emoji && String(item.emoji).trim()) || "🍽️") + " " + (item.name || "未命名食物") + " " + (item.portion || "1份")}</span>
+                                <span className="food">{((item.emoji && String(item.emoji).trim()) || "🍽️") + " " + (item.name || "未命名食物") + " " + normalizePortionText(item.portion || "1份")}</span>
                                 <span className="kcal">{Number(item.kcal) || 0} 千卡 <span className="mi" style={{ fontSize: 14 }}>chevron_right</span></span>
                               </div>
                             </div>
@@ -2683,7 +3288,13 @@
             </main>
 
             <div className="footer">
-              <button className="btn" type="button" onClick={() => setSheetOpen(true)}>
+              {(parseTask.status === "parsing" || (parseTask.backgrounded && (parseTask.status === "success" || parseTask.status === "error"))) && (
+                <div className="task-entry">
+                  <span>{parseTask.status === "parsing" ? "AI 解析中…" : parseTask.status === "success" ? "解析完成，查看结果" : "解析失败，查看详情"}</span>
+                  <button className="task-entry-btn" type="button" onClick={openAddSheetPanel}>查看</button>
+                </div>
+              )}
+              <button className="btn" type="button" onClick={openAddSheetPanel}>
                 <span className="mi" style={{ fontSize: 22 }}>edit</span>
                 添加数据
               </button>
@@ -2712,11 +3323,10 @@
                 <div className={"attach" + (attachments.length === 0 ? " attach-empty" : "") }>
                   {attachments.map((item, index) => (
                     <div className="attach-item has-image" key={item.url}>
-                      <img className="attach-thumb" alt="" src={item.url} />
+                      <img className="attach-thumb" alt="" src={item.url} onClick={() => openImagePreview(index)} />
                       <button className="thumb-delete" type="button" onClick={(event) => {
                         event.stopPropagation();
-                        URL.revokeObjectURL(item.url);
-                        setAttachments((prev) => prev.filter((_, i) => i !== index));
+                        removeAttachmentAt(index);
                       }}>
                         <span className="mi" style={{ fontSize: 18 }}>close</span>
                       </button>
@@ -2771,7 +3381,7 @@
                       value={inputText}
                       onChange={(e) => setInputText(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter" && !isSending) startParse();
+                        if (e.key === "Enter" && parseTask.status !== "parsing") startParse();
                       }}
                       type="text"
                       placeholder="例：我今天中午吃了 1 个汉堡"
@@ -2780,15 +3390,37 @@
                       className="send-wide"
                       type="button"
                       onClick={startParse}
-                      disabled={isSending}
+                      disabled={parseTask.status === "parsing"}
                     >
-                      <span className="mi action-icon">{isSending ? "progress_activity" : "arrow_upward"}</span>
-                      <span>发送</span>
+                      <span className="mi action-icon">{parseTask.status === "parsing" ? "progress_activity" : "arrow_upward"}</span>
+                      <span>{parseTask.status === "parsing" ? "解析中…" : "发送"}</span>
                     </button>
               </div>
 
               <div className={"result-panel" + (panelMode === "result" ? " show" : "") }>
-                    <div>
+                    {parseTask.status === "parsing" && (
+                      <>
+                        <div className="parse-status loading">
+                          <div className="parse-status-top">
+                            <div className="parse-status-left">
+                              <span className="mi">progress_activity</span>
+                              <span>{parseTask.progressText || "AI 正在解析…"}</span>
+                            </div>
+                            <span className="parse-phase-chip">{parseTask.phase || "parsing"}</span>
+                          </div>
+                          <div className="parse-progress-track">
+                            <div className="parse-progress-bar" />
+                          </div>
+                        </div>
+                        <div className="result-skeleton">
+                          <div className="result-skeleton-row" />
+                          <div className="result-skeleton-row" />
+                          <div className="result-skeleton-row" />
+                        </div>
+                      </>
+                    )}
+                    {parseTask.status !== "parsing" && (
+                    <div className="result-items-list">
                       {parsedResults.map((item, index) => (
                         <EditableFoodItem
                           key={index}
@@ -2848,18 +3480,25 @@
                         />
                       ))}
                     </div>
+                    )}
                     {parseError && <div className="result-error" style={{ display: "block" }}>{parseError}</div>}
                     <div className="result-actions">
-                      <button className="result-btn retry" type="button" onClick={() => setPanelMode("input")}>重试</button>
-                      <button className="result-btn save" type="button" onClick={saveResults}>
-                        <span className="mi action-icon">check</span> 保存记录
-                      </button>
+                      {parseTask.status === "parsing" ? (
+                        <>
+                          <button className="result-btn retry" type="button" onClick={cancelParseTask}>取消</button>
+                          <button className="result-btn save" type="button" onClick={backgroundParseTask}>
+                            退到后台
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button className="result-btn retry" type="button" onClick={() => setPanelMode("input")}>重试</button>
+                          <button className="result-btn save" type="button" onClick={saveResults}>
+                            <span className="mi action-icon">check</span> 保存记录
+                          </button>
+                        </>
+                      )}
                     </div>
-              </div>
-
-              <div className={"parse-loading" + (panelMode === "loading" ? " show" : "") }>
-                <span className="mi" style={{ fontSize: 18 }}>progress_activity</span>
-                <span>AI 正在解析...</span>
               </div>
 
               <div className="input-row" style={{ display: "none" }} />
@@ -2886,7 +3525,7 @@
                     >
                       <div className="library-list-main">
                         <div className="library-list-title">{food.emoji} {food.name}</div>
-                        <div className="library-list-meta">{food.portion} · {food.kcal} 千卡</div>
+                        <div className="library-list-meta">{normalizePortionText(food.portion)} · {food.kcal} 千卡</div>
                       </div>
                       <span className="library-list-check">
                         <span className="mi" style={{ fontSize: 12 }}>check</span>
@@ -3002,6 +3641,28 @@
                 </div>
               )}
             </BottomSheet>
+
+            {imagePreviewOpen && attachments[imagePreviewIndex] && (
+              <div className="image-preview-overlay" onClick={closeImagePreview}>
+                <div className="image-preview-stage" onClick={(e) => e.stopPropagation()}>
+                  {attachments.length > 1 && (
+                    <button className="image-preview-nav prev" type="button" onClick={previewPrev} aria-label="上一张">
+                      <span className="mi" style={{ fontSize: 20 }}>chevron_left</span>
+                    </button>
+                  )}
+                  <img className="image-preview-img" alt="" src={attachments[imagePreviewIndex].url} />
+                  {attachments.length > 1 && (
+                    <button className="image-preview-nav next" type="button" onClick={previewNext} aria-label="下一张">
+                      <span className="mi" style={{ fontSize: 20 }}>chevron_right</span>
+                    </button>
+                  )}
+                  <button className="image-preview-close" type="button" onClick={closeImagePreview} aria-label="关闭预览">
+                    <span className="mi" style={{ fontSize: 20 }}>close</span>
+                  </button>
+                  <div className="image-preview-meta">{imagePreviewIndex + 1} / {attachments.length}</div>
+                </div>
+              </div>
+            )}
 
             <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={handlePickedFile} />
           </>
