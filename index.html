@@ -598,6 +598,15 @@
         transform-origin: bottom center;
         max-height: calc(100dvh - var(--nav-safe-height));
       }
+      .sheet-content-viewport {
+        overflow: hidden;
+      }
+      .sheet-content-viewport.fluid {
+        transition: height 0.24s cubic-bezier(0.22, 0.9, 0.34, 1);
+      }
+      .sheet-flow-view {
+        animation: fadeUp 0.2s ease;
+      }
 
       .sheet-head {
         padding: 18px 16px;
@@ -1622,7 +1631,7 @@
         };
       }
 
-      async function callGeminiParse({ meal, inputText, compressedAttachments, signal }) {
+      async function callDoubaoParse({ meal, inputText, compressedAttachments, signal, headers }) {
         const imageParts = [];
         for (const item of compressedAttachments) {
           const base64 = await blobToBase64(item.blob);
@@ -1631,7 +1640,7 @@
 
         const response = await fetch(SUPABASE_URL + "/functions/v1/parse-food", {
           method: "POST",
-          headers: { ...SUPABASE_HEADERS },
+          headers: headers || { ...SUPABASE_HEADERS },
           signal,
           body: JSON.stringify({ meal, text: inputText, images: imageParts })
         });
@@ -1853,8 +1862,33 @@
         children,
         overlayClassName = "sheet-overlay",
         wrapClassName = "sheet-wrap",
-        cardClassName = "sheet-card"
+        cardClassName = "sheet-card",
+        fluidHeight = false,
+        contentKey = ""
       }) {
+        const bodyRef = useRef(null);
+        const [contentHeight, setContentHeight] = useState(0);
+
+        useEffect(() => {
+          if (!fluidHeight || !open) return;
+          const node = bodyRef.current;
+          if (!node) return;
+          let frame = 0;
+          const updateHeight = () => {
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(() => {
+              if (bodyRef.current) setContentHeight(bodyRef.current.scrollHeight);
+            });
+          };
+          updateHeight();
+          const observer = new ResizeObserver(updateHeight);
+          observer.observe(node);
+          return () => {
+            cancelAnimationFrame(frame);
+            observer.disconnect();
+          };
+        }, [open, fluidHeight, contentKey]);
+
         return (
           <div
             className={overlayClassName + (open ? " show" : "")}
@@ -1873,7 +1907,12 @@
                     </button>
                   </div>
                 </div>
-                {children}
+                <div
+                  className={"sheet-content-viewport" + (fluidHeight ? " fluid" : "")}
+                  style={fluidHeight && open ? { height: contentHeight + "px" } : undefined}
+                >
+                  <div ref={bodyRef}>{children}</div>
+                </div>
               </div>
             </div>
           </div>
@@ -2207,11 +2246,9 @@
         }, [sheetOpen, librarySheetOpen, entryEditOpen, goalSheetOpen, imagePreviewOpen, authVisible]);
 
         function getRestHeaders(sessionArg = currentSession) {
-          const token = sessionArg?.access_token || SUPABASE_ANON_KEY;
-          return {
-            ...SUPABASE_HEADERS,
-            Authorization: "Bearer " + token
-          };
+          const token = sessionArg?.access_token;
+          if (!token) return { ...SUPABASE_HEADERS };
+          return { ...SUPABASE_HEADERS, Authorization: "Bearer " + token };
         }
 
         function cleanupAttachments(next = attachments) {
@@ -2371,11 +2408,12 @@
               phase: "recognizing",
               progressText: "AI 正在识别食物…"
             });
-            const aiObject = await callGeminiParse({
+            const aiObject = await callDoubaoParse({
               meal: selectedMeal,
               inputText: text,
               compressedAttachments: compressed,
-              signal: controller.signal
+              signal: controller.signal,
+              headers: getRestHeaders()
             });
             updateParseTaskFor(requestId, {
               phase: "normalizing",
@@ -3304,6 +3342,8 @@
               open={sheetOpen}
               onClose={closeSheetPanel}
               title="记饮食"
+              fluidHeight={true}
+              contentKey={`${panelMode}-${parseTask.status}-${parsedResults.length}-${parseError ? "e" : "n"}`}
               actions={panelMode === "result" ? (
                 <>
                   <button className="history-btn" type="button" onClick={undoParsedChange} disabled={parsedUndoStack.length === 0}>
@@ -3318,37 +3358,39 @@
 
               <MealTabs value={selectedMeal} onChange={setSelectedMeal} />
 
-              <div className="media-entry" style={{ display: panelMode === "input" ? "block" : "none" }}>
-                <div style={{ padding: "0 16px" }} className="input-section-title">添加图片</div>
-                <div className={"attach" + (attachments.length === 0 ? " attach-empty" : "") }>
-                  {attachments.map((item, index) => (
-                    <div className="attach-item has-image" key={item.url}>
-                      <img className="attach-thumb" alt="" src={item.url} onClick={() => openImagePreview(index)} />
-                      <button className="thumb-delete" type="button" onClick={(event) => {
-                        event.stopPropagation();
-                        removeAttachmentAt(index);
-                      }}>
-                        <span className="mi" style={{ fontSize: 18 }}>close</span>
-                      </button>
+              {panelMode === "input" ? (
+                <div className="sheet-flow-view">
+                  <div className="media-entry">
+                    <div style={{ padding: "0 16px" }} className="input-section-title">添加图片</div>
+                    <div className={"attach" + (attachments.length === 0 ? " attach-empty" : "") }>
+                      {attachments.map((item, index) => (
+                        <div className="attach-item has-image" key={item.url}>
+                          <img className="attach-thumb" alt="" src={item.url} onClick={() => openImagePreview(index)} />
+                          <button className="thumb-delete" type="button" onClick={(event) => {
+                            event.stopPropagation();
+                            removeAttachmentAt(index);
+                          }}>
+                            <span className="mi" style={{ fontSize: 18 }}>close</span>
+                          </button>
+                        </div>
+                      ))}
+                      {attachments.length < MAX_ATTACHMENTS && (
+                        <button className={"attach-item" + (attachments.length === 0 ? " attach-option" : "")} type="button" onClick={() => cameraInputRef.current && cameraInputRef.current.click()}>
+                          <span className="mi attach-icon">photo_camera</span>
+                          {attachments.length === 0 && <span className="attach-label">拍照</span>}
+                        </button>
+                      )}
+                      {attachments.length < MAX_ATTACHMENTS && (
+                        <label className={"attach-item" + (attachments.length === 0 ? " attach-option" : "") }>
+                          <span className="mi attach-icon">photo_library</span>
+                          {attachments.length === 0 && <span className="attach-label">相册</span>}
+                          <input ref={galleryInputRef} className="native-file-input" type="file" accept="image/*" multiple onChange={handlePickedFile} />
+                        </label>
+                      )}
                     </div>
-                  ))}
-                  {attachments.length < MAX_ATTACHMENTS && (
-                    <button className={"attach-item" + (attachments.length === 0 ? " attach-option" : "")} type="button" onClick={() => cameraInputRef.current && cameraInputRef.current.click()}>
-                      <span className="mi attach-icon">photo_camera</span>
-                      {attachments.length === 0 && <span className="attach-label">拍照</span>}
-                    </button>
-                  )}
-                  {attachments.length < MAX_ATTACHMENTS && (
-                    <label className={"attach-item" + (attachments.length === 0 ? " attach-option" : "") }>
-                      <span className="mi attach-icon">photo_library</span>
-                      {attachments.length === 0 && <span className="attach-label">相册</span>}
-                      <input ref={galleryInputRef} className="native-file-input" type="file" accept="image/*" multiple onChange={handlePickedFile} />
-                    </label>
-                  )}
-                </div>
-              </div>
+                  </div>
 
-              <div className="library-entry" style={{ display: panelMode === "input" ? "block" : "none" }}>
+                  <div className="library-entry">
                     <button className="library-entry-title" type="button" onClick={openLibrarySheet}>
                       <span>
                         <div className="library-entry-title-main">历史食物</div>
@@ -3374,7 +3416,7 @@
                     </div>
                   </div>
 
-              <div className="text-entry" style={{ display: panelMode === "input" ? "block" : "none" }}>
+                  <div className="text-entry">
                     <div className="input-section-title">输入文字</div>
                     <input
                       className="text-entry-input"
@@ -3395,9 +3437,11 @@
                       <span className="mi action-icon">{parseTask.status === "parsing" ? "progress_activity" : "arrow_upward"}</span>
                       <span>{parseTask.status === "parsing" ? "解析中…" : "发送"}</span>
                     </button>
-              </div>
-
-              <div className={"result-panel" + (panelMode === "result" ? " show" : "") }>
+                  </div>
+                </div>
+              ) : (
+                <div className="sheet-flow-view">
+                  <div className="result-panel show">
                     {parseTask.status === "parsing" && (
                       <>
                         <div className="parse-status loading">
@@ -3499,7 +3543,9 @@
                         </>
                       )}
                     </div>
-              </div>
+                  </div>
+                </div>
+              )}
 
               <div className="input-row" style={{ display: "none" }} />
             </BottomSheet>
