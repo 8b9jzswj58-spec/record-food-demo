@@ -1235,90 +1235,123 @@
       }
 
       .result-error { padding: 0 16px 16px; color: #cb2f31; font-size: 13px; white-space: pre-wrap; }
+      /* ── AI 加载：脉冲雷达 ── */
       .parse-status {
-        margin: 2px 16px 12px;
-        border-radius: 16px;
-        padding: 14px 16px;
-        background: linear-gradient(135deg, rgba(36, 179, 126, 0.12) 0%, rgba(30, 167, 114, 0.06) 100%);
-        border: 1px solid rgba(36, 179, 126, 0.22);
-        color: #0f4f37;
-        font-size: 13px;
-        display: grid;
-        gap: 12px;
-      }
-      .parse-status-top {
+        margin: 2px 16px 0;
+        border-radius: 22px;
+        padding: 32px 16px 28px;
+        background: linear-gradient(160deg, rgba(36,179,126,0.07) 0%, rgba(30,167,114,0.03) 100%);
+        border: 1px solid rgba(36,179,126,0.16);
         display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-      }
-      .parse-status-left {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        min-width: 0;
-      }
-      .parse-wave {
-        display: inline-flex;
-        align-items: flex-end;
-        gap: 3px;
-        height: 18px;
-        flex-shrink: 0;
-      }
-      .parse-wave span {
-        display: block;
-        width: 3px;
-        border-radius: 3px;
-        background: var(--green);
-        animation: waveBounce 0.9s ease-in-out infinite;
-        transform-origin: bottom;
-      }
-      .parse-wave span:nth-child(1) { height: 6px;  animation-delay: 0s; }
-      .parse-wave span:nth-child(2) { height: 12px; animation-delay: 0.12s; }
-      .parse-wave span:nth-child(3) { height: 18px; animation-delay: 0.24s; }
-      .parse-wave span:nth-child(4) { height: 12px; animation-delay: 0.36s; }
-      .parse-wave span:nth-child(5) { height: 6px;  animation-delay: 0.48s; }
-      @keyframes waveBounce {
-        0%, 100% { transform: scaleY(0.35); opacity: 0.5; }
-        50%       { transform: scaleY(1);    opacity: 1; }
-      }
-      .parse-phase-chip {
-        border-radius: 999px;
-        padding: 3px 10px;
-        background: rgba(36, 179, 126, 0.18);
-        color: #0f6848;
-        font-size: 11px;
-        font-weight: 600;
-        white-space: nowrap;
-        letter-spacing: 0.2px;
-      }
-      .parse-progress-track {
-        height: 3px;
-        border-radius: 999px;
-        background: rgba(19, 68, 50, 0.12);
+        gap: 20px;
+        position: relative;
         overflow: hidden;
       }
-      .parse-progress-bar {
-        height: 100%;
-        width: 30%;
-        border-radius: inherit;
-        background: linear-gradient(90deg, rgba(36,179,126,0.1) 0%, #24b37e 50%, rgba(36,179,126,0.1) 100%);
-        background-size: 200% 100%;
-        animation: parseFlow 1.4s cubic-bezier(0.4,0,0.6,1) infinite;
-        box-shadow: 0 0 8px rgba(36,179,126,0.6);
+      .ai-sonar {
+        position: relative;
+        width: 72px;
+        height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
       }
-      .parse-status .mi { font-size: 16px; }
-      .parse-status.loading .mi { animation: spin 0.9s linear infinite; }
+      .ai-sonar-ring {
+        position: absolute;
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        border: 1.5px solid rgba(36,179,126,0.75);
+        animation: sonarExpand 2.1s ease-out infinite;
+      }
+      .ai-sonar-ring:nth-child(2) { animation-delay: 0.7s; }
+      .ai-sonar-ring:nth-child(3) { animation-delay: 1.4s; }
+      @keyframes sonarExpand {
+        0%   { transform: scale(0.5); opacity: 0.9; }
+        100% { transform: scale(3.3); opacity: 0; }
+      }
+      .ai-sonar-core {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 38% 32%, #5de8b0, #1ea772);
+        box-shadow: 0 0 0 4px rgba(36,179,126,0.14), 0 0 18px rgba(36,179,126,0.55);
+        animation: sonarCoreGlow 2.1s ease-in-out infinite;
+        z-index: 1;
+      }
+      @keyframes sonarCoreGlow {
+        0%, 100% { box-shadow: 0 0 0 4px rgba(36,179,126,0.14), 0 0 14px rgba(36,179,126,0.45); }
+        50%       { box-shadow: 0 0 0 6px rgba(36,179,126,0.22), 0 0 26px rgba(36,179,126,0.75); }
+      }
+      .ai-status-text {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        text-align: center;
+      }
+      .ai-status-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-main);
+        letter-spacing: 0.1px;
+      }
+      .ai-status-phase {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--green);
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        opacity: 0.75;
+      }
+      .ai-scan-line {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent 0%, rgba(36,179,126,0.5) 40%, rgba(36,179,126,1) 50%, rgba(36,179,126,0.5) 60%, transparent 100%);
+        background-size: 55% 100%;
+        background-repeat: no-repeat;
+        animation: aiScanMove 2s linear infinite;
+      }
+      @keyframes aiScanMove {
+        0%   { background-position: -55% 0; }
+        100% { background-position: 155% 0; }
+      }
       .result-skeleton {
-        padding: 0 16px 16px;
+        padding: 12px 16px 16px;
         display: grid;
         gap: 10px;
       }
       .result-skeleton-row {
         height: 72px;
+        border-radius: 14px;
+        background: rgba(36,179,126,0.05);
+        border: 1px solid rgba(36,179,126,0.08);
+        position: relative;
+        overflow: hidden;
+      }
+      .result-skeleton-row::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.55) 50%, transparent 70%);
+        animation: skeletonShine 1.8s ease-in-out infinite;
+      }
+      .result-skeleton-row:nth-child(2)::after { animation-delay: 0.24s; }
+      .result-skeleton-row:nth-child(3)::after { animation-delay: 0.48s; }
+      @keyframes skeletonShine {
+        0%   { transform: translateX(-130%); }
+        100% { transform: translateX(230%); }
+      }
+      /* keep parse-status .mi for non-loading states */
+      .parse-status .mi { font-size: 16px; }
+      .parse-status.loading .mi { animation: spin 0.9s linear infinite; }
+      .result-skeleton-row-placeholder {
+        height: 72px;
         border-radius: 12px;
-        background: linear-gradient(90deg, rgba(36,179,126,0.04) 0%, rgba(36,179,126,0.10) 38%, rgba(36,179,126,0.04) 100%);
-        background-size: 240% 100%;
+        background: rgba(0,0,0,.04);
         animation: shimmer 1.4s ease-in-out infinite;
       }
       .task-entry {
@@ -1551,6 +1584,8 @@
         color: var(--text-main);
       }
       [data-theme="dark"] .attach-item { border-color: rgba(255,255,255,0.12); }
+      [data-theme="dark"] .result-skeleton-row { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.07); }
+      [data-theme="dark"] .result-skeleton-row::after { background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.08) 50%, transparent 70%); }
       [data-theme="dark"] .footer::before { background: rgba(10,18,13,0.5); }
       [data-theme="dark"] .auth-card { background: rgba(22,36,28,0.99); }
     </style>
@@ -3582,17 +3617,16 @@
                     {parseTask.status === "parsing" && (
                       <>
                         <div className="parse-status loading">
-                          <div className="parse-status-top">
-                            <div className="parse-status-left">
-                              <span className="parse-wave" aria-hidden="true">
-                                <span /><span /><span /><span /><span />
-                              </span>
-                              <span>{parseTask.progressText || "AI 正在解析…"}</span>
-                            </div>
-                            <span className="parse-phase-chip">{parseTask.phase || "parsing"}</span>
+                          <span className="ai-scan-line" aria-hidden="true" />
+                          <div className="ai-sonar" aria-hidden="true">
+                            <span className="ai-sonar-ring" />
+                            <span className="ai-sonar-ring" />
+                            <span className="ai-sonar-ring" />
+                            <span className="ai-sonar-core" />
                           </div>
-                          <div className="parse-progress-track">
-                            <div className="parse-progress-bar" />
+                          <div className="ai-status-text">
+                            <span className="ai-status-label">{parseTask.progressText || "AI 正在解析…"}</span>
+                            <span className="ai-status-phase">{parseTask.phase || "parsing"}</span>
                           </div>
                         </div>
                         <div className="result-skeleton">
