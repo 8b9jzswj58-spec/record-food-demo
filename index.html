@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="zh-CN">
+  <script>if(localStorage.getItem("darkMode")==="1"){document.documentElement.dataset.theme="dark";}</script>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -289,9 +290,8 @@
         letter-spacing: 0.2px;
       }
 
-      .nav-settings {
+      .nav-settings, .nav-dark-toggle {
         position: absolute;
-        right: 14px;
         bottom: 8px;
         width: 34px;
         height: 34px;
@@ -306,8 +306,10 @@
         cursor: pointer;
         transition: transform 0.18s ease;
       }
+      .nav-settings { right: 56px; }
+      .nav-dark-toggle { right: 14px; }
 
-      .nav-settings:active { transform: scale(0.94); }
+      .nav-settings:active, .nav-dark-toggle:active { transform: scale(0.94); }
 
       .menu-overlay {
         position: fixed;
@@ -1429,6 +1431,99 @@
       @media (max-width: 420px) {
         .page { max-width: 100vw; }
       }
+
+      /* ── Dark mode ── */
+      [data-theme="dark"] {
+        --bg: #0f1a15;
+        --bg-glow: radial-gradient(circle at 8% 12%, rgba(36,179,126,0.10) 0%, transparent 36%),
+          radial-gradient(circle at 88% 2%, rgba(255,140,60,0.07) 0%, transparent 40%),
+          linear-gradient(150deg, #121a13 0%, #101c17 42%, #0f1820 100%);
+        --card: rgba(24, 38, 30, 0.95);
+        --text-main: #deeee6;
+        --text-secondary: rgba(222, 238, 230, 0.70);
+        --text-muted: rgba(222, 238, 230, 0.45);
+        --divider: rgba(222, 238, 230, 0.10);
+        --green: #2ec98f;
+        --green-strong: #27b87e;
+        --shadow-soft: 0 12px 32px rgba(0,0,0,0.36);
+      }
+
+      [data-theme="dark"] .hero {
+        background: linear-gradient(140deg, rgba(28,46,36,0.95) 0%, rgba(20,38,30,0.9) 100%);
+        border-color: rgba(255,255,255,0.07);
+      }
+      [data-theme="dark"] .hero-goal-input {
+        background: rgba(255,255,255,0.07);
+        border-color: rgba(255,255,255,0.14);
+        color: var(--text-main);
+      }
+      [data-theme="dark"] .hero-goal-edit-btn {
+        background: rgba(255,255,255,0.08);
+      }
+      [data-theme="dark"] .nav::before {
+        background: rgba(10,18,13,0.72);
+      }
+      [data-theme="dark"] .nav-settings, [data-theme="dark"] .nav-dark-toggle {
+        background: rgba(28,44,34,0.9);
+        color: rgba(222,238,230,0.8);
+      }
+      [data-theme="dark"] .settings-menu {
+        background: rgba(22,38,28,0.99);
+        border-color: rgba(255,255,255,0.10);
+        box-shadow: 0 18px 34px rgba(0,0,0,0.4);
+      }
+      [data-theme="dark"] .menu-item:active { background: rgba(255,255,255,0.08); }
+      [data-theme="dark"] .sheet-card {
+        background: linear-gradient(180deg, #1c2e24 0%, #162820 100%);
+        box-shadow: 0 -20px 38px rgba(0,0,0,0.4);
+      }
+      [data-theme="dark"] .library-sheet-card { background: #192a21; }
+      [data-theme="dark"] .close-btn {
+        background: rgba(255,255,255,0.08);
+        color: var(--text-secondary);
+      }
+      [data-theme="dark"] .close-btn:active { background: rgba(255,255,255,0.14); }
+      [data-theme="dark"] .history-btn { color: var(--text-secondary); }
+      [data-theme="dark"] .meal-quick-tab {
+        border-color: rgba(255,255,255,0.10);
+        background: rgba(255,255,255,0.06);
+      }
+      [data-theme="dark"] .meal-quick-tab.active {
+        background: rgba(36,179,126,0.20);
+        color: #7de8bc;
+      }
+      [data-theme="dark"] .library-list-item {
+        border-color: rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.05);
+      }
+      [data-theme="dark"] .library-list-item.selected {
+        border-color: var(--green);
+        background: rgba(36,179,126,0.18);
+      }
+      [data-theme="dark"] .library-list-check { border-color: rgba(255,255,255,0.25); }
+      [data-theme="dark"] .library-chip {
+        border-color: rgba(255,255,255,0.10);
+        background: rgba(255,255,255,0.06);
+      }
+      [data-theme="dark"] .library-chip.selected {
+        background: rgba(36,179,126,0.20);
+        color: #7de8bc;
+      }
+      [data-theme="dark"] .empty {
+        background: rgba(255,255,255,0.04);
+        border-color: rgba(255,255,255,0.10);
+      }
+      [data-theme="dark"] .text-entry-input,
+      [data-theme="dark"] .result-name-input,
+      [data-theme="dark"] .result-field,
+      [data-theme="dark"] .auth-input {
+        background: rgba(255,255,255,0.07);
+        border-color: rgba(255,255,255,0.14);
+        color: var(--text-main);
+      }
+      [data-theme="dark"] .attach-item { border-color: rgba(255,255,255,0.12); }
+      [data-theme="dark"] .footer::before { background: rgba(10,18,13,0.5); }
+      [data-theme="dark"] .auth-card { background: rgba(22,36,28,0.99); }
     </style>
   </head>
   <body>
@@ -2006,6 +2101,14 @@
         const [pendingDeletion, setPendingDeletion] = useState(null);
         const [undoToast, setUndoToast] = useState(null);
         const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
+        const [darkMode, setDarkMode] = useState(() => localStorage.getItem("darkMode") === "1");
+
+        useEffect(() => {
+          document.documentElement.dataset.theme = darkMode ? "dark" : "";
+          localStorage.setItem("darkMode", darkMode ? "1" : "0");
+          const meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.content = darkMode ? "#101c17" : "#eef4ee";
+        }, [darkMode]);
         const [librarySheetOpen, setLibrarySheetOpen] = useState(false);
         const [libraryLoadedCount, setLibraryLoadedCount] = useState(20);
         const [selectedLibraryFoods, setSelectedLibraryFoods] = useState([]);
@@ -3217,6 +3320,9 @@
                     <span className="mi" style={{ fontSize: 18 }}>settings</span>
                   </button>
                 )}
+                <button className="nav-dark-toggle" type="button" onClick={() => setDarkMode((d) => !d)} aria-label={darkMode ? "切换亮色模式" : "切换暗色模式"}>
+                  <span className="mi" style={{ fontSize: 18 }}>{darkMode ? "light_mode" : "dark_mode"}</span>
+                </button>
               </header>
 
               <section className="hero">
