@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>我的饮食</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,500,0,0" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0" />
     <style>
       :root {
         --bg: #f5f6ef;
@@ -43,7 +43,9 @@
       body::-webkit-scrollbar { display: none; }
 
       .mi {
-        font-family: "Material Symbols Rounded";
+        font-family: "Material Symbols Outlined";
+        font-weight: 400;
+        font-variation-settings: "wght" 400, "FILL" 0, "GRAD" 0, "opsz" 24;
         line-height: 1;
         display: inline-flex;
         align-items: center;
@@ -94,13 +96,17 @@
         line-height: 1;
         letter-spacing: -0.6px;
         font-weight: 700;
+        display: inline-flex;
+        align-items: baseline;
+        gap: 4px;
+        font-variant-numeric: tabular-nums;
       }
 
       .hero-kcal small {
-        margin-left: 4px;
         font-size: 14px;
         color: var(--text-muted);
         font-weight: 500;
+        line-height: 1;
       }
 
       .hero-meta {
@@ -138,27 +144,35 @@
         align-items: center;
         justify-content: center;
       }
-      .hero-goal-edit {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-      }
       .hero-goal-input {
-        width: 82px;
-        height: 28px;
+        width: 100%;
+        height: 44px;
         border: 1px solid rgba(0, 0, 0, 0.12);
-        border-radius: 8px;
-        padding: 0 8px;
-        font-size: 13px;
+        border-radius: 10px;
+        padding: 0 12px;
+        font-size: 16px;
       }
       .hero-goal-save {
-        height: 28px;
+        height: 44px;
         border: 0;
         border-radius: 999px;
-        padding: 0 10px;
-        font-size: 12px;
+        padding: 0 16px;
+        font-size: 14px;
         color: #fff;
-        background: var(--green-strong);
+        background: linear-gradient(130deg, var(--green) 0%, var(--green-strong) 100%);
+      }
+      .goal-sheet-body {
+        padding: 6px 16px 18px;
+        display: grid;
+        gap: 10px;
+      }
+      .goal-sheet-note {
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+      .goal-sheet-actions {
+        display: flex;
+        gap: 8px;
       }
       .hero-progress {
         margin-top: 8px;
@@ -356,9 +370,23 @@
       .dinner { background: linear-gradient(140deg, #5a77ea 0%, #4963d4 100%); }
 
       .meal-name { font-size: 16px; font-weight: 600; }
-      .head-value { display: flex; align-items: center; gap: 3px; font-size: 14px; }
-      .head-value .main { color: var(--text-main); font-weight: 600; }
-      .head-value .muted { color: var(--text-muted); }
+      .head-value {
+        display: inline-flex;
+        align-items: baseline;
+        justify-content: flex-end;
+        gap: 4px;
+        font-size: 14px;
+        font-variant-numeric: tabular-nums;
+      }
+      .head-value .main {
+        color: var(--text-main);
+        font-weight: 600;
+        line-height: 1;
+      }
+      .head-value .muted {
+        color: var(--text-muted);
+        line-height: 1;
+      }
 
       .item {
         padding: 14px 15px;
@@ -663,20 +691,6 @@
         overflow: hidden;
         display: flex;
         flex-direction: column;
-      }
-
-      .library-sheet-head {
-        height: 54px;
-        padding: 0 16px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 1px solid var(--divider);
-      }
-
-      .library-sheet-title {
-        font-size: 16px;
-        font-weight: 600;
       }
 
       .meal-quick-tabs {
@@ -1185,6 +1199,9 @@
         apikey: SUPABASE_ANON_KEY,
         "Content-Type": "application/json"
       };
+      const TEST_MODE_AUTH_BYPASS = true;
+      const TEST_MODE_EMAIL = "787364959@qq.com";
+      const TEST_MODE_PASSWORD = "12345678";
 
       const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
@@ -1399,6 +1416,199 @@
         return (Array.isArray(srcItems) ? srcItems : []).map((item) => ({ ...item }));
       }
 
+      function MealTabs({ value, onChange, className = "" }) {
+        return (
+          <div className={"meal-quick-tabs" + (className ? " " + className : "")}>
+            {MEALS.map((meal) => (
+              <button
+                key={meal}
+                className={"meal-quick-tab" + (value === meal ? " active" : "")}
+                type="button"
+                onClick={() => onChange(meal)}
+              >
+                {meal}
+              </button>
+            ))}
+          </div>
+        );
+      }
+
+      function EditableFoodItem({
+        item,
+        showDelete = false,
+        onDelete = null,
+        nameValue,
+        onNameFocus,
+        onNameCompositionStart,
+        onNameCompositionEnd,
+        onNameChange,
+        onNameBlur,
+        servingsValue,
+        onServingsFocus,
+        onServingsChange,
+        onServingsBlur,
+        onUnitFocus,
+        onUnitChange,
+        onUnitBlur,
+        onKcalFocus,
+        onKcalChange,
+        onKcalBlur,
+        style = null
+      }) {
+        return (
+          <div className="result-item" style={style}>
+            <div className="result-cover">{item.emoji}</div>
+            <div className="result-text">
+              <div className="result-item-head">
+                <input
+                  className="result-name-input"
+                  value={nameValue}
+                  onFocus={onNameFocus}
+                  onCompositionStart={onNameCompositionStart}
+                  onCompositionEnd={onNameCompositionEnd}
+                  onChange={onNameChange}
+                  onBlur={onNameBlur}
+                />
+                {showDelete && (
+                  <button className="result-del" type="button" onClick={onDelete}>
+                    <span className="mi" style={{ fontSize: 20 }}>delete</span>
+                  </button>
+                )}
+              </div>
+              <div className="result-fields">
+                <label className="result-field-wrap">
+                  <span className="result-field-label">份数</span>
+                  <div className="serving-unit-row">
+                    <input
+                      className="result-field"
+                      type="tel"
+                      inputMode="decimal"
+                      pattern="[0-9]*[.]?[0-9]*"
+                      value={servingsValue}
+                      onFocus={onServingsFocus}
+                      onChange={onServingsChange}
+                      onBlur={onServingsBlur}
+                      placeholder="份数"
+                    />
+                    <input
+                      className="result-field"
+                      value={item.unitName || "份"}
+                      onFocus={onUnitFocus}
+                      onChange={onUnitChange}
+                      onBlur={onUnitBlur}
+                      placeholder="单位"
+                    />
+                  </div>
+                </label>
+                <label className="result-field-wrap">
+                  <span className="result-field-label">千卡</span>
+                  <input
+                    className="result-field"
+                    type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={item.kcal ?? 0}
+                    onFocus={onKcalFocus}
+                    onChange={onKcalChange}
+                    onBlur={onKcalBlur}
+                    placeholder="千卡"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      function BottomSheet({
+        open,
+        onClose,
+        title,
+        actions = null,
+        children,
+        overlayClassName = "sheet-overlay",
+        wrapClassName = "sheet-wrap",
+        cardClassName = "sheet-card"
+      }) {
+        return (
+          <div
+            className={overlayClassName + (open ? " show" : "")}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) onClose();
+            }}
+          >
+            <div className={wrapClassName}>
+              <div className={cardClassName}>
+                <div className="sheet-head">
+                  <div className="meal-prefix">{title}</div>
+                  <div className="sheet-head-actions">
+                    {actions}
+                    <button className="close-btn" type="button" onClick={onClose}>
+                      <span className="mi icon-regular close-icon">close</span>
+                    </button>
+                  </div>
+                </div>
+                {children}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      function useElasticNumber(targetValue, duration = 420) {
+        const safeTarget = Math.max(0, Number(targetValue) || 0);
+        const [display, setDisplay] = useState(safeTarget);
+        const rafRef = useRef(0);
+        const startValueRef = useRef(safeTarget);
+        const startTimeRef = useRef(0);
+
+        useEffect(() => {
+          const from = Number(display) || 0;
+          const to = safeTarget;
+          if (from === to) return;
+          if (rafRef.current) cancelAnimationFrame(rafRef.current);
+          startValueRef.current = from;
+          startTimeRef.current = 0;
+
+          const easeOutBack = (t) => {
+            const c1 = 1.70158;
+            const c3 = c1 + 1;
+            return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+          };
+
+          const tick = (ts) => {
+            if (!startTimeRef.current) startTimeRef.current = ts;
+            const elapsed = ts - startTimeRef.current;
+            const progress = Math.min(1, elapsed / duration);
+            const eased = easeOutBack(progress);
+            const next = startValueRef.current + (to - startValueRef.current) * eased;
+            setDisplay(Math.max(0, Math.round(next)));
+            if (progress < 1) {
+              rafRef.current = requestAnimationFrame(tick);
+            }
+          };
+
+          rafRef.current = requestAnimationFrame(tick);
+
+          return () => {
+            if (rafRef.current) cancelAnimationFrame(rafRef.current);
+          };
+        }, [safeTarget, duration]);
+
+        useEffect(() => {
+          return () => {
+            if (rafRef.current) cancelAnimationFrame(rafRef.current);
+          };
+        }, []);
+
+        return display;
+      }
+
+      function AnimatedKcalValue({ value, className }) {
+        const animated = useElasticNumber(value, 420);
+        return <span className={className}>{animated}</span>;
+      }
+
       function App() {
         const [sheetOpen, setSheetOpen] = useState(false);
         const [panelMode, setPanelMode] = useState("input");
@@ -1410,7 +1620,7 @@
         const [inputText, setInputText] = useState("");
         const [isSending, setIsSending] = useState(false);
         const [records, setRecords] = useState([]);
-        const [authVisible, setAuthVisible] = useState(true);
+        const [authVisible, setAuthVisible] = useState(false);
         const [email, setEmail] = useState("");
         const [password, setPassword] = useState("");
         const [currentSession, setCurrentSession] = useState(null);
@@ -1421,12 +1631,12 @@
         const [undoToast, setUndoToast] = useState(null);
         const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
         const [librarySheetOpen, setLibrarySheetOpen] = useState(false);
-        const [singleVisibleCount, setSingleVisibleCount] = useState(20);
+        const [libraryLoadedCount, setLibraryLoadedCount] = useState(20);
         const [selectedLibraryFoods, setSelectedLibraryFoods] = useState([]);
         const [selectedQuickFoods, setSelectedQuickFoods] = useState([]);
         const [parseError, setParseError] = useState("");
         const [goalKcal, setGoalKcal] = useState(readGoalKcal());
-        const [goalEditing, setGoalEditing] = useState(false);
+        const [goalSheetOpen, setGoalSheetOpen] = useState(false);
         const [goalDraft, setGoalDraft] = useState(String(readGoalKcal()));
         const [servingEditIndex, setServingEditIndex] = useState(-1);
         const [servingDraft, setServingDraft] = useState("");
@@ -1434,9 +1644,13 @@
         const [entryEditOpen, setEntryEditOpen] = useState(false);
         const [editingEntry, setEditingEntry] = useState(null);
         const [editingItem, setEditingItem] = useState(null);
+        const [entryUndoStack, setEntryUndoStack] = useState([]);
+        const [entryRedoStack, setEntryRedoStack] = useState([]);
         const [entryServingDraft, setEntryServingDraft] = useState("");
         const [entryServingEditing, setEntryServingEditing] = useState(false);
         const [entryNameComposing, setEntryNameComposing] = useState(false);
+        const [editingMeal, setEditingMeal] = useState("早餐");
+        const entryEditSessionRef = useRef({ key: "", before: null });
 
         const cameraInputRef = useRef(null);
         const galleryInputRef = useRef(null);
@@ -1469,6 +1683,7 @@
           const target = Math.max(1, Number(goalKcal) || 1600);
           return Math.max(0, Math.min(100, Math.round((selectedDateTotalKcal / target) * 100)));
         }, [selectedDateTotalKcal, goalKcal]);
+        const animatedHeroKcal = useElasticNumber(selectedDateTotalKcal, 460);
 
         const currentDayMeals = useMemo(() => {
           const target = records.filter((record) => getDateKey(record?.created_at) === currentDateKey);
@@ -1482,6 +1697,7 @@
                 item,
                 recordIndex,
                 itemIndex,
+                meal,
                 key: `${recordIndex}-${itemIndex}-${meal}`
               });
             });
@@ -1517,19 +1733,33 @@
         }, [records]);
 
         const visibleSingleFoods = useMemo(() => {
-          return foodLibrary.foods.slice(0, singleVisibleCount);
-        }, [foodLibrary.foods, singleVisibleCount]);
+          return foodLibrary.foods.slice(0, libraryLoadedCount);
+        }, [foodLibrary.foods, libraryLoadedCount]);
+
+        const visibleQuickFoods = useMemo(() => {
+          const base = foodLibrary.foods.slice(0, libraryLoadedCount);
+          const exists = new Set(base.map((food) => getFoodSelectionKey(food)));
+          const appendedSelected = selectedQuickFoods
+            .map(({ food }) => food)
+            .filter((food) => {
+              const key = getFoodSelectionKey(food);
+              if (exists.has(key)) return false;
+              exists.add(key);
+              return true;
+            });
+          return [...base, ...appendedSelected];
+        }, [foodLibrary.foods, libraryLoadedCount, selectedQuickFoods]);
 
         function closeSheetPanel() { setSheetOpen(false); }
         function startGoalEdit() {
           setGoalDraft(String(goalKcal));
-          setGoalEditing(true);
+          setGoalSheetOpen(true);
         }
         function saveGoalEdit() {
           const nextGoal = Math.max(1, Number.parseInt(String(goalDraft || "0"), 10) || 1600);
           setGoalKcal(nextGoal);
           writeGoalKcal(nextGoal);
-          setGoalEditing(false);
+          setGoalSheetOpen(false);
         }
         function resetParsedHistory() {
           setParsedUndoStack([]);
@@ -1595,7 +1825,7 @@
         }, [pendingDeletion]);
 
         useEffect(() => {
-          const shouldLock = sheetOpen || librarySheetOpen || entryEditOpen || authVisible;
+          const shouldLock = sheetOpen || librarySheetOpen || entryEditOpen || goalSheetOpen || authVisible;
           if (!shouldLock) return;
           const prevOverflow = document.body.style.overflow;
           const prevTouchAction = document.body.style.touchAction;
@@ -1605,7 +1835,7 @@
             document.body.style.overflow = prevOverflow;
             document.body.style.touchAction = prevTouchAction;
           };
-        }, [sheetOpen, librarySheetOpen, entryEditOpen, authVisible]);
+        }, [sheetOpen, librarySheetOpen, entryEditOpen, goalSheetOpen, authVisible]);
 
         function getRestHeaders(sessionArg = currentSession) {
           const token = sessionArg?.access_token || SUPABASE_ANON_KEY;
@@ -1798,7 +2028,7 @@
         }
 
         function openLibrarySheet() {
-          setSingleVisibleCount(20);
+          setLibraryLoadedCount((prev) => Math.max(20, prev));
           setSelectedLibraryFoods(
             selectedQuickFoods.map(({ key, food }) => ({ key, food }))
           );
@@ -1835,6 +2065,9 @@
         function openEntryEdit(entry) {
           setEditingEntry(entry);
           setEditingItem(normalizeEditableFood(entry?.item || {}));
+          setEditingMeal(String(entry?.meal || "早餐"));
+          setEntryUndoStack([]);
+          setEntryRedoStack([]);
           setEntryServingDraft("");
           setEntryServingEditing(false);
           setEntryNameComposing(false);
@@ -1845,21 +2078,113 @@
           setEntryEditOpen(false);
           setEditingEntry(null);
           setEditingItem(null);
+          setEntryUndoStack([]);
+          setEntryRedoStack([]);
           setEntryServingDraft("");
           setEntryServingEditing(false);
           setEntryNameComposing(false);
+          setEditingMeal("早餐");
+          entryEditSessionRef.current = { key: "", before: null };
+        }
+
+        function getEntryEditSnapshot(nextItem = editingItem, nextMeal = editingMeal) {
+          return {
+            item: normalizeEditableFood(nextItem || {}),
+            meal: MEALS.includes(nextMeal) ? nextMeal : "早餐"
+          };
+        }
+
+        function applyEntryEditSnapshot(snapshot) {
+          if (!snapshot) return;
+          setEditingItem(normalizeEditableFood(snapshot.item || {}));
+          setEditingMeal(MEALS.includes(snapshot.meal) ? snapshot.meal : "早餐");
         }
 
         function updateEditingItem(patch) {
           setEditingItem((prev) => normalizeEditableFood({ ...(prev || {}), ...patch }));
         }
 
+        function changeEditingMeal(nextMeal) {
+          const safeMeal = MEALS.includes(nextMeal) ? nextMeal : "早餐";
+          if (safeMeal === editingMeal) return;
+          setEntryUndoStack((stack) => [...stack, getEntryEditSnapshot()]);
+          setEntryRedoStack([]);
+          setEditingMeal(safeMeal);
+        }
+
+        function beginEntryEditSession(sessionKey) {
+          const current = entryEditSessionRef.current;
+          if (current.key === sessionKey) return;
+          entryEditSessionRef.current = {
+            key: sessionKey,
+            before: getEntryEditSnapshot()
+          };
+        }
+
+        function endEntryEditSession(sessionKey) {
+          const current = entryEditSessionRef.current;
+          if (!current.key || current.key !== sessionKey) return;
+          const before = current.before || getEntryEditSnapshot();
+          const after = getEntryEditSnapshot();
+          entryEditSessionRef.current = { key: "", before: null };
+          if (JSON.stringify(before) === JSON.stringify(after)) return;
+          setEntryUndoStack((stack) => [...stack, before]);
+          setEntryRedoStack([]);
+        }
+
+        function flushEntryEditSession() {
+          const current = entryEditSessionRef.current;
+          if (!current.key) return;
+          endEntryEditSession(current.key);
+        }
+
+        function undoEntryEdit() {
+          setEntryUndoStack((undoStack) => {
+            if (undoStack.length === 0) return undoStack;
+            const previous = undoStack[undoStack.length - 1];
+            setEntryRedoStack((redoStack) => [...redoStack, getEntryEditSnapshot()]);
+            applyEntryEditSnapshot(previous);
+            return undoStack.slice(0, -1);
+          });
+        }
+
+        function redoEntryEdit() {
+          setEntryRedoStack((redoStack) => {
+            if (redoStack.length === 0) return redoStack;
+            const next = redoStack[redoStack.length - 1];
+            setEntryUndoStack((undoStack) => [...undoStack, getEntryEditSnapshot()]);
+            applyEntryEditSnapshot(next);
+            return redoStack.slice(0, -1);
+          });
+        }
+
         async function saveEditingEntry() {
           if (!editingEntry || !editingItem) return;
+          flushEntryEditSession();
+          const selectedMeal = MEALS.includes(editingMeal) ? editingMeal : "早餐";
           const next = cloneRecords(records);
           const record = next[editingEntry.recordIndex];
           if (!record || !Array.isArray(record.items) || !record.items[editingEntry.itemIndex]) return;
-          record.items[editingEntry.itemIndex] = buildStoredItemFromEditable(editingItem);
+          const nextItem = buildStoredItemFromEditable(editingItem);
+          if (record.meal === selectedMeal) {
+            record.items[editingEntry.itemIndex] = nextItem;
+          } else {
+            record.items.splice(editingEntry.itemIndex, 1);
+            if (record.items.length === 0) {
+              next.splice(editingEntry.recordIndex, 1);
+            }
+            const createdAt = record.created_at || new Date().toISOString();
+            const sameMealRecord = next.find((row) => row?.meal === selectedMeal && getDateKey(row?.created_at) === getDateKey(createdAt));
+            if (sameMealRecord && Array.isArray(sameMealRecord.items)) {
+              sameMealRecord.items.push(nextItem);
+            } else {
+              next.push({
+                meal: selectedMeal,
+                items: [nextItem],
+                created_at: createdAt
+              });
+            }
+          }
           try {
             await saveStoredRecords(next);
             closeEntryEdit();
@@ -1912,7 +2237,14 @@
           const element = event.currentTarget;
           const nearBottom = element.scrollTop + element.clientHeight >= element.scrollHeight - 48;
           if (!nearBottom) return;
-          setSingleVisibleCount((prev) => Math.min(prev + 20, foodLibrary.foods.length));
+          setLibraryLoadedCount((prev) => Math.min(prev + 20, foodLibrary.foods.length));
+        }
+
+        function onQuickLibraryScroll(event) {
+          const element = event.currentTarget;
+          const nearEnd = element.scrollLeft + element.clientWidth >= element.scrollWidth - 56;
+          if (!nearEnd) return;
+          setLibraryLoadedCount((prev) => Math.min(prev + 20, foodLibrary.foods.length));
         }
 
         async function saveResults() {
@@ -1952,14 +2284,24 @@
 
         async function bootstrapAuth() {
           const { data } = await supabaseClient.auth.getSession();
-          const nextSession = data?.session || null;
-          const nextUser = nextSession?.user || null;
+          let nextSession = data?.session || null;
+          let nextUser = nextSession?.user || null;
+          if (TEST_MODE_AUTH_BYPASS && !nextUser) {
+            const signInRes = await supabaseClient.auth.signInWithPassword({
+              email: TEST_MODE_EMAIL,
+              password: TEST_MODE_PASSWORD
+            });
+            if (!signInRes.error) {
+              nextSession = signInRes.data?.session || null;
+              nextUser = nextSession?.user || null;
+            }
+          }
           const cacheUserId = nextUser?.id || "guest";
           const cached = readCachedRecords(cacheUserId);
           setRecords(cached.length > 0 ? cached : []);
           setCurrentSession(nextSession);
           setCurrentUser(nextUser);
-          setAuthVisible(!nextUser);
+          setAuthVisible(TEST_MODE_AUTH_BYPASS ? false : !nextUser);
           if (nextUser) await initBackendState(nextUser, nextSession);
         }
 
@@ -1973,7 +2315,7 @@
             setRecords(cached.length > 0 ? cached : []);
             setCurrentSession(nextSession);
             setCurrentUser(nextUser);
-            setAuthVisible(!nextUser);
+            setAuthVisible(TEST_MODE_AUTH_BYPASS ? false : !nextUser);
             if (nextUser) {
               await initBackendState(nextUser, nextSession);
             } else {
@@ -2002,6 +2344,10 @@
             setCurrentDateKey(getDateKey(records[records.length - 1]?.created_at));
           }
         }, [records]);
+
+        useEffect(() => {
+          setLibraryLoadedCount((prev) => Math.min(Math.max(20, prev), Math.max(20, foodLibrary.foods.length)));
+        }, [foodLibrary.foods.length]);
 
         function goPrevDate() {
           setCurrentDateKey((prev) => shiftDateKey(prev, -1));
@@ -2221,24 +2567,20 @@
             )}
 
             <main className="page">
-              {settingsMenuOpen && <div className="menu-overlay" onClick={() => setSettingsMenuOpen(false)} />}
-              {settingsMenuOpen && (
-                <div className="settings-menu">
-                  <button className="menu-item" type="button" onClick={signOut}>退出登录</button>
-                </div>
-              )}
               <header className="nav">
                 <h1 className="title">我的饮食</h1>
-                <button className="nav-settings" type="button" onClick={() => setSettingsMenuOpen((prev) => !prev)} aria-label="设置">
-                  <span className="mi" style={{ fontSize: 18 }}>settings</span>
-                </button>
+                {!TEST_MODE_AUTH_BYPASS && (
+                  <button className="nav-settings" type="button" onClick={() => setSettingsMenuOpen((prev) => !prev)} aria-label="设置">
+                    <span className="mi" style={{ fontSize: 18 }}>settings</span>
+                  </button>
+                )}
               </header>
 
               <section className="hero">
                 <div className="hero-title">总摄入</div>
                 <div className="hero-main">
                   <div className="hero-kcal">
-                    {selectedDateTotalKcal}
+                    {animatedHeroKcal}
                     <small>千卡</small>
                   </div>
                   <div className="hero-meta">
@@ -2248,24 +2590,9 @@
                 </div>
                 <div className="hero-goal-row">
                   <div className="hero-goal-text">目标 {goalKcal} 千卡 · 完成 {goalProgressPercent}%</div>
-                  {goalEditing ? (
-                    <div className="hero-goal-edit">
-                      <input
-                        className="hero-goal-input"
-                        type="tel"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={goalDraft}
-                        onChange={(e) => setGoalDraft(String(e.target.value || "").replace(/[^\d]/g, ""))}
-                        placeholder="目标千卡"
-                      />
-                      <button className="hero-goal-save" type="button" onClick={saveGoalEdit}>保存</button>
-                    </div>
-                  ) : (
-                    <button className="hero-goal-edit-btn" type="button" onClick={startGoalEdit} aria-label="编辑目标">
-                      <span className="mi icon-regular" style={{ fontSize: 14 }}>edit</span>
-                    </button>
-                  )}
+                  <button className="hero-goal-edit-btn" type="button" onClick={startGoalEdit} aria-label="编辑目标">
+                    <span className="mi icon-regular" style={{ fontSize: 14 }}>edit</span>
+                  </button>
                 </div>
                 <div className="hero-progress" aria-label="摄入进度">
                   <div className="hero-progress-fill" style={{ width: goalProgressPercent + "%" }} />
@@ -2311,7 +2638,7 @@
                             <span className="meal-name">{meal}</span>
                           </div>
                           <div className="head-value">
-                            <span className="main">{total}</span>
+                            <AnimatedKcalValue value={total} className="main" />
                             <span className="muted">千卡</span>
                           </div>
                         </div>
@@ -2362,84 +2689,67 @@
               </button>
             </div>
 
-            <div className={"sheet-overlay" + (sheetOpen ? " show" : "")} onClick={(e) => { if (e.target === e.currentTarget) closeSheetPanel(); }}>
-              <div className="sheet-wrap">
-                <div className="sheet-card">
-                  <div className="sheet-head">
-                    <div className="meal-prefix">记饮食</div>
-                    <div className="sheet-head-actions">
-                      {panelMode === "result" && (
-                        <>
-                          <button className="history-btn" type="button" onClick={undoParsedChange} disabled={parsedUndoStack.length === 0}>
-                            <span className="mi" style={{ fontSize: 26 }}>undo</span>
-                          </button>
-                          <button className="history-btn" type="button" onClick={redoParsedChange} disabled={parsedRedoStack.length === 0}>
-                            <span className="mi" style={{ fontSize: 26 }}>redo</span>
-                          </button>
-                        </>
-                      )}
-                      <button className="close-btn" type="button" onClick={closeSheetPanel}>
-                        <span className="mi icon-regular close-icon">close</span>
+            <BottomSheet
+              open={sheetOpen}
+              onClose={closeSheetPanel}
+              title="记饮食"
+              actions={panelMode === "result" ? (
+                <>
+                  <button className="history-btn" type="button" onClick={undoParsedChange} disabled={parsedUndoStack.length === 0}>
+                    <span className="mi" style={{ fontSize: 26 }}>undo</span>
+                  </button>
+                  <button className="history-btn" type="button" onClick={redoParsedChange} disabled={parsedRedoStack.length === 0}>
+                    <span className="mi" style={{ fontSize: 26 }}>redo</span>
+                  </button>
+                </>
+              ) : null}
+            >
+
+              <MealTabs value={selectedMeal} onChange={setSelectedMeal} />
+
+              <div className="media-entry" style={{ display: panelMode === "input" ? "block" : "none" }}>
+                <div style={{ padding: "0 16px" }} className="input-section-title">添加图片</div>
+                <div className={"attach" + (attachments.length === 0 ? " attach-empty" : "") }>
+                  {attachments.map((item, index) => (
+                    <div className="attach-item has-image" key={item.url}>
+                      <img className="attach-thumb" alt="" src={item.url} />
+                      <button className="thumb-delete" type="button" onClick={(event) => {
+                        event.stopPropagation();
+                        URL.revokeObjectURL(item.url);
+                        setAttachments((prev) => prev.filter((_, i) => i !== index));
+                      }}>
+                        <span className="mi" style={{ fontSize: 18 }}>close</span>
                       </button>
                     </div>
-                  </div>
+                  ))}
+                  {attachments.length < MAX_ATTACHMENTS && (
+                    <button className={"attach-item" + (attachments.length === 0 ? " attach-option" : "")} type="button" onClick={() => cameraInputRef.current && cameraInputRef.current.click()}>
+                      <span className="mi attach-icon">photo_camera</span>
+                      {attachments.length === 0 && <span className="attach-label">拍照</span>}
+                    </button>
+                  )}
+                  {attachments.length < MAX_ATTACHMENTS && (
+                    <label className={"attach-item" + (attachments.length === 0 ? " attach-option" : "") }>
+                      <span className="mi attach-icon">photo_library</span>
+                      {attachments.length === 0 && <span className="attach-label">相册</span>}
+                      <input ref={galleryInputRef} className="native-file-input" type="file" accept="image/*" multiple onChange={handlePickedFile} />
+                    </label>
+                  )}
+                </div>
+              </div>
 
-                  <div className="meal-quick-tabs">
-                    {MEALS.map((meal) => (
-                      <button
-                        key={meal}
-                        className={"meal-quick-tab" + (selectedMeal === meal ? " active" : "")}
-                        type="button"
-                        onClick={() => setSelectedMeal(meal)}
-                      >
-                        {meal}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="media-entry" style={{ display: panelMode === "input" ? "block" : "none" }}>
-                    <div style={{ padding: "0 16px" }} className="input-section-title">添加图片</div>
-                    <div className={"attach" + (attachments.length === 0 ? " attach-empty" : "") }>
-                      {attachments.map((item, index) => (
-                        <div className="attach-item has-image" key={item.url}>
-                          <img className="attach-thumb" alt="" src={item.url} />
-                          <button className="thumb-delete" type="button" onClick={(event) => {
-                            event.stopPropagation();
-                            URL.revokeObjectURL(item.url);
-                            setAttachments((prev) => prev.filter((_, i) => i !== index));
-                          }}>
-                            <span className="mi" style={{ fontSize: 18 }}>close</span>
-                          </button>
-                        </div>
-                      ))}
-                      {attachments.length < MAX_ATTACHMENTS && (
-                        <button className={"attach-item" + (attachments.length === 0 ? " attach-option" : "")} type="button" onClick={() => cameraInputRef.current && cameraInputRef.current.click()}>
-                          <span className="mi attach-icon">photo_camera</span>
-                          {attachments.length === 0 && <span className="attach-label">拍照</span>}
-                        </button>
-                      )}
-                      {attachments.length < MAX_ATTACHMENTS && (
-                        <label className={"attach-item" + (attachments.length === 0 ? " attach-option" : "") }>
-                          <span className="mi attach-icon">photo_library</span>
-                          {attachments.length === 0 && <span className="attach-label">相册</span>}
-                          <input ref={galleryInputRef} className="native-file-input" type="file" accept="image/*" multiple onChange={handlePickedFile} />
-                        </label>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="library-entry" style={{ display: panelMode === "input" ? "block" : "none" }}>
+              <div className="library-entry" style={{ display: panelMode === "input" ? "block" : "none" }}>
                     <button className="library-entry-title" type="button" onClick={openLibrarySheet}>
                       <span>
                         <div className="library-entry-title-main">历史食物</div>
                       </span>
                       <span className="mi" style={{ fontSize: 18, color: "var(--text-muted)" }}>chevron_right</span>
                     </button>
-                    <div className="library-entry-quick-row">
+                    <div className="library-entry-quick-row" onScroll={onQuickLibraryScroll}>
                       {foodLibrary.foods.length === 0 ? (
                         <span style={{ color: "var(--text-muted)", fontSize: 12 }}>暂无历史食物</span>
                       ) : (
-                        foodLibrary.foods.slice(0, 8).map((food, index) => (
+                        visibleQuickFoods.map((food, index) => (
                           <button
                             className={"library-chip" + (selectedQuickFoods.some((item) => item.key === getFoodSelectionKey(food)) ? " selected" : "")}
                             style={{ flexShrink: 0 }}
@@ -2454,7 +2764,7 @@
                     </div>
                   </div>
 
-                  <div className="text-entry" style={{ display: panelMode === "input" ? "block" : "none" }}>
+              <div className="text-entry" style={{ display: panelMode === "input" ? "block" : "none" }}>
                     <div className="input-section-title">输入文字</div>
                     <input
                       className="text-entry-input"
@@ -2475,106 +2785,67 @@
                       <span className="mi action-icon">{isSending ? "progress_activity" : "arrow_upward"}</span>
                       <span>发送</span>
                     </button>
-                  </div>
+              </div>
 
-                  <div className={"result-panel" + (panelMode === "result" ? " show" : "") }>
+              <div className={"result-panel" + (panelMode === "result" ? " show" : "") }>
                     <div>
                       {parsedResults.map((item, index) => (
-                        <div className="result-item" key={index}>
-                          <div className="result-cover">{item.emoji}</div>
-                          <div className="result-text">
-                            <div className="result-item-head">
-                              <input
-                                className="result-name-input"
-                                value={item.name}
-                                onFocus={() => beginParsedEditSession("name-" + index)}
-                                onCompositionStart={() => setNameComposingIndex(index)}
-                                onCompositionEnd={(e) => {
-                                  setNameComposingIndex(-1);
-                                  updateParsedItem(index, { name: e.target.value.slice(0, 12) });
-                                }}
-                                onChange={(e) => {
-                                  const value = e.target.value;
-                                  if (nameComposingIndex === index) {
-                                    updateParsedItem(index, { name: value });
-                                  } else {
-                                    updateParsedItem(index, { name: value.slice(0, 12) });
-                                  }
-                                }}
-                                onBlur={() => endParsedEditSession("name-" + index)}
-                              />
-                              <button className="result-del" type="button" onClick={() => {
-                                const next = parsedResults.filter((_, i) => i !== index);
-                                commitParsedChange(next);
-                                if (next.length === 0) setPanelMode("input");
-                              }}>
-                                <span className="mi" style={{ fontSize: 20 }}>delete</span>
-                              </button>
-                            </div>
-                            <div className="result-fields">
-                              <label className="result-field-wrap">
-                                <span className="result-field-label">份数</span>
-                                <div className="serving-unit-row">
-                                  <input
-                                    className="result-field"
-                                    type="tel"
-                                    inputMode="decimal"
-                                    pattern="[0-9]*[.]?[0-9]*"
-                                    value={servingEditIndex === index ? servingDraft : String(item.servings ?? 1)}
-                                    onFocus={() => {
-                                      beginParsedEditSession("servings-" + index);
-                                      setServingEditIndex(index);
-                                      setServingDraft("");
-                                    }}
-                                    onChange={(e) => {
-                                      const raw = String(e.target.value || "");
-                                      const normalized = raw
-                                        .replace(/[^0-9.]/g, "")
-                                        .replace(/(\..*)\./g, "$1");
-                                      setServingDraft(normalized);
-                                      const nextServings = Math.max(0, Number.parseFloat(normalized || "0") || 0);
-                                      updateParsedItem(index, { servings: nextServings });
-                                    }}
-                                    onBlur={() => {
-                                      endParsedEditSession("servings-" + index);
-                                      setServingEditIndex(-1);
-                                      setServingDraft("");
-                                    }}
-                                    placeholder="份数"
-                                  />
-                                  <input
-                                    className="result-field"
-                                    onFocus={() => beginParsedEditSession("unit-" + index)}
-                                    value={item.unitName || "份"}
-                                    onChange={(e) => updateParsedItem(index, { unitName: (e.target.value || "份").slice(0, 6) })}
-                                    onBlur={() => endParsedEditSession("unit-" + index)}
-                                    placeholder="单位"
-                                  />
-                                </div>
-                              </label>
-                              <label className="result-field-wrap">
-                                <span className="result-field-label">千卡</span>
-                                <input
-                                  className="result-field"
-                                  type="tel"
-                                  inputMode="numeric"
-                                  pattern="[0-9]*"
-                                  value={item.kcal ?? 0}
-                                  onFocus={() => beginParsedEditSession("kcal-" + index)}
-                                  onChange={(e) => {
-                                    const onlyDigits = String(e.target.value || "").replace(/[^\d]/g, "");
-                                    const nextTotal = Math.max(0, Number.parseInt(onlyDigits || "0", 10) || 0);
-                                    const servings = Math.max(0, Number(item.servings) || 0);
-                                    const nextUnitKcal = servings > 0 ? nextTotal / servings : nextTotal;
-                                    updateParsedItem(index, { unitKcal: nextUnitKcal });
-                                  }}
-                                  onBlur={() => endParsedEditSession("kcal-" + index)}
-                                  placeholder="千卡"
-                                />
-                              </label>
-                            </div>
-                          </div>
-                        </div>
+                        <EditableFoodItem
+                          key={index}
+                          item={item}
+                          showDelete={true}
+                          onDelete={() => {
+                            const next = parsedResults.filter((_, i) => i !== index);
+                            commitParsedChange(next);
+                            if (next.length === 0) setPanelMode("input");
+                          }}
+                          nameValue={item.name}
+                          onNameFocus={() => beginParsedEditSession("name-" + index)}
+                          onNameCompositionStart={() => setNameComposingIndex(index)}
+                          onNameCompositionEnd={(e) => {
+                            setNameComposingIndex(-1);
+                            updateParsedItem(index, { name: e.target.value.slice(0, 12) });
+                          }}
+                          onNameChange={(e) => {
+                            const value = e.target.value;
+                            if (nameComposingIndex === index) {
+                              updateParsedItem(index, { name: value });
+                            } else {
+                              updateParsedItem(index, { name: value.slice(0, 12) });
+                            }
+                          }}
+                          onNameBlur={() => endParsedEditSession("name-" + index)}
+                          servingsValue={servingEditIndex === index ? servingDraft : String(item.servings ?? 1)}
+                          onServingsFocus={() => {
+                            beginParsedEditSession("servings-" + index);
+                            setServingEditIndex(index);
+                            setServingDraft("");
+                          }}
+                          onServingsChange={(e) => {
+                            const raw = String(e.target.value || "");
+                            const normalized = raw.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
+                            setServingDraft(normalized);
+                            const nextServings = Math.max(0, Number.parseFloat(normalized || "0") || 0);
+                            updateParsedItem(index, { servings: nextServings });
+                          }}
+                          onServingsBlur={() => {
+                            endParsedEditSession("servings-" + index);
+                            setServingEditIndex(-1);
+                            setServingDraft("");
+                          }}
+                          onUnitFocus={() => beginParsedEditSession("unit-" + index)}
+                          onUnitChange={(e) => updateParsedItem(index, { unitName: (e.target.value || "份").slice(0, 6) })}
+                          onUnitBlur={() => endParsedEditSession("unit-" + index)}
+                          onKcalFocus={() => beginParsedEditSession("kcal-" + index)}
+                          onKcalChange={(e) => {
+                            const onlyDigits = String(e.target.value || "").replace(/[^\d]/g, "");
+                            const nextTotal = Math.max(0, Number.parseInt(onlyDigits || "0", 10) || 0);
+                            const servings = Math.max(0, Number(item.servings) || 0);
+                            const nextUnitKcal = servings > 0 ? nextTotal / servings : nextTotal;
+                            updateParsedItem(index, { unitKcal: nextUnitKcal });
+                          }}
+                          onKcalBlur={() => endParsedEditSession("kcal-" + index)}
+                        />
                       ))}
                     </div>
                     {parseError && <div className="result-error" style={{ display: "block" }}>{parseError}</div>}
@@ -2584,144 +2855,142 @@
                         <span className="mi action-icon">check</span> 保存记录
                       </button>
                     </div>
-                  </div>
-
-                  <div className={"parse-loading" + (panelMode === "loading" ? " show" : "") }>
-                    <span className="mi" style={{ fontSize: 18 }}>progress_activity</span>
-                    <span>AI 正在解析...</span>
-                  </div>
-
-                  <div className="input-row" style={{ display: "none" }} />
-                </div>
               </div>
-            </div>
 
-            <div className={"library-sheet-overlay" + (librarySheetOpen ? " show" : "")} onClick={(e) => { if (e.target === e.currentTarget) closeLibrarySheet(); }}>
-              <div className="library-sheet-wrap">
-                <div className="library-sheet-card">
-                  <div className="library-sheet-head">
-                    <div className="library-sheet-title">历史食物</div>
-                    <button className="close-btn" type="button" onClick={closeLibrarySheet}>
-                      <span className="mi icon-regular close-icon">close</span>
-                    </button>
-                  </div>
-                  <div className="library-list" onScroll={onLibraryListScroll}>
-                    {visibleSingleFoods.length === 0 ? (
-                      <span style={{ color: "var(--text-muted)", fontSize: 12 }}>暂无历史食物</span>
-                    ) : (
-                      visibleSingleFoods.map((food, index) => (
-                        <button
-                          className={"library-list-item" + (selectedLibraryFoods.some((item) => item.key === getFoodSelectionKey(food)) ? " selected" : "")}
-                          type="button"
-                          key={food.name + food.portion + index}
-                          onClick={() => toggleLibraryFood(food, getFoodSelectionKey(food))}
-                        >
-                          <div className="library-list-main">
-                            <div className="library-list-title">{food.emoji} {food.name}</div>
-                            <div className="library-list-meta">{food.portion} · {food.kcal} 千卡</div>
-                          </div>
-                          <span className="library-list-check">
-                            <span className="mi" style={{ fontSize: 12 }}>check</span>
-                          </span>
-                        </button>
-                      ))
-                    )}
-                  </div>
-                  <div className="library-list-footer">
+              <div className={"parse-loading" + (panelMode === "loading" ? " show" : "") }>
+                <span className="mi" style={{ fontSize: 18 }}>progress_activity</span>
+                <span>AI 正在解析...</span>
+              </div>
+
+              <div className="input-row" style={{ display: "none" }} />
+            </BottomSheet>
+
+            <BottomSheet
+              open={librarySheetOpen}
+              onClose={closeLibrarySheet}
+              title="历史食物"
+              overlayClassName="library-sheet-overlay"
+              wrapClassName="library-sheet-wrap"
+              cardClassName="library-sheet-card"
+            >
+              <div className="library-list" onScroll={onLibraryListScroll}>
+                {visibleSingleFoods.length === 0 ? (
+                  <span style={{ color: "var(--text-muted)", fontSize: 12 }}>暂无历史食物</span>
+                ) : (
+                  visibleSingleFoods.map((food, index) => (
                     <button
-                      className="library-add-btn"
+                      className={"library-list-item" + (selectedLibraryFoods.some((item) => item.key === getFoodSelectionKey(food)) ? " selected" : "")}
                       type="button"
-                      onClick={applyLibrarySelection}
-                      disabled={selectedLibraryFoods.length === 0}
+                      key={food.name + food.portion + index}
+                      onClick={() => toggleLibraryFood(food, getFoodSelectionKey(food))}
                     >
-                      添加所选
+                      <div className="library-list-main">
+                        <div className="library-list-title">{food.emoji} {food.name}</div>
+                        <div className="library-list-meta">{food.portion} · {food.kcal} 千卡</div>
+                      </div>
+                      <span className="library-list-check">
+                        <span className="mi" style={{ fontSize: 12 }}>check</span>
+                      </span>
                     </button>
-                  </div>
+                  ))
+                )}
+              </div>
+              <div className="library-list-footer">
+                <button
+                  className="library-add-btn"
+                  type="button"
+                  onClick={applyLibrarySelection}
+                  disabled={selectedLibraryFoods.length === 0}
+                >
+                  添加所选
+                </button>
+              </div>
+            </BottomSheet>
+
+            <BottomSheet open={goalSheetOpen} onClose={() => setGoalSheetOpen(false)} title="编辑目标">
+              <div className="goal-sheet-body">
+                <input
+                  className="hero-goal-input"
+                  type="tel"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={goalDraft}
+                  onChange={(e) => setGoalDraft(String(e.target.value || "").replace(/[^\d]/g, ""))}
+                  placeholder="输入每日目标千卡"
+                />
+                <div className="goal-sheet-note">默认 1600 千卡，可随时修改</div>
+                <div className="goal-sheet-actions">
+                  <button className="result-btn retry" type="button" onClick={() => setGoalSheetOpen(false)}>取消</button>
+                  <button className="hero-goal-save" style={{ flex: 1 }} type="button" onClick={saveGoalEdit}>保存目标</button>
                 </div>
               </div>
-            </div>
+            </BottomSheet>
 
-            <div className={"sheet-overlay" + (entryEditOpen ? " show" : "")} onClick={(e) => { if (e.target === e.currentTarget) closeEntryEdit(); }}>
-              <div className="sheet-wrap">
-                <div className="sheet-card">
-                  <div className="sheet-head">
-                    <div className="meal-prefix">编辑记录</div>
-                    <button className="close-btn" type="button" onClick={closeEntryEdit}>
-                      <span className="mi icon-regular close-icon">close</span>
-                    </button>
-                  </div>
-                  {editingItem && (
-                    <div className="result-panel show">
-                      <div className="result-item" style={{ paddingTop: 8 }}>
-                        <div className="result-cover">{editingItem.emoji}</div>
-                        <div className="result-text">
-                          <div className="result-item-head">
-                            <input
-                              className="result-name-input"
-                              value={editingItem.name}
-                              onCompositionStart={() => setEntryNameComposing(true)}
-                              onCompositionEnd={(e) => {
-                                setEntryNameComposing(false);
-                                updateEditingItem({ name: e.target.value.slice(0, 12) });
-                              }}
-                              onChange={(e) => {
-                                const v = e.target.value;
-                                updateEditingItem({ name: entryNameComposing ? v : v.slice(0, 12) });
-                              }}
-                            />
-                          </div>
-                          <div className="result-fields">
-                            <label className="result-field-wrap">
-                              <span className="result-field-label">份数</span>
-                              <div className="serving-unit-row">
-                                <input
-                                  className="result-field"
-                                  type="tel"
-                                  inputMode="decimal"
-                                  pattern="[0-9]*[.]?[0-9]*"
-                                  value={entryServingEditing ? entryServingDraft : String(editingItem.servings ?? 1)}
-                                  onFocus={() => {
-                                    setEntryServingEditing(true);
-                                    setEntryServingDraft("");
-                                  }}
-                                  onChange={(e) => {
-                                    const raw = String(e.target.value || "");
-                                    const normalized = raw.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
-                                    setEntryServingDraft(normalized);
-                                    updateEditingItem({ servings: Math.max(0, Number.parseFloat(normalized || "0") || 0) });
-                                  }}
-                                  onBlur={() => {
-                                    setEntryServingEditing(false);
-                                    setEntryServingDraft("");
-                                  }}
-                                />
-                                <input
-                                  className="result-field"
-                                  value={editingItem.unitName || "份"}
-                                  onChange={(e) => updateEditingItem({ unitName: (e.target.value || "份").slice(0, 6) })}
-                                />
-                              </div>
-                            </label>
-                            <label className="result-field-wrap">
-                              <span className="result-field-label">千卡</span>
-                              <input
-                                className="result-field"
-                                type="tel"
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                value={editingItem.kcal ?? 0}
-                                onChange={(e) => {
-                                  const onlyDigits = String(e.target.value || "").replace(/[^\d]/g, "");
-                                  const nextTotal = Math.max(0, Number.parseInt(onlyDigits || "0", 10) || 0);
-                                  const servings = Math.max(0, Number(editingItem.servings) || 0);
-                                  const nextUnitKcal = servings > 0 ? nextTotal / servings : nextTotal;
-                                  updateEditingItem({ unitKcal: nextUnitKcal });
-                                }}
-                              />
-                            </label>
-                          </div>
-                        </div>
-                      </div>
+            <BottomSheet
+              open={entryEditOpen}
+              onClose={closeEntryEdit}
+              title="编辑记录"
+              actions={(
+                <>
+                  <button className="history-btn" type="button" onClick={undoEntryEdit} disabled={entryUndoStack.length === 0}>
+                    <span className="mi" style={{ fontSize: 26 }}>undo</span>
+                  </button>
+                  <button className="history-btn" type="button" onClick={redoEntryEdit} disabled={entryRedoStack.length === 0}>
+                    <span className="mi" style={{ fontSize: 26 }}>redo</span>
+                  </button>
+                </>
+              )}
+            >
+              <MealTabs value={editingMeal} onChange={changeEditingMeal} />
+              {editingItem && (
+                <div className="result-panel show">
+                      <EditableFoodItem
+                        item={editingItem}
+                        style={{ paddingTop: 8 }}
+                        nameValue={editingItem.name}
+                        onNameFocus={() => beginEntryEditSession("name")}
+                        onNameCompositionStart={() => {
+                          setEntryNameComposing(true);
+                        }}
+                        onNameCompositionEnd={(e) => {
+                          setEntryNameComposing(false);
+                          updateEditingItem({ name: e.target.value.slice(0, 12) });
+                        }}
+                        onNameChange={(e) => {
+                          const v = e.target.value;
+                          updateEditingItem({ name: entryNameComposing ? v : v.slice(0, 12) });
+                        }}
+                        onNameBlur={() => endEntryEditSession("name")}
+                        servingsValue={entryServingEditing ? entryServingDraft : String(editingItem.servings ?? 1)}
+                        onServingsFocus={() => {
+                          beginEntryEditSession("servings");
+                          setEntryServingEditing(true);
+                          setEntryServingDraft("");
+                        }}
+                        onServingsChange={(e) => {
+                          const raw = String(e.target.value || "");
+                          const normalized = raw.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
+                          setEntryServingDraft(normalized);
+                          updateEditingItem({ servings: Math.max(0, Number.parseFloat(normalized || "0") || 0) });
+                        }}
+                        onServingsBlur={() => {
+                          endEntryEditSession("servings");
+                          setEntryServingEditing(false);
+                          setEntryServingDraft("");
+                        }}
+                        onUnitFocus={() => beginEntryEditSession("unit")}
+                        onUnitChange={(e) => updateEditingItem({ unitName: (e.target.value || "份").slice(0, 6) })}
+                        onUnitBlur={() => endEntryEditSession("unit")}
+                        onKcalFocus={() => beginEntryEditSession("kcal")}
+                        onKcalChange={(e) => {
+                          const onlyDigits = String(e.target.value || "").replace(/[^\d]/g, "");
+                          const nextTotal = Math.max(0, Number.parseInt(onlyDigits || "0", 10) || 0);
+                          const servings = Math.max(0, Number(editingItem.servings) || 0);
+                          const nextUnitKcal = servings > 0 ? nextTotal / servings : nextTotal;
+                          updateEditingItem({ unitKcal: nextUnitKcal });
+                        }}
+                        onKcalBlur={() => endEntryEditSession("kcal")}
+                      />
                       <div className="result-actions">
                         <button className="result-btn" type="button" onClick={deleteFromEntryEdit} style={{ width: 88, background: "linear-gradient(160deg, #ff5a56 0%, #ea3f3f 100%)", color: "#fff" }}>
                           删除
@@ -2730,11 +2999,9 @@
                           <span className="mi action-icon">check</span> 保存
                         </button>
                       </div>
-                    </div>
-                  )}
                 </div>
-              </div>
-            </div>
+              )}
+            </BottomSheet>
 
             <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={handlePickedFile} />
           </>
