@@ -50,6 +50,10 @@
         justify-content: center;
         vertical-align: middle;
       }
+      .icon-regular {
+        font-weight: 400;
+        font-variation-settings: "wght" 400, "FILL" 0, "GRAD" 0, "opsz" 24;
+      }
       .action-icon {
         font-size: 21px;
         font-weight: 400;
@@ -108,6 +112,66 @@
         padding: 6px 10px;
         border-radius: 999px;
         background: rgba(36, 179, 126, 0.1);
+      }
+      .hero-goal-row {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .hero-goal-text {
+        font-size: 12px;
+        color: var(--text-secondary);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .hero-goal-edit-btn {
+        width: 22px;
+        height: 22px;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(24, 35, 31, 0.08);
+        color: var(--text-secondary);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .hero-goal-edit {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .hero-goal-input {
+        width: 82px;
+        height: 28px;
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 8px;
+        padding: 0 8px;
+        font-size: 13px;
+      }
+      .hero-goal-save {
+        height: 28px;
+        border: 0;
+        border-radius: 999px;
+        padding: 0 10px;
+        font-size: 12px;
+        color: #fff;
+        background: var(--green-strong);
+      }
+      .hero-progress {
+        margin-top: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(24, 35, 31, 0.1);
+        overflow: hidden;
+      }
+      .hero-progress-fill {
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(130deg, var(--green) 0%, var(--green-strong) 100%);
+        transition: width 0.24s ease;
       }
 
       .hero-nav {
@@ -492,7 +556,14 @@
         border-radius: 999px;
         background: rgba(0, 0, 0, 0.04);
         color: rgba(0, 0, 0, 0.52);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
         transition: transform 0.16s ease, background-color 0.16s ease;
+      }
+      .close-icon {
+        font-size: 22px;
       }
       .close-btn:active {
         transform: scale(0.94);
@@ -543,18 +614,16 @@
       .library-entry-quick-row::-webkit-scrollbar { display: none; }
       .library-entry-quick-row {
         margin-top: 8px;
+        margin-left: -16px;
+        margin-right: -16px;
         display: flex;
         gap: 8px;
         overflow-x: auto;
         scrollbar-width: none;
-        padding: 2px 8px 2px 2px;
-        scroll-padding-left: 2px;
-        scroll-padding-right: 18px;
+        padding: 2px 16px;
+        scroll-padding-left: 16px;
+        scroll-padding-right: 16px;
         scroll-snap-type: x proximity;
-      }
-      .library-entry-quick-row::after {
-        content: "";
-        flex: 0 0 14px;
       }
 
       .library-sheet-overlay {
@@ -611,7 +680,7 @@
       }
 
       .meal-quick-tabs {
-        padding: 12px 16px 10px;
+        padding: 0 16px 10px;
         display: flex;
         gap: 8px;
       }
@@ -839,7 +908,7 @@
       }
 
       .send-wide {
-        margin-top: 10px;
+        margin-top: 20px;
         width: 100%;
         height: 48px;
         border: 0;
@@ -1124,6 +1193,7 @@
       const MAX_ATTACHMENTS = 5;
       const MEALS = ["早餐", "午餐", "晚餐"];
       const RECORDS_CACHE_KEY_PREFIX = "diet-records-cache-v1";
+      const GOAL_KCAL_CACHE_KEY = "diet-goal-kcal-v1";
 
       function getMealVisual(meal) {
         if (meal === "早餐") return { cls: "breakfast", icon: "wb_twilight" };
@@ -1179,6 +1249,24 @@
       function writeCachedRecords(userId, records) {
         try {
           localStorage.setItem(getRecordsCacheKey(userId), JSON.stringify(Array.isArray(records) ? records : []));
+        } catch (_error) {
+          // ignore cache write errors
+        }
+      }
+
+      function readGoalKcal() {
+        try {
+          const raw = localStorage.getItem(GOAL_KCAL_CACHE_KEY);
+          const value = Number.parseInt(String(raw || ""), 10);
+          return Number.isFinite(value) && value > 0 ? value : 1600;
+        } catch (_error) {
+          return 1600;
+        }
+      }
+
+      function writeGoalKcal(value) {
+        try {
+          localStorage.setItem(GOAL_KCAL_CACHE_KEY, String(Math.max(1, Number.parseInt(String(value || "0"), 10) || 1600)));
         } catch (_error) {
           // ignore cache write errors
         }
@@ -1294,6 +1382,19 @@
         };
       }
 
+      function buildStoredItemFromEditable(item) {
+        return {
+          name: item.name,
+          portion: `${Number(item.servings) || 1}${item.unitName || "份"}`,
+          servings: Number(item.servings) || 1,
+          unitKcal: Number(item.unitKcal) || 0,
+          unitName: String(item.unitName || "份"),
+          kcal: Math.max(0, Math.round((Number(item.servings) || 1) * (Number(item.unitKcal) || 0))),
+          confidence: Number(item.confidence) || 0,
+          emoji: String(item.emoji || "🍽️")
+        };
+      }
+
       function cloneParsedItems(srcItems) {
         return (Array.isArray(srcItems) ? srcItems : []).map((item) => ({ ...item }));
       }
@@ -1324,9 +1425,18 @@
         const [selectedLibraryFoods, setSelectedLibraryFoods] = useState([]);
         const [selectedQuickFoods, setSelectedQuickFoods] = useState([]);
         const [parseError, setParseError] = useState("");
+        const [goalKcal, setGoalKcal] = useState(readGoalKcal());
+        const [goalEditing, setGoalEditing] = useState(false);
+        const [goalDraft, setGoalDraft] = useState(String(readGoalKcal()));
         const [servingEditIndex, setServingEditIndex] = useState(-1);
         const [servingDraft, setServingDraft] = useState("");
         const [nameComposingIndex, setNameComposingIndex] = useState(-1);
+        const [entryEditOpen, setEntryEditOpen] = useState(false);
+        const [editingEntry, setEditingEntry] = useState(null);
+        const [editingItem, setEditingItem] = useState(null);
+        const [entryServingDraft, setEntryServingDraft] = useState("");
+        const [entryServingEditing, setEntryServingEditing] = useState(false);
+        const [entryNameComposing, setEntryNameComposing] = useState(false);
 
         const cameraInputRef = useRef(null);
         const galleryInputRef = useRef(null);
@@ -1354,6 +1464,11 @@
             .filter((record) => getDateKey(record?.created_at) === currentDateKey)
             .reduce((sum, record) => sum + (Array.isArray(record?.items) ? record.items.length : 0), 0);
         }, [records, currentDateKey]);
+
+        const goalProgressPercent = useMemo(() => {
+          const target = Math.max(1, Number(goalKcal) || 1600);
+          return Math.max(0, Math.min(100, Math.round((selectedDateTotalKcal / target) * 100)));
+        }, [selectedDateTotalKcal, goalKcal]);
 
         const currentDayMeals = useMemo(() => {
           const target = records.filter((record) => getDateKey(record?.created_at) === currentDateKey);
@@ -1406,6 +1521,16 @@
         }, [foodLibrary.foods, singleVisibleCount]);
 
         function closeSheetPanel() { setSheetOpen(false); }
+        function startGoalEdit() {
+          setGoalDraft(String(goalKcal));
+          setGoalEditing(true);
+        }
+        function saveGoalEdit() {
+          const nextGoal = Math.max(1, Number.parseInt(String(goalDraft || "0"), 10) || 1600);
+          setGoalKcal(nextGoal);
+          writeGoalKcal(nextGoal);
+          setGoalEditing(false);
+        }
         function resetParsedHistory() {
           setParsedUndoStack([]);
           setParsedRedoStack([]);
@@ -1470,7 +1595,7 @@
         }, [pendingDeletion]);
 
         useEffect(() => {
-          const shouldLock = sheetOpen || librarySheetOpen || authVisible;
+          const shouldLock = sheetOpen || librarySheetOpen || entryEditOpen || authVisible;
           if (!shouldLock) return;
           const prevOverflow = document.body.style.overflow;
           const prevTouchAction = document.body.style.touchAction;
@@ -1480,7 +1605,7 @@
             document.body.style.overflow = prevOverflow;
             document.body.style.touchAction = prevTouchAction;
           };
-        }, [sheetOpen, librarySheetOpen, authVisible]);
+        }, [sheetOpen, librarySheetOpen, entryEditOpen, authVisible]);
 
         function getRestHeaders(sessionArg = currentSession) {
           const token = sessionArg?.access_token || SUPABASE_ANON_KEY;
@@ -1674,7 +1799,9 @@
 
         function openLibrarySheet() {
           setSingleVisibleCount(20);
-          setSelectedLibraryFoods([]);
+          setSelectedLibraryFoods(
+            selectedQuickFoods.map(({ key, food }) => ({ key, food }))
+          );
           setLibrarySheetOpen(true);
         }
 
@@ -1684,6 +1811,10 @@
             if (exists) return prev.filter((item) => item.key !== key);
             return [...prev, { key, food }];
           });
+        }
+
+        function getFoodSelectionKey(food) {
+          return `${food?.name || ""}|${food?.portion || ""}`;
         }
 
         function buildQuickSelectedItems() {
@@ -1699,6 +1830,56 @@
 
         function closeLibrarySheet() {
           setLibrarySheetOpen(false);
+        }
+
+        function openEntryEdit(entry) {
+          setEditingEntry(entry);
+          setEditingItem(normalizeEditableFood(entry?.item || {}));
+          setEntryServingDraft("");
+          setEntryServingEditing(false);
+          setEntryNameComposing(false);
+          setEntryEditOpen(true);
+        }
+
+        function closeEntryEdit() {
+          setEntryEditOpen(false);
+          setEditingEntry(null);
+          setEditingItem(null);
+          setEntryServingDraft("");
+          setEntryServingEditing(false);
+          setEntryNameComposing(false);
+        }
+
+        function updateEditingItem(patch) {
+          setEditingItem((prev) => normalizeEditableFood({ ...(prev || {}), ...patch }));
+        }
+
+        async function saveEditingEntry() {
+          if (!editingEntry || !editingItem) return;
+          const next = cloneRecords(records);
+          const record = next[editingEntry.recordIndex];
+          if (!record || !Array.isArray(record.items) || !record.items[editingEntry.itemIndex]) return;
+          record.items[editingEntry.itemIndex] = buildStoredItemFromEditable(editingItem);
+          try {
+            await saveStoredRecords(next);
+            closeEntryEdit();
+          } catch (error) {
+            console.error("save-entry-edit-failed", error);
+          }
+        }
+
+        async function deleteFromEntryEdit() {
+          if (!editingEntry) return;
+          closeEntryEdit();
+          await handleDeleteSavedItem(editingEntry);
+        }
+
+        function onItemRowClick(entry, rowKey) {
+          if (swipedItemKey === rowKey) {
+            setSwipedItemKey("");
+            return;
+          }
+          openEntryEdit(entry);
         }
 
         function updateParsedItem(index, patch) {
@@ -1720,16 +1901,10 @@
 
         function applyLibrarySelection() {
           if (selectedLibraryFoods.length === 0) return;
-          const nextItems = selectedLibraryFoods.map(({ food }) => normalizeEditableFood({
-            name: food.name,
-            portion: food.portion,
-            kcal: food.kcal,
-            confidence: food.confidence || 0,
-            emoji: food.emoji || "🍽️"
-          }));
-          applyParsedResults(nextItems);
-          setParseError("");
-          setPanelMode("result");
+          setSelectedQuickFoods(
+            selectedLibraryFoods.map(({ key, food }) => ({ key, food }))
+          );
+          setPanelMode("input");
           closeLibrarySheet();
         }
 
@@ -2071,6 +2246,30 @@
                     {selectedDateRecordCount} 条记录
                   </div>
                 </div>
+                <div className="hero-goal-row">
+                  <div className="hero-goal-text">目标 {goalKcal} 千卡 · 完成 {goalProgressPercent}%</div>
+                  {goalEditing ? (
+                    <div className="hero-goal-edit">
+                      <input
+                        className="hero-goal-input"
+                        type="tel"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={goalDraft}
+                        onChange={(e) => setGoalDraft(String(e.target.value || "").replace(/[^\d]/g, ""))}
+                        placeholder="目标千卡"
+                      />
+                      <button className="hero-goal-save" type="button" onClick={saveGoalEdit}>保存</button>
+                    </div>
+                  ) : (
+                    <button className="hero-goal-edit-btn" type="button" onClick={startGoalEdit} aria-label="编辑目标">
+                      <span className="mi icon-regular" style={{ fontSize: 14 }}>edit</span>
+                    </button>
+                  )}
+                </div>
+                <div className="hero-progress" aria-label="摄入进度">
+                  <div className="hero-progress-fill" style={{ width: goalProgressPercent + "%" }} />
+                </div>
                 <div className="hero-nav">
                   <button className="hero-nav-btn" type="button" onClick={goPrevDate} aria-label="上一天">
                     <span className="mi" style={{ fontSize: 18 }}>chevron_left</span>
@@ -2097,7 +2296,6 @@
 
               <section className="content" onTouchStart={onSwipeStart} onTouchEnd={onSwipeEnd}>
                 <div className="day-group">
-                  <div className="day-title">{getDateLabel(currentDateKey)}</div>
                   {MEALS.map((meal) => {
                     const items = currentDayMeals[meal] || [];
                     if (items.length === 0) return null;
@@ -2136,7 +2334,7 @@
                               <div className="item-action">
                                 <button className="item-delete-btn" type="button" onClick={() => handleDeleteSavedItem(entry)}>删除</button>
                               </div>
-                              <div className="item">
+                              <div className="item" onClick={() => onItemRowClick(entry, rowKey)}>
                                 <span className="food">{((item.emoji && String(item.emoji).trim()) || "🍽️") + " " + (item.name || "未命名食物") + " " + (item.portion || "1份")}</span>
                                 <span className="kcal">{Number(item.kcal) || 0} 千卡 <span className="mi" style={{ fontSize: 14 }}>chevron_right</span></span>
                               </div>
@@ -2181,7 +2379,7 @@
                         </>
                       )}
                       <button className="close-btn" type="button" onClick={closeSheetPanel}>
-                        <span className="mi" style={{ fontSize: 18 }}>close</span>
+                        <span className="mi icon-regular close-icon">close</span>
                       </button>
                     </div>
                   </div>
@@ -2243,11 +2441,11 @@
                       ) : (
                         foodLibrary.foods.slice(0, 8).map((food, index) => (
                           <button
-                            className={"library-chip" + (selectedQuickFoods.some((item) => item.key === ("quick-food-" + food.name + "|" + food.portion + "|" + index)) ? " selected" : "")}
+                            className={"library-chip" + (selectedQuickFoods.some((item) => item.key === getFoodSelectionKey(food)) ? " selected" : "")}
                             style={{ flexShrink: 0 }}
                             type="button"
                             key={"quick-food-" + food.name + food.portion + index}
-                            onClick={() => toggleQuickFood(food, "quick-food-" + food.name + "|" + food.portion + "|" + index)}
+                            onClick={() => toggleQuickFood(food, getFoodSelectionKey(food))}
                           >
                             {food.emoji} {food.name}
                           </button>
@@ -2404,7 +2602,7 @@
                   <div className="library-sheet-head">
                     <div className="library-sheet-title">历史食物</div>
                     <button className="close-btn" type="button" onClick={closeLibrarySheet}>
-                      <span className="mi" style={{ fontSize: 18 }}>close</span>
+                      <span className="mi icon-regular close-icon">close</span>
                     </button>
                   </div>
                   <div className="library-list" onScroll={onLibraryListScroll}>
@@ -2413,10 +2611,10 @@
                     ) : (
                       visibleSingleFoods.map((food, index) => (
                         <button
-                          className={"library-list-item" + (selectedLibraryFoods.some((item) => item.key === (food.name + "|" + food.portion + "|" + index)) ? " selected" : "")}
+                          className={"library-list-item" + (selectedLibraryFoods.some((item) => item.key === getFoodSelectionKey(food)) ? " selected" : "")}
                           type="button"
                           key={food.name + food.portion + index}
-                          onClick={() => toggleLibraryFood(food, food.name + "|" + food.portion + "|" + index)}
+                          onClick={() => toggleLibraryFood(food, getFoodSelectionKey(food))}
                         >
                           <div className="library-list-main">
                             <div className="library-list-title">{food.emoji} {food.name}</div>
@@ -2439,6 +2637,101 @@
                       添加所选
                     </button>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            <div className={"sheet-overlay" + (entryEditOpen ? " show" : "")} onClick={(e) => { if (e.target === e.currentTarget) closeEntryEdit(); }}>
+              <div className="sheet-wrap">
+                <div className="sheet-card">
+                  <div className="sheet-head">
+                    <div className="meal-prefix">编辑记录</div>
+                    <button className="close-btn" type="button" onClick={closeEntryEdit}>
+                      <span className="mi icon-regular close-icon">close</span>
+                    </button>
+                  </div>
+                  {editingItem && (
+                    <div className="result-panel show">
+                      <div className="result-item" style={{ paddingTop: 8 }}>
+                        <div className="result-cover">{editingItem.emoji}</div>
+                        <div className="result-text">
+                          <div className="result-item-head">
+                            <input
+                              className="result-name-input"
+                              value={editingItem.name}
+                              onCompositionStart={() => setEntryNameComposing(true)}
+                              onCompositionEnd={(e) => {
+                                setEntryNameComposing(false);
+                                updateEditingItem({ name: e.target.value.slice(0, 12) });
+                              }}
+                              onChange={(e) => {
+                                const v = e.target.value;
+                                updateEditingItem({ name: entryNameComposing ? v : v.slice(0, 12) });
+                              }}
+                            />
+                          </div>
+                          <div className="result-fields">
+                            <label className="result-field-wrap">
+                              <span className="result-field-label">份数</span>
+                              <div className="serving-unit-row">
+                                <input
+                                  className="result-field"
+                                  type="tel"
+                                  inputMode="decimal"
+                                  pattern="[0-9]*[.]?[0-9]*"
+                                  value={entryServingEditing ? entryServingDraft : String(editingItem.servings ?? 1)}
+                                  onFocus={() => {
+                                    setEntryServingEditing(true);
+                                    setEntryServingDraft("");
+                                  }}
+                                  onChange={(e) => {
+                                    const raw = String(e.target.value || "");
+                                    const normalized = raw.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
+                                    setEntryServingDraft(normalized);
+                                    updateEditingItem({ servings: Math.max(0, Number.parseFloat(normalized || "0") || 0) });
+                                  }}
+                                  onBlur={() => {
+                                    setEntryServingEditing(false);
+                                    setEntryServingDraft("");
+                                  }}
+                                />
+                                <input
+                                  className="result-field"
+                                  value={editingItem.unitName || "份"}
+                                  onChange={(e) => updateEditingItem({ unitName: (e.target.value || "份").slice(0, 6) })}
+                                />
+                              </div>
+                            </label>
+                            <label className="result-field-wrap">
+                              <span className="result-field-label">千卡</span>
+                              <input
+                                className="result-field"
+                                type="tel"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                value={editingItem.kcal ?? 0}
+                                onChange={(e) => {
+                                  const onlyDigits = String(e.target.value || "").replace(/[^\d]/g, "");
+                                  const nextTotal = Math.max(0, Number.parseInt(onlyDigits || "0", 10) || 0);
+                                  const servings = Math.max(0, Number(editingItem.servings) || 0);
+                                  const nextUnitKcal = servings > 0 ? nextTotal / servings : nextTotal;
+                                  updateEditingItem({ unitKcal: nextUnitKcal });
+                                }}
+                              />
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="result-actions">
+                        <button className="result-btn" type="button" onClick={deleteFromEntryEdit} style={{ width: 88, background: "linear-gradient(160deg, #ff5a56 0%, #ea3f3f 100%)", color: "#fff" }}>
+                          删除
+                        </button>
+                        <button className="result-btn save" type="button" onClick={saveEditingEntry}>
+                          <span className="mi action-icon">check</span> 保存
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
