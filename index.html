@@ -2,7 +2,7 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>我的饮食</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,500,0,0" />
     <style>
@@ -19,9 +19,14 @@
         --green: #24b37e;
         --green-strong: #1ea772;
         --shadow-soft: 0 12px 32px rgba(31, 67, 49, 0.08);
+        --option-size: 14px;
+        --option-weight: 400;
+        --option-color: var(--text-secondary);
       }
 
       * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      * { -webkit-tap-highlight-color: transparent; }
 
       body {
         margin: 0;
@@ -29,6 +34,10 @@
         background: var(--bg-glow);
         color: var(--text-main);
         font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+      }
+
+      button, input, textarea, select {
+        font-family: inherit;
       }
 
       body::-webkit-scrollbar { display: none; }
@@ -40,6 +49,11 @@
         align-items: center;
         justify-content: center;
         vertical-align: middle;
+      }
+      .action-icon {
+        font-size: 21px;
+        font-weight: 400;
+        font-variation-settings: "wght" 400, "FILL" 0, "GRAD" 0, "opsz" 24;
       }
 
       .page {
@@ -117,7 +131,7 @@
       }
 
       .hero-date-btn {
-        flex: 1;
+        width: 100%;
         border: 0;
         height: 34px;
         border-radius: 999px;
@@ -126,6 +140,22 @@
         font-size: 13px;
         font-weight: 600;
         font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+      }
+
+      .hero-date-wrap {
+        position: relative;
+        flex: 1;
+        min-width: 0;
+      }
+
+      .hero-date-native {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        border: 0;
+        background: transparent;
       }
 
       .nav {
@@ -268,6 +298,7 @@
 
       .item {
         padding: 14px 15px;
+        min-height: 58px;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -403,13 +434,14 @@
         pointer-events: none;
         transition: opacity 0.22s ease;
         z-index: 20;
+        backdrop-filter: blur(2px);
       }
 
       .sheet-overlay.show { opacity: 1; pointer-events: auto; }
       .sheet-wrap {
         width: min(420px, 100vw);
         transform: translateY(24px);
-        transition: transform 0.24s ease;
+        transition: transform 0.24s cubic-bezier(0.22, 0.9, 0.34, 1);
       }
       .sheet-overlay.show .sheet-wrap { transform: translateY(0); }
 
@@ -419,6 +451,7 @@
         overflow: hidden;
         box-shadow: 0 -20px 38px rgba(20, 42, 31, 0.14);
         padding-bottom: env(safe-area-inset-bottom, 0);
+        transform-origin: bottom center;
       }
 
       .sheet-head {
@@ -427,18 +460,30 @@
         align-items: center;
         justify-content: space-between;
       }
-
-      .meal-select-wrap { position: relative; display: inline-flex; align-items: center; }
-      .meal-prefix, .meal-select { font-size: 16px; font-weight: 600; }
-      .meal-select {
-        border: 0;
-        background: transparent;
-        padding-right: 16px;
-        appearance: none;
-        color: #0e1914;
+      .sheet-head-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
       }
-      .meal-select:focus { outline: none; }
-      .meal-select-arrow { position: absolute; right: 0; pointer-events: none; }
+      .history-btn {
+        width: 34px;
+        height: 34px;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: rgba(0, 0, 0, 0.62);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        transition: transform 0.16s ease, color 0.16s ease, opacity 0.16s ease;
+      }
+      .history-btn:not(:disabled):active { transform: scale(0.92); }
+      .history-btn:disabled {
+        opacity: 0.36;
+      }
+
+      .meal-prefix { font-size: 16px; font-weight: 600; }
 
       .close-btn {
         width: 30px;
@@ -447,10 +492,15 @@
         border-radius: 999px;
         background: rgba(0, 0, 0, 0.04);
         color: rgba(0, 0, 0, 0.52);
+        transition: transform 0.16s ease, background-color 0.16s ease;
+      }
+      .close-btn:active {
+        transform: scale(0.94);
+        background: rgba(0, 0, 0, 0.08);
       }
 
       .attach {
-        padding: 0 16px 16px;
+        padding: 10px 16px 16px;
         display: flex;
         gap: 10px;
         overflow-x: auto;
@@ -459,12 +509,258 @@
       .attach::-webkit-scrollbar { display: none; }
       .attach.attach-empty { overflow-x: visible; }
 
+      .input-section-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+
+      .media-entry {
+        padding: 12px 0 0;
+      }
+
+      .library-entry {
+        padding: 12px 16px 14px;
+      }
+
+      .library-entry-title {
+        width: 100%;
+        border: 0;
+        background: transparent;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--text-main);
+        text-align: left;
+      }
+
+      .library-entry-title-main {
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .library-entry-quick-row::-webkit-scrollbar { display: none; }
+      .library-entry-quick-row {
+        margin-top: 8px;
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        padding: 2px 8px 2px 2px;
+        scroll-padding-left: 2px;
+        scroll-padding-right: 18px;
+        scroll-snap-type: x proximity;
+      }
+      .library-entry-quick-row::after {
+        content: "";
+        flex: 0 0 14px;
+      }
+
+      .library-sheet-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(12, 20, 16, 0.26);
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+        z-index: 32;
+        backdrop-filter: blur(2px);
+      }
+
+      .library-sheet-overlay.show {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .library-sheet-wrap {
+        width: min(420px, 100vw);
+        transform: translateY(20px);
+        transition: transform 0.22s cubic-bezier(0.22, 0.9, 0.34, 1);
+      }
+
+      .library-sheet-overlay.show .library-sheet-wrap {
+        transform: translateY(0);
+      }
+
+      .library-sheet-card {
+        background: #fff;
+        border-radius: 20px 20px 0 0;
+        height: 520px;
+        padding-bottom: env(safe-area-inset-bottom, 0);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .library-sheet-head {
+        height: 54px;
+        padding: 0 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--divider);
+      }
+
+      .library-sheet-title {
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .meal-quick-tabs {
+        padding: 12px 16px 10px;
+        display: flex;
+        gap: 8px;
+      }
+
+      .result-panel.show {
+        padding-top: 4px;
+      }
+
+      .meal-quick-tab {
+        flex: 1;
+        min-width: 0;
+        height: 38px;
+        border: 1px solid rgba(0, 0, 0, 0.09);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.92);
+        padding: 0 10px;
+        font-size: var(--option-size);
+        font-weight: var(--option-weight);
+        color: var(--option-color);
+        transition: transform 0.16s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+      }
+      .meal-quick-tab:active { transform: scale(0.98); }
+
+      .meal-quick-tab.active {
+        border-color: var(--green);
+        background: rgba(36, 179, 126, 0.15);
+        color: #0f4f37;
+      }
+
+      .library-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px 16px 14px;
+        display: grid;
+        gap: 8px;
+        scrollbar-width: none;
+      }
+
+      .library-list::-webkit-scrollbar { display: none; }
+
+      .library-list-item {
+        width: 100%;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 10px;
+        min-height: 54px;
+        padding: 10px 12px;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        transition: transform 0.16s ease, background-color 0.2s ease, border-color 0.2s ease;
+      }
+      .library-list-item:active { transform: scale(0.985); }
+
+      .library-list-item.selected {
+        border-color: var(--green);
+        background: rgba(36, 179, 126, 0.14);
+      }
+
+      .library-list-main {
+        min-width: 0;
+        flex: 1;
+      }
+
+      .library-list-title {
+        font-size: 13px;
+        color: var(--text-main);
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .library-list-meta {
+        margin-top: 3px;
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      .library-list-check {
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        background: transparent;
+      }
+
+      .library-list-item.selected .library-list-check {
+        border-color: var(--green-strong);
+        background: var(--green-strong);
+      }
+
+      .library-list-footer {
+        border-top: 1px solid var(--divider);
+        padding: 10px 16px;
+      }
+
+      .library-add-btn {
+        width: 100%;
+        height: 48px;
+        border: 0;
+        border-radius: 999px;
+        color: #fff;
+        background: linear-gradient(130deg, var(--green) 0%, var(--green-strong) 100%);
+        font-size: 13px;
+        font-weight: 600;
+        transition: transform 0.16s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        box-shadow: 0 10px 20px rgba(36, 179, 126, 0.22);
+      }
+      .library-add-btn:active { transform: scale(0.985); }
+
+      .library-add-btn:disabled {
+        opacity: 0.5;
+      }
+
+      .library-chip {
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.92);
+        border-radius: 8px;
+        min-height: 40px;
+        padding: 0 14px;
+        font-size: var(--option-size);
+        font-weight: var(--option-weight);
+        color: var(--option-color);
+        white-space: nowrap;
+        transition: transform 0.16s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        scroll-snap-align: start;
+      }
+      .library-chip:active { transform: scale(0.97); }
+
+      .library-chip.selected {
+        border-color: var(--green);
+        background: rgba(36, 179, 126, 0.15);
+        color: #0f4f37;
+      }
+
+
       .attach-item {
         width: 66px;
         height: 66px;
         border: 1px solid rgba(0, 0, 0, 0.09);
         border-radius: 8px;
-        background: rgba(0, 0, 0, 0.02);
+        background: transparent;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -474,23 +770,41 @@
         flex-shrink: 0;
         position: relative;
         overflow: hidden;
+        transition: transform 0.16s ease, border-color 0.2s ease, background-color 0.2s ease;
+      }
+      .attach-item:active { transform: scale(0.98); }
+
+      .attach-item.has-image {
+        border: 0;
       }
 
       .attach-option { flex: 1 0 0; min-width: 0; padding: 0 16px; }
-      .attach-label { font-size: 14px; color: var(--text-muted); }
-      .attach-icon { font-size: 24px; line-height: 1; }
+      .attach-label { font-size: var(--option-size); font-weight: var(--option-weight); color: var(--option-color); }
+      .attach-icon {
+        font-size: calc(var(--option-size) * 1.5);
+        font-weight: 400;
+        font-variation-settings: "wght" 400, "FILL" 0, "GRAD" 0, "opsz" 24;
+        color: var(--option-color);
+        line-height: 1;
+      }
       .attach-thumb { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
       .thumb-delete {
         position: absolute;
-        right: -6px;
-        top: -6px;
+        right: -12px;
+        top: -12px;
         width: 24px;
         height: 24px;
         border: 0;
         border-radius: 999px;
         background: rgba(0, 0, 0, 0.58);
         color: #fff;
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        line-height: 1;
       }
 
       .native-file-input {
@@ -502,11 +816,49 @@
       }
 
       .input-row {
-        border-top: 1px solid var(--divider);
         display: flex;
         align-items: center;
         padding: 0 12px 0 16px;
         min-height: 56px;
+      }
+
+      .text-entry {
+        padding: 12px 16px 14px;
+      }
+
+      .text-entry-input {
+        margin-top: 10px;
+        width: 100%;
+        min-height: 46px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 16px;
+        color: var(--text-main);
+        background: rgba(255, 255, 255, 0.96);
+      }
+
+      .send-wide {
+        margin-top: 10px;
+        width: 100%;
+        height: 48px;
+        border: 0;
+        border-radius: 999px;
+        background: linear-gradient(130deg, var(--green) 0%, var(--green-strong) 100%);
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: transform 0.16s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        box-shadow: 0 10px 22px rgba(36, 179, 126, 0.24);
+      }
+      .send-wide:active { transform: scale(0.985); }
+
+      .send-wide:disabled {
+        opacity: 0.5;
       }
 
       .prompt-input {
@@ -537,7 +889,6 @@
       }
 
       .parse-loading {
-        border-top: 1px solid var(--divider);
         padding: 16px;
         display: none;
         align-items: center;
@@ -551,8 +902,9 @@
 
       .result-item {
         padding: 0 16px 15px;
-        display: flex;
-        align-items: center;
+        display: grid;
+        grid-template-columns: 50px minmax(0, 1fr);
+        align-items: start;
         gap: 14px;
         animation: fadeInUp 0.25s ease both;
       }
@@ -560,29 +912,77 @@
       .result-cover {
         width: 50px;
         height: 50px;
+        border: 0;
         border-radius: 8px;
         background: rgba(36, 179, 126, 0.1);
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 24px;
+        transition: transform 0.16s ease, background-color 0.2s ease;
       }
+      .result-cover:active { transform: scale(0.96); }
 
-      .result-text { flex: 1; min-width: 0; }
-      .result-name { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .result-kcal { margin-top: 3px; font-size: 12px; color: var(--text-muted); }
-
+      .result-text { min-width: 0; display: grid; gap: 8px; }
+      .result-item-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .result-name-input {
+        flex: 1;
+        min-width: 0;
+        border: 1px solid rgba(0,0,0,.1);
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-size: 16px;
+        color: var(--text-main);
+      }
+      .result-fields {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr;
+        gap: 8px;
+      }
+      .result-field-wrap {
+        display: grid;
+        gap: 4px;
+      }
+      .serving-unit-row {
+        display: grid;
+        grid-template-columns: 1fr 74px;
+        gap: 8px;
+      }
+      .result-field-label {
+        font-size: 11px;
+        color: var(--text-muted);
+        line-height: 1;
+      }
+      .result-field {
+        border: 1px solid rgba(0,0,0,.1);
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-size: 16px;
+        color: var(--text-main);
+        width: 100%;
+        min-width: 0;
+      }
       .result-del {
-        width: 32px;
-        height: 32px;
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
         border: 0;
         border-radius: 999px;
         background: rgba(0, 0, 0, 0.03);
         color: rgba(0, 0, 0, 0.74);
       }
 
+      @media (max-width: 390px) {
+        .result-fields {
+          grid-template-columns: 1fr;
+        }
+      }
+
       .result-actions {
-        border-top: 1px solid var(--divider);
         padding: 16px;
         display: flex;
         gap: 8px;
@@ -591,13 +991,15 @@
       .result-error { padding: 0 16px 16px; color: #cb2f31; font-size: 13px; white-space: pre-wrap; }
 
       .result-btn {
-        height: 38px;
+        height: 48px;
         border: 0;
         border-radius: 999px;
         font-size: 14px;
         font-weight: 600;
+        transition: transform 0.16s ease, opacity 0.2s ease;
       }
-      .result-btn.retry { width: 72px; background: rgba(0, 0, 0, 0.04); }
+      .result-btn:active { transform: scale(0.985); }
+      .result-btn.retry { width: 88px; background: rgba(0, 0, 0, 0.04); color: var(--text-secondary); }
       .result-btn.save { flex: 1; color: #fff; background: linear-gradient(130deg, var(--green) 0%, var(--green-strong) 100%); }
 
       .auth-overlay {
@@ -721,6 +1123,7 @@
 
       const MAX_ATTACHMENTS = 5;
       const MEALS = ["早餐", "午餐", "晚餐"];
+      const RECORDS_CACHE_KEY_PREFIX = "diet-records-cache-v1";
 
       function getMealVisual(meal) {
         if (meal === "早餐") return { cls: "breakfast", icon: "wb_twilight" };
@@ -756,6 +1159,29 @@
         const d = new Date((dateKey || getDateKey(Date.now())) + "T00:00:00");
         d.setDate(d.getDate() + offsetDays);
         return getDateKey(d);
+      }
+
+      function getRecordsCacheKey(userId) {
+        return `${RECORDS_CACHE_KEY_PREFIX}:${userId || "guest"}`;
+      }
+
+      function readCachedRecords(userId) {
+        try {
+          const raw = localStorage.getItem(getRecordsCacheKey(userId));
+          if (!raw) return [];
+          const parsed = JSON.parse(raw);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (_error) {
+          return [];
+        }
+      }
+
+      function writeCachedRecords(userId, records) {
+        try {
+          localStorage.setItem(getRecordsCacheKey(userId), JSON.stringify(Array.isArray(records) ? records : []));
+        } catch (_error) {
+          // ignore cache write errors
+        }
       }
 
       function blobToBase64(blob) {
@@ -851,12 +1277,35 @@
         }));
       }
 
+      function normalizeEditableFood(item) {
+        const servings = Math.max(0, Number(item?.servings) || 1);
+        const unitKcal = Math.max(0, Number(item?.unitKcal) || Number(item?.kcal) || 0);
+        const unitName = String(item?.unitName || "份").trim() || "份";
+        const kcal = Math.max(0, Math.round(servings * unitKcal));
+        return {
+          name: String(item?.name || "未命名食物").slice(0, 12),
+          portion: String(item?.portion || "1份"),
+          servings,
+          unitKcal,
+          unitName,
+          kcal,
+          confidence: Math.max(0, Math.min(1, Number(item?.confidence) || 0)),
+          emoji: String(item?.emoji || "🍽️").trim() || "🍽️"
+        };
+      }
+
+      function cloneParsedItems(srcItems) {
+        return (Array.isArray(srcItems) ? srcItems : []).map((item) => ({ ...item }));
+      }
+
       function App() {
         const [sheetOpen, setSheetOpen] = useState(false);
         const [panelMode, setPanelMode] = useState("input");
         const [selectedMeal, setSelectedMeal] = useState(getDefaultMealByTime());
         const [attachments, setAttachments] = useState([]);
         const [parsedResults, setParsedResults] = useState([]);
+        const [parsedUndoStack, setParsedUndoStack] = useState([]);
+        const [parsedRedoStack, setParsedRedoStack] = useState([]);
         const [inputText, setInputText] = useState("");
         const [isSending, setIsSending] = useState(false);
         const [records, setRecords] = useState([]);
@@ -870,7 +1319,14 @@
         const [pendingDeletion, setPendingDeletion] = useState(null);
         const [undoToast, setUndoToast] = useState(null);
         const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
+        const [librarySheetOpen, setLibrarySheetOpen] = useState(false);
+        const [singleVisibleCount, setSingleVisibleCount] = useState(20);
+        const [selectedLibraryFoods, setSelectedLibraryFoods] = useState([]);
+        const [selectedQuickFoods, setSelectedQuickFoods] = useState([]);
         const [parseError, setParseError] = useState("");
+        const [servingEditIndex, setServingEditIndex] = useState(-1);
+        const [servingDraft, setServingDraft] = useState("");
+        const [nameComposingIndex, setNameComposingIndex] = useState(-1);
 
         const cameraInputRef = useRef(null);
         const galleryInputRef = useRef(null);
@@ -879,6 +1335,8 @@
         const rowTouchRef = useRef({ key: "", x: 0, y: 0 });
         const pendingDeletionRef = useRef(null);
         const rowPointerRef = useRef({ key: "", x: 0, y: 0, moved: false });
+        const parsedResultsRef = useRef([]);
+        const parsedEditSessionRef = useRef({ key: "", before: null });
 
         const selectedDateTotalKcal = useMemo(() => {
           return records
@@ -916,11 +1374,113 @@
           return grouped;
         }, [records, currentDateKey]);
 
-        function closeSheetPanel() { setSheetOpen(false); }
+        const foodLibrary = useMemo(() => {
+          const singleMap = new Map();
+          [...records]
+            .sort((a, b) => String(b?.created_at || "").localeCompare(String(a?.created_at || "")))
+            .forEach((record) => {
+              const items = Array.isArray(record?.items) ? record.items : [];
+              if (items.length === 0) return;
 
+              items.forEach((item) => {
+                const key = `${item?.name || ""}|${item?.portion || ""}`;
+                if (singleMap.has(key)) return;
+                singleMap.set(key, {
+                  name: String(item?.name || "未命名食物").slice(0, 12),
+                  portion: String(item?.portion || "1份"),
+                  kcal: Math.max(0, Math.min(3000, Number.parseInt(item?.kcal, 10) || 0)),
+                  confidence: Math.max(0, Math.min(1, Number(item?.confidence) || 0)),
+                  emoji: String(item?.emoji || "🍽️").trim() || "🍽️",
+                  meal: record?.meal || "早餐"
+                });
+              });
+            });
+
+          return {
+            foods: Array.from(singleMap.values())
+          };
+        }, [records]);
+
+        const visibleSingleFoods = useMemo(() => {
+          return foodLibrary.foods.slice(0, singleVisibleCount);
+        }, [foodLibrary.foods, singleVisibleCount]);
+
+        function closeSheetPanel() { setSheetOpen(false); }
+        function resetParsedHistory() {
+          setParsedUndoStack([]);
+          setParsedRedoStack([]);
+        }
+        function applyParsedResults(nextItems) {
+          setParsedResults(cloneParsedItems(nextItems));
+          resetParsedHistory();
+        }
+        function commitParsedChange(updater) {
+          setParsedResults((prev) => {
+            const prevSnapshot = cloneParsedItems(prev);
+            const nextSnapshot = cloneParsedItems(typeof updater === "function" ? updater(prevSnapshot) : updater);
+            if (JSON.stringify(prevSnapshot) === JSON.stringify(nextSnapshot)) return prev;
+            setParsedUndoStack((stack) => [...stack, prevSnapshot]);
+            setParsedRedoStack([]);
+            return nextSnapshot;
+          });
+        }
+        function beginParsedEditSession(sessionKey) {
+          const current = parsedEditSessionRef.current;
+          if (current.key === sessionKey) return;
+          parsedEditSessionRef.current = {
+            key: sessionKey,
+            before: cloneParsedItems(parsedResultsRef.current)
+          };
+        }
+        function endParsedEditSession(sessionKey) {
+          const current = parsedEditSessionRef.current;
+          if (!current.key || current.key !== sessionKey) return;
+          const beforeSnapshot = cloneParsedItems(current.before || []);
+          const afterSnapshot = cloneParsedItems(parsedResultsRef.current);
+          parsedEditSessionRef.current = { key: "", before: null };
+          if (JSON.stringify(beforeSnapshot) === JSON.stringify(afterSnapshot)) return;
+          setParsedUndoStack((stack) => [...stack, beforeSnapshot]);
+          setParsedRedoStack([]);
+        }
+        function flushParsedEditSession() {
+          const current = parsedEditSessionRef.current;
+          if (!current.key) return;
+          endParsedEditSession(current.key);
+        }
+        function undoParsedChange() {
+          setParsedUndoStack((undoStack) => {
+            if (undoStack.length === 0) return undoStack;
+            const prevSnapshot = undoStack[undoStack.length - 1];
+            setParsedRedoStack((redoStack) => [...redoStack, cloneParsedItems(parsedResults)]);
+            setParsedResults(cloneParsedItems(prevSnapshot));
+            return undoStack.slice(0, -1);
+          });
+        }
+        function redoParsedChange() {
+          setParsedRedoStack((redoStack) => {
+            if (redoStack.length === 0) return redoStack;
+            const nextSnapshot = redoStack[redoStack.length - 1];
+            setParsedUndoStack((undoStack) => [...undoStack, cloneParsedItems(parsedResults)]);
+            setParsedResults(cloneParsedItems(nextSnapshot));
+            return redoStack.slice(0, -1);
+          });
+        }
         useEffect(() => {
           pendingDeletionRef.current = pendingDeletion;
         }, [pendingDeletion]);
+
+        useEffect(() => {
+          const shouldLock = sheetOpen || librarySheetOpen || authVisible;
+          if (!shouldLock) return;
+          const prevOverflow = document.body.style.overflow;
+          const prevTouchAction = document.body.style.touchAction;
+          document.body.style.overflow = "hidden";
+          document.body.style.touchAction = "none";
+          return () => {
+            document.body.style.overflow = prevOverflow;
+            document.body.style.touchAction = prevTouchAction;
+          };
+        }, [sheetOpen, librarySheetOpen, authVisible]);
 
         function getRestHeaders(sessionArg = currentSession) {
           const token = sessionArg?.access_token || SUPABASE_ANON_KEY;
@@ -952,8 +1512,13 @@
         }
 
         async function initBackendState(nextUser = currentUser, nextSession = currentSession) {
+          const cacheUserId = nextUser?.id || "guest";
+          const cached = readCachedRecords(cacheUserId);
+          if (cached.length > 0) {
+            setRecords(cached);
+          }
           if (!nextUser?.id) {
-            setRecords([]);
+            if (cached.length === 0) setRecords([]);
             return;
           }
           try {
@@ -963,7 +1528,9 @@
             );
             if (recordsRes.ok) {
               const recRows = await recordsRes.json();
-              setRecords(Array.isArray(recRows) ? recRows : []);
+              const nextRecords = Array.isArray(recRows) ? recRows : [];
+              setRecords(nextRecords);
+              writeCachedRecords(nextUser.id, nextRecords);
             }
           } catch (error) {
             console.error("init-backend-failed", error);
@@ -980,6 +1547,7 @@
           if (!response.ok) throw new Error("清空旧记录失败");
           if (nextRecords.length === 0) {
             setRecords([]);
+            writeCachedRecords(currentUser.id, []);
             return;
           }
           const insertRes = await fetch(SUPABASE_URL + "/rest/v1/diet_records", {
@@ -996,7 +1564,9 @@
           });
           if (!insertRes.ok) throw new Error("写入记录失败");
           const saved = await insertRes.json();
-          setRecords(Array.isArray(saved) ? saved : []);
+          const nextSaved = Array.isArray(saved) ? saved : [];
+          setRecords(nextSaved);
+          writeCachedRecords(currentUser.id, nextSaved);
         }
 
         async function pushFiles(fileList) {
@@ -1032,7 +1602,18 @@
 
         async function startParse() {
           const text = inputText.trim();
-          if (!text && attachments.length === 0) return;
+          const quickItems = buildQuickSelectedItems();
+          const hasQuick = quickItems.length > 0;
+          const hasAiInput = text.length > 0 || attachments.length > 0;
+          if (!hasAiInput && !hasQuick) return;
+
+          if (!hasAiInput && hasQuick) {
+            applyParsedResults(quickItems);
+            setParseError("");
+            setPanelMode("result");
+            return;
+          }
+
           setIsSending(true);
           setPanelMode("loading");
           setParseError("");
@@ -1049,37 +1630,132 @@
               inputText: text,
               compressedAttachments: compressed
             });
-            const normalized = normalizeAiItems(aiObject);
-            if (normalized.length === 0) {
+            const normalized = normalizeAiItems(aiObject).map(normalizeEditableFood);
+            if (normalized.length === 0 && !hasQuick) {
               const modelReason = String(aiObject?.notes || "").trim() || "模型未返回可用食物条目。";
-              setParsedResults([]);
+              applyParsedResults([]);
               setParseError("解析结果不可用：\n" + modelReason);
             } else {
-              setParsedResults(normalized);
+              applyParsedResults([...normalized, ...quickItems]);
+              if (normalized.length === 0 && hasQuick) {
+                setParseError("AI 未识别到新食物，已保留所选快捷项。");
+              } else {
+                setParseError("");
+              }
             }
             setPanelMode("result");
           } catch (error) {
             console.error("parse-failed", error);
-            setParsedResults([]);
-            setParseError("解析失败：\n" + (error?.message || "未知错误"));
+            if (hasQuick) {
+              applyParsedResults(quickItems);
+              setParseError("AI 解析失败，已保留所选快捷项。");
+            } else {
+              applyParsedResults([]);
+              setParseError("解析失败：\n" + (error?.message || "未知错误"));
+            }
             setPanelMode("result");
           } finally {
             setIsSending(false);
           }
         }
 
+        function useLibraryFood(food) {
+          applyParsedResults([normalizeEditableFood({
+            name: food.name,
+            portion: food.portion,
+            kcal: food.kcal,
+            confidence: food.confidence || 0,
+            emoji: food.emoji || "🍽️"
+          })]);
+          setParseError("");
+          setPanelMode("result");
+          setLibrarySheetOpen(false);
+        }
+
+        function openLibrarySheet() {
+          setSingleVisibleCount(20);
+          setSelectedLibraryFoods([]);
+          setLibrarySheetOpen(true);
+        }
+
+        function toggleQuickFood(food, key) {
+          setSelectedQuickFoods((prev) => {
+            const exists = prev.some((item) => item.key === key);
+            if (exists) return prev.filter((item) => item.key !== key);
+            return [...prev, { key, food }];
+          });
+        }
+
+        function buildQuickSelectedItems() {
+          const fromFoods = selectedQuickFoods.map(({ food }) => normalizeEditableFood({
+            name: food.name,
+            portion: food.portion,
+            kcal: food.kcal,
+            confidence: food.confidence || 0,
+            emoji: food.emoji || "🍽️"
+          }));
+          return [...fromFoods];
+        }
+
+        function closeLibrarySheet() {
+          setLibrarySheetOpen(false);
+        }
+
+        function updateParsedItem(index, patch) {
+          setParsedResults((prev) =>
+            prev.map((item, i) => {
+              if (i !== index) return item;
+              return normalizeEditableFood({ ...item, ...patch });
+            })
+          );
+        }
+
+        function toggleLibraryFood(food, key) {
+          setSelectedLibraryFoods((prev) => {
+            const exists = prev.some((item) => item.key === key);
+            if (exists) return prev.filter((item) => item.key !== key);
+            return [...prev, { key, food }];
+          });
+        }
+
+        function applyLibrarySelection() {
+          if (selectedLibraryFoods.length === 0) return;
+          const nextItems = selectedLibraryFoods.map(({ food }) => normalizeEditableFood({
+            name: food.name,
+            portion: food.portion,
+            kcal: food.kcal,
+            confidence: food.confidence || 0,
+            emoji: food.emoji || "🍽️"
+          }));
+          applyParsedResults(nextItems);
+          setParseError("");
+          setPanelMode("result");
+          closeLibrarySheet();
+        }
+
+        function onLibraryListScroll(event) {
+          const element = event.currentTarget;
+          const nearBottom = element.scrollTop + element.clientHeight >= element.scrollHeight - 48;
+          if (!nearBottom) return;
+          setSingleVisibleCount((prev) => Math.min(prev + 20, foodLibrary.foods.length));
+        }
+
         async function saveResults() {
           if (parsedResults.length === 0) {
             return;
           }
+          flushParsedEditSession();
           const nextRecords = [
             ...records,
             {
               meal: selectedMeal,
               items: parsedResults.map((item) => ({
                 name: item.name,
-                portion: item.portion || "1份",
-                kcal: Number(item.kcal) || 0,
+                portion: `${Number(item.servings) || 1}${item.unitName || "份"}`,
+                servings: Number(item.servings) || 1,
+                unitKcal: Number(item.unitKcal) || 0,
+                unitName: String(item.unitName || "份"),
+                kcal: Math.max(0, Math.round((Number(item.servings) || 1) * (Number(item.unitKcal) || 0))),
                 confidence: Number(item.confidence) || 0,
                 emoji: String(item.emoji || "🍽️")
               })),
@@ -1091,7 +1767,8 @@
             await saveStoredRecords(nextRecords);
             setPanelMode("input");
             setInputText("");
-            setParsedResults([]);
+            applyParsedResults([]);
+            setSelectedQuickFoods([]);
             setParseError("");
           } catch (error) {
             console.error("save-records-failed", error);
@@ -1102,6 +1779,9 @@
           const { data } = await supabaseClient.auth.getSession();
           const nextSession = data?.session || null;
           const nextUser = nextSession?.user || null;
+          const cacheUserId = nextUser?.id || "guest";
+          const cached = readCachedRecords(cacheUserId);
+          setRecords(cached.length > 0 ? cached : []);
           setCurrentSession(nextSession);
           setCurrentUser(nextUser);
           setAuthVisible(!nextUser);
@@ -1113,13 +1793,16 @@
           const { data } = supabaseClient.auth.onAuthStateChange(async (_event, session) => {
             const nextSession = session || null;
             const nextUser = nextSession?.user || null;
+            const cacheUserId = nextUser?.id || "guest";
+            const cached = readCachedRecords(cacheUserId);
+            setRecords(cached.length > 0 ? cached : []);
             setCurrentSession(nextSession);
             setCurrentUser(nextUser);
             setAuthVisible(!nextUser);
             if (nextUser) {
               await initBackendState(nextUser, nextSession);
             } else {
-              setRecords([]);
+              if (cached.length === 0) setRecords([]);
             }
           });
 
@@ -1129,6 +1812,10 @@
             data?.subscription?.unsubscribe?.();
           };
         }, []);
+
+        useEffect(() => {
+          parsedResultsRef.current = cloneParsedItems(parsedResults);
+        }, [parsedResults]);
 
         useEffect(() => {
           if (records.length === 0) {
@@ -1388,21 +2075,24 @@
                   <button className="hero-nav-btn" type="button" onClick={goPrevDate} aria-label="上一天">
                     <span className="mi" style={{ fontSize: 18 }}>chevron_left</span>
                   </button>
-                  <button className="hero-date-btn" type="button" onClick={() => dateInputRef.current && dateInputRef.current.showPicker ? dateInputRef.current.showPicker() : dateInputRef.current.click()}>
-                    {getDateLabel(currentDateKey)}
-                  </button>
+                  <div className="hero-date-wrap">
+                    <button className="hero-date-btn" type="button">
+                      {getDateLabel(currentDateKey)}
+                    </button>
+                    <input
+                      ref={dateInputRef}
+                      className="hero-date-native"
+                      type="date"
+                      value={currentDateKey}
+                      max={getDateKey(Date.now())}
+                      onChange={(e) => setCurrentDateKey(e.target.value || getDateKey(Date.now()))}
+                      aria-label="选择日期"
+                    />
+                  </div>
                   <button className="hero-nav-btn" type="button" onClick={goNextDate} aria-label="下一天">
                     <span className="mi" style={{ fontSize: 18 }}>chevron_right</span>
                   </button>
                 </div>
-                <input
-                  ref={dateInputRef}
-                  type="date"
-                  value={currentDateKey}
-                  max={getDateKey(Date.now())}
-                  onChange={(e) => setCurrentDateKey(e.target.value || getDateKey(Date.now()))}
-                  style={{ position: "absolute", opacity: 0, pointerEvents: "none", width: 1, height: 1 }}
-                />
               </section>
 
               <section className="content" onTouchStart={onSwipeStart} onTouchEnd={onSwipeEnd}>
@@ -1478,62 +2168,214 @@
               <div className="sheet-wrap">
                 <div className="sheet-card">
                   <div className="sheet-head">
-                    <div className="meal-select-wrap">
-                      <span className="meal-prefix">记</span>
-                      <select className="meal-select" value={selectedMeal} onChange={(e) => setSelectedMeal(e.target.value)}>
-                        {MEALS.map((meal) => <option value={meal} key={meal}>{meal}</option>)}
-                      </select>
-                      <span className="mi meal-select-arrow" style={{ fontSize: 14 }}>keyboard_arrow_down</span>
+                    <div className="meal-prefix">记饮食</div>
+                    <div className="sheet-head-actions">
+                      {panelMode === "result" && (
+                        <>
+                          <button className="history-btn" type="button" onClick={undoParsedChange} disabled={parsedUndoStack.length === 0}>
+                            <span className="mi" style={{ fontSize: 26 }}>undo</span>
+                          </button>
+                          <button className="history-btn" type="button" onClick={redoParsedChange} disabled={parsedRedoStack.length === 0}>
+                            <span className="mi" style={{ fontSize: 26 }}>redo</span>
+                          </button>
+                        </>
+                      )}
+                      <button className="close-btn" type="button" onClick={closeSheetPanel}>
+                        <span className="mi" style={{ fontSize: 18 }}>close</span>
+                      </button>
                     </div>
-                    <button className="close-btn" type="button" onClick={closeSheetPanel}>
-                      <span className="mi" style={{ fontSize: 18 }}>close</span>
-                    </button>
                   </div>
 
-                  <div className={"attach" + (attachments.length === 0 ? " attach-empty" : "") } style={{ display: panelMode === "input" ? "flex" : "none" }}>
-                    {attachments.map((item, index) => (
-                      <div className="attach-item" key={item.url}>
-                        <img className="attach-thumb" alt="" src={item.url} />
-                        <button className="thumb-delete" type="button" onClick={(event) => {
-                          event.stopPropagation();
-                          URL.revokeObjectURL(item.url);
-                          setAttachments((prev) => prev.filter((_, i) => i !== index));
-                        }}>
-                          <span className="mi" style={{ fontSize: 18 }}>close</span>
-                        </button>
-                      </div>
-                    ))}
-                    {attachments.length < MAX_ATTACHMENTS && (
-                      <button className={"attach-item" + (attachments.length === 0 ? " attach-option" : "")} type="button" onClick={() => cameraInputRef.current && cameraInputRef.current.click()}>
-                        <span className="mi attach-icon">photo_camera</span>
-                        {attachments.length === 0 && <span className="attach-label">拍照</span>}
+                  <div className="meal-quick-tabs">
+                    {MEALS.map((meal) => (
+                      <button
+                        key={meal}
+                        className={"meal-quick-tab" + (selectedMeal === meal ? " active" : "")}
+                        type="button"
+                        onClick={() => setSelectedMeal(meal)}
+                      >
+                        {meal}
                       </button>
-                    )}
-                    {attachments.length < MAX_ATTACHMENTS && (
-                      <label className={"attach-item" + (attachments.length === 0 ? " attach-option" : "") }>
-                        <span className="mi attach-icon">photo_library</span>
-                        {attachments.length === 0 && <span className="attach-label">相册</span>}
-                        <input ref={galleryInputRef} className="native-file-input" type="file" accept="image/*" multiple onChange={handlePickedFile} />
-                      </label>
-                    )}
+                    ))}
+                  </div>
+
+                  <div className="media-entry" style={{ display: panelMode === "input" ? "block" : "none" }}>
+                    <div style={{ padding: "0 16px" }} className="input-section-title">添加图片</div>
+                    <div className={"attach" + (attachments.length === 0 ? " attach-empty" : "") }>
+                      {attachments.map((item, index) => (
+                        <div className="attach-item has-image" key={item.url}>
+                          <img className="attach-thumb" alt="" src={item.url} />
+                          <button className="thumb-delete" type="button" onClick={(event) => {
+                            event.stopPropagation();
+                            URL.revokeObjectURL(item.url);
+                            setAttachments((prev) => prev.filter((_, i) => i !== index));
+                          }}>
+                            <span className="mi" style={{ fontSize: 18 }}>close</span>
+                          </button>
+                        </div>
+                      ))}
+                      {attachments.length < MAX_ATTACHMENTS && (
+                        <button className={"attach-item" + (attachments.length === 0 ? " attach-option" : "")} type="button" onClick={() => cameraInputRef.current && cameraInputRef.current.click()}>
+                          <span className="mi attach-icon">photo_camera</span>
+                          {attachments.length === 0 && <span className="attach-label">拍照</span>}
+                        </button>
+                      )}
+                      {attachments.length < MAX_ATTACHMENTS && (
+                        <label className={"attach-item" + (attachments.length === 0 ? " attach-option" : "") }>
+                          <span className="mi attach-icon">photo_library</span>
+                          {attachments.length === 0 && <span className="attach-label">相册</span>}
+                          <input ref={galleryInputRef} className="native-file-input" type="file" accept="image/*" multiple onChange={handlePickedFile} />
+                        </label>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="library-entry" style={{ display: panelMode === "input" ? "block" : "none" }}>
+                    <button className="library-entry-title" type="button" onClick={openLibrarySheet}>
+                      <span>
+                        <div className="library-entry-title-main">历史食物</div>
+                      </span>
+                      <span className="mi" style={{ fontSize: 18, color: "var(--text-muted)" }}>chevron_right</span>
+                    </button>
+                    <div className="library-entry-quick-row">
+                      {foodLibrary.foods.length === 0 ? (
+                        <span style={{ color: "var(--text-muted)", fontSize: 12 }}>暂无历史食物</span>
+                      ) : (
+                        foodLibrary.foods.slice(0, 8).map((food, index) => (
+                          <button
+                            className={"library-chip" + (selectedQuickFoods.some((item) => item.key === ("quick-food-" + food.name + "|" + food.portion + "|" + index)) ? " selected" : "")}
+                            style={{ flexShrink: 0 }}
+                            type="button"
+                            key={"quick-food-" + food.name + food.portion + index}
+                            onClick={() => toggleQuickFood(food, "quick-food-" + food.name + "|" + food.portion + "|" + index)}
+                          >
+                            {food.emoji} {food.name}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="text-entry" style={{ display: panelMode === "input" ? "block" : "none" }}>
+                    <div className="input-section-title">输入文字</div>
+                    <input
+                      className="text-entry-input"
+                      value={inputText}
+                      onChange={(e) => setInputText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !isSending) startParse();
+                      }}
+                      type="text"
+                      placeholder="例：我今天中午吃了 1 个汉堡"
+                    />
+                    <button
+                      className="send-wide"
+                      type="button"
+                      onClick={startParse}
+                      disabled={isSending}
+                    >
+                      <span className="mi action-icon">{isSending ? "progress_activity" : "arrow_upward"}</span>
+                      <span>发送</span>
+                    </button>
                   </div>
 
                   <div className={"result-panel" + (panelMode === "result" ? " show" : "") }>
                     <div>
                       {parsedResults.map((item, index) => (
-                        <div className="result-item" key={item.name + index}>
+                        <div className="result-item" key={index}>
                           <div className="result-cover">{item.emoji}</div>
                           <div className="result-text">
-                            <div className="result-name">{item.name}</div>
-                            <div className="result-kcal">{item.kcal} 千卡 · {item.portion || "1份"}</div>
+                            <div className="result-item-head">
+                              <input
+                                className="result-name-input"
+                                value={item.name}
+                                onFocus={() => beginParsedEditSession("name-" + index)}
+                                onCompositionStart={() => setNameComposingIndex(index)}
+                                onCompositionEnd={(e) => {
+                                  setNameComposingIndex(-1);
+                                  updateParsedItem(index, { name: e.target.value.slice(0, 12) });
+                                }}
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  if (nameComposingIndex === index) {
+                                    updateParsedItem(index, { name: value });
+                                  } else {
+                                    updateParsedItem(index, { name: value.slice(0, 12) });
+                                  }
+                                }}
+                                onBlur={() => endParsedEditSession("name-" + index)}
+                              />
+                              <button className="result-del" type="button" onClick={() => {
+                                const next = parsedResults.filter((_, i) => i !== index);
+                                commitParsedChange(next);
+                                if (next.length === 0) setPanelMode("input");
+                              }}>
+                                <span className="mi" style={{ fontSize: 20 }}>delete</span>
+                              </button>
+                            </div>
+                            <div className="result-fields">
+                              <label className="result-field-wrap">
+                                <span className="result-field-label">份数</span>
+                                <div className="serving-unit-row">
+                                  <input
+                                    className="result-field"
+                                    type="tel"
+                                    inputMode="decimal"
+                                    pattern="[0-9]*[.]?[0-9]*"
+                                    value={servingEditIndex === index ? servingDraft : String(item.servings ?? 1)}
+                                    onFocus={() => {
+                                      beginParsedEditSession("servings-" + index);
+                                      setServingEditIndex(index);
+                                      setServingDraft("");
+                                    }}
+                                    onChange={(e) => {
+                                      const raw = String(e.target.value || "");
+                                      const normalized = raw
+                                        .replace(/[^0-9.]/g, "")
+                                        .replace(/(\..*)\./g, "$1");
+                                      setServingDraft(normalized);
+                                      const nextServings = Math.max(0, Number.parseFloat(normalized || "0") || 0);
+                                      updateParsedItem(index, { servings: nextServings });
+                                    }}
+                                    onBlur={() => {
+                                      endParsedEditSession("servings-" + index);
+                                      setServingEditIndex(-1);
+                                      setServingDraft("");
+                                    }}
+                                    placeholder="份数"
+                                  />
+                                  <input
+                                    className="result-field"
+                                    onFocus={() => beginParsedEditSession("unit-" + index)}
+                                    value={item.unitName || "份"}
+                                    onChange={(e) => updateParsedItem(index, { unitName: (e.target.value || "份").slice(0, 6) })}
+                                    onBlur={() => endParsedEditSession("unit-" + index)}
+                                    placeholder="单位"
+                                  />
+                                </div>
+                              </label>
+                              <label className="result-field-wrap">
+                                <span className="result-field-label">千卡</span>
+                                <input
+                                  className="result-field"
+                                  type="tel"
+                                  inputMode="numeric"
+                                  pattern="[0-9]*"
+                                  value={item.kcal ?? 0}
+                                  onFocus={() => beginParsedEditSession("kcal-" + index)}
+                                  onChange={(e) => {
+                                    const onlyDigits = String(e.target.value || "").replace(/[^\d]/g, "");
+                                    const nextTotal = Math.max(0, Number.parseInt(onlyDigits || "0", 10) || 0);
+                                    const servings = Math.max(0, Number(item.servings) || 0);
+                                    const nextUnitKcal = servings > 0 ? nextTotal / servings : nextTotal;
+                                    updateParsedItem(index, { unitKcal: nextUnitKcal });
+                                  }}
+                                  onBlur={() => endParsedEditSession("kcal-" + index)}
+                                  placeholder="千卡"
+                                />
+                              </label>
+                            </div>
                           </div>
-                          <button className="result-del" type="button" onClick={() => {
-                            const next = parsedResults.filter((_, i) => i !== index);
-                            setParsedResults(next);
-                            if (next.length === 0) setPanelMode("input");
-                          }}>
-                            <span className="mi" style={{ fontSize: 18 }}>delete</span>
-                          </button>
                         </div>
                       ))}
                     </div>
@@ -1541,7 +2383,7 @@
                     <div className="result-actions">
                       <button className="result-btn retry" type="button" onClick={() => setPanelMode("input")}>重试</button>
                       <button className="result-btn save" type="button" onClick={saveResults}>
-                        <span className="mi" style={{ fontSize: 16 }}>check</span> 保存记录
+                        <span className="mi action-icon">check</span> 保存记录
                       </button>
                     </div>
                   </div>
@@ -1551,12 +2393,50 @@
                     <span>AI 正在解析...</span>
                   </div>
 
-                  <div className="input-row" style={{ display: panelMode === "input" ? "flex" : "none" }}>
-                    <input className="prompt-input" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => {
-                      if (e.key === "Enter" && !isSending) startParse();
-                    }} type="text" placeholder="例：我今天中午吃了 1 个汉堡" />
-                    <button className={"send" + (isSending ? " loading" : "")} type="button" onClick={startParse} disabled={isSending}>
-                      <span className="mi" style={{ fontSize: 22 }}>{isSending ? "progress_activity" : "arrow_upward"}</span>
+                  <div className="input-row" style={{ display: "none" }} />
+                </div>
+              </div>
+            </div>
+
+            <div className={"library-sheet-overlay" + (librarySheetOpen ? " show" : "")} onClick={(e) => { if (e.target === e.currentTarget) closeLibrarySheet(); }}>
+              <div className="library-sheet-wrap">
+                <div className="library-sheet-card">
+                  <div className="library-sheet-head">
+                    <div className="library-sheet-title">历史食物</div>
+                    <button className="close-btn" type="button" onClick={closeLibrarySheet}>
+                      <span className="mi" style={{ fontSize: 18 }}>close</span>
+                    </button>
+                  </div>
+                  <div className="library-list" onScroll={onLibraryListScroll}>
+                    {visibleSingleFoods.length === 0 ? (
+                      <span style={{ color: "var(--text-muted)", fontSize: 12 }}>暂无历史食物</span>
+                    ) : (
+                      visibleSingleFoods.map((food, index) => (
+                        <button
+                          className={"library-list-item" + (selectedLibraryFoods.some((item) => item.key === (food.name + "|" + food.portion + "|" + index)) ? " selected" : "")}
+                          type="button"
+                          key={food.name + food.portion + index}
+                          onClick={() => toggleLibraryFood(food, food.name + "|" + food.portion + "|" + index)}
+                        >
+                          <div className="library-list-main">
+                            <div className="library-list-title">{food.emoji} {food.name}</div>
+                            <div className="library-list-meta">{food.portion} · {food.kcal} 千卡</div>
+                          </div>
+                          <span className="library-list-check">
+                            <span className="mi" style={{ fontSize: 12 }}>check</span>
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                  <div className="library-list-footer">
+                    <button
+                      className="library-add-btn"
+                      type="button"
+                      onClick={applyLibrarySelection}
+                      disabled={selectedLibraryFoods.length === 0}
+                    >
+                      添加所选
                     </button>
                   </div>
                 </div>
