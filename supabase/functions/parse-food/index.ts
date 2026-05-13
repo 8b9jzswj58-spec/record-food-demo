@@ -149,7 +149,7 @@ Deno.serve(async (req) => {
     });
   }
 
-  const model = Deno.env.get("DOUBAO_MODEL") || "Doubao-1.5-vision-pro";
+  const model = Deno.env.get("DOUBAO_MODEL") || "doubao-seed-1-6-vision-250815";
   const endpoint = Deno.env.get("DOUBAO_API_BASE_URL") || "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
 
   const reqBody = JSON.stringify({
