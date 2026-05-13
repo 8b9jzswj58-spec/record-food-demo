@@ -9,8 +9,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="theme-color" content="#eef6ee" />
     <title>我的饮食</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,1,0" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" />
     <style>
       :root {
         --bg: #f5f6ef;
@@ -60,24 +59,14 @@
       }
 
       .mi {
-        font-family: "Material Symbols Outlined";
-        font-weight: 400;
-        font-variation-settings: "wght" 400, "FILL" 0, "GRAD" 0, "opsz" 24;
         line-height: 1;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         vertical-align: middle;
       }
-      .icon-regular {
-        font-weight: 400;
-        font-variation-settings: "wght" 400, "FILL" 0, "GRAD" 0, "opsz" 24;
-      }
-      .action-icon {
-        font-size: 21px;
-        font-weight: 400;
-        font-variation-settings: "wght" 400, "FILL" 0, "GRAD" 0, "opsz" 24;
-      }
+      .icon-regular {}
+      .action-icon { font-size: 21px; }
 
       .page {
         max-width: 420px;
@@ -403,8 +392,6 @@
         color: #fff;
       }
       .meal-icon .mi {
-        font-family: "Material Symbols Rounded" !important;
-        font-variation-settings: "wght" 400, "FILL" 1, "GRAD" 0, "opsz" 24 !important;
       }
 
       .breakfast { background: linear-gradient(140deg, #f0a240 0%, #ed8957 100%); }
@@ -798,8 +785,6 @@
       .meal-quick-tab:active { transform: scale(0.98); }
       .meal-quick-tab .meal-tab-icon {
         font-size: calc(var(--option-size) * 1.5);
-        font-weight: 400;
-        font-variation-settings: "wght" 400, "FILL" 0, "GRAD" 0, "opsz" 24;
         color: currentColor;
         line-height: 1;
       }
@@ -954,8 +939,6 @@
       .attach-label { font-size: var(--option-size); font-weight: var(--option-weight); color: var(--option-color); }
       .attach-icon {
         font-size: calc(var(--option-size) * 1.5);
-        font-weight: 400;
-        font-variation-settings: "wght" 400, "FILL" 0, "GRAD" 0, "opsz" 24;
         color: var(--option-color);
         line-height: 1;
       }
@@ -1481,6 +1464,32 @@
       const RECORDS_CACHE_KEY_PREFIX = "diet-records-cache-v1";
       const GOAL_KCAL_CACHE_KEY = "diet-goal-kcal-v1";
       const SHEET_DRAFT_KEY_PREFIX = "diet-sheet-draft-v1";
+      const ICON_COMPONENTS = {
+        wb_twilight: "ri-sun-foggy-line",
+        light_mode: "ri-sun-line",
+        nightlight: "ri-moon-clear-line",
+        delete: "ri-delete-bin-line",
+        close: "ri-close-line",
+        settings: "ri-settings-3-line",
+        restaurant: "ri-restaurant-line",
+        edit: "ri-edit-line",
+        chevron_left: "ri-arrow-left-s-line",
+        chevron_right: "ri-arrow-right-s-line",
+        nutrition: "ri-heart-pulse-line",
+        undo: "ri-arrow-go-back-line",
+        redo: "ri-arrow-go-forward-line",
+        photo_camera: "ri-camera-line",
+        photo_library: "ri-image-line",
+        progress_activity: "ri-loader-4-line",
+        arrow_upward: "ri-arrow-up-line",
+        check: "ri-check-line"
+      };
+
+      function MiIcon({ name, children, className = "", style = {}, ...rest }) {
+        const iconName = String(name || children || "");
+        const remixClass = ICON_COMPONENTS[iconName] || "ri-checkbox-blank-circle-line";
+        return <i {...rest} className={`${className} ${remixClass}`.trim()} style={style} aria-hidden="true" />;
+      }
 
       function getMealVisual(meal) {
         if (meal === "早餐") return { cls: "breakfast", icon: "wb_twilight" };
@@ -1778,7 +1787,7 @@
                   type="button"
                   onClick={() => onChange(meal)}
                 >
-                  <span className="mi meal-tab-icon">{visual.icon}</span>
+                  <MiIcon className="mi meal-tab-icon">{visual.icon}</MiIcon>
                   <span>{meal}</span>
                 </button>
               );
@@ -1825,7 +1834,7 @@
                 />
                 {showDelete && (
                   <button className="result-del" type="button" onClick={onDelete}>
-                    <span className="mi" style={{ fontSize: 20 }}>delete</span>
+                    <MiIcon className="mi" style={{ fontSize: 20 }}>delete</MiIcon>
                   </button>
                 )}
               </div>
@@ -1923,7 +1932,7 @@
                   <div className="sheet-head-actions">
                     {actions}
                     <button className="close-btn" type="button" onClick={onClose}>
-                      <span className="mi icon-regular close-icon">close</span>
+                      <MiIcon className="mi icon-regular close-icon">close</MiIcon>
                     </button>
                   </div>
                 </div>
@@ -3234,7 +3243,7 @@
                 <h1 className="title">我的饮食</h1>
                 {!TEST_MODE_AUTH_BYPASS && (
                   <button className="nav-settings" type="button" onClick={() => setSettingsMenuOpen((prev) => !prev)} aria-label="设置">
-                    <span className="mi" style={{ fontSize: 18 }}>settings</span>
+                    <MiIcon className="mi" style={{ fontSize: 18 }}>settings</MiIcon>
                   </button>
                 )}
               </header>
@@ -3247,14 +3256,14 @@
                     <small>千卡</small>
                   </div>
                   <div className="hero-meta">
-                    <span className="mi" style={{ fontSize: 14 }}>restaurant</span>
+                    <MiIcon className="mi" style={{ fontSize: 14 }}>restaurant</MiIcon>
                     {selectedDateRecordCount} 条记录
                   </div>
                 </div>
                 <div className="hero-goal-row">
                   <div className="hero-goal-text">目标 {goalKcal} 千卡 · 完成 {goalProgressPercent}%</div>
                   <button className="hero-goal-edit-btn" type="button" onClick={startGoalEdit} aria-label="编辑目标">
-                    <span className="mi icon-regular" style={{ fontSize: 14 }}>edit</span>
+                    <MiIcon className="mi icon-regular" style={{ fontSize: 14 }}>edit</MiIcon>
                   </button>
                 </div>
                 <div className="hero-progress" aria-label="摄入进度">
@@ -3262,7 +3271,7 @@
                 </div>
                 <div className="hero-nav">
                   <button className="hero-nav-btn" type="button" onClick={goPrevDate} aria-label="上一天">
-                    <span className="mi" style={{ fontSize: 18 }}>chevron_left</span>
+                    <MiIcon className="mi" style={{ fontSize: 18 }}>chevron_left</MiIcon>
                   </button>
                   <div className="hero-date-wrap">
                     <button className="hero-date-btn" type="button">
@@ -3279,7 +3288,7 @@
                     />
                   </div>
                   <button className="hero-nav-btn" type="button" onClick={goNextDate} aria-label="下一天">
-                    <span className="mi" style={{ fontSize: 18 }}>chevron_right</span>
+                    <MiIcon className="mi" style={{ fontSize: 18 }}>chevron_right</MiIcon>
                   </button>
                 </div>
               </section>
@@ -3296,7 +3305,7 @@
                         <div className="meal-head">
                           <div className="meal-type">
                             <span className={"meal-icon " + visual.cls}>
-                              <span className="mi" style={{ fontSize: 14 }}>{visual.icon}</span>
+                              <MiIcon className="mi" style={{ fontSize: 14 }}>{visual.icon}</MiIcon>
                             </span>
                             <span className="meal-name">{meal}</span>
                           </div>
@@ -3326,7 +3335,7 @@
                               </div>
                               <div className="item" onClick={() => onItemRowClick(entry, rowKey)}>
                                 <span className="food">{((item.emoji && String(item.emoji).trim()) || "🍽️") + " " + (item.name || "未命名食物") + " " + normalizePortionText(item.portion || "1份")}</span>
-                                <span className="kcal">{Number(item.kcal) || 0} 千卡 <span className="mi" style={{ fontSize: 14 }}>chevron_right</span></span>
+                                <span className="kcal">{Number(item.kcal) || 0} 千卡 <MiIcon className="mi" style={{ fontSize: 14 }}>chevron_right</MiIcon></span>
                               </div>
                             </div>
                           );
@@ -3339,7 +3348,7 @@
 
               {records.length === 0 && (
                 <div className="empty">
-                  <div><span className="mi">nutrition</span></div>
+                  <div><MiIcon className="mi">nutrition</MiIcon></div>
                   还没有饮食记录，点底部按钮添加一条。
                 </div>
               )}
@@ -3353,7 +3362,7 @@
                 </div>
               )}
               <button className="btn" type="button" onClick={openAddSheetPanel}>
-                <span className="mi" style={{ fontSize: 22 }}>edit</span>
+                <MiIcon className="mi" style={{ fontSize: 22 }}>edit</MiIcon>
                 添加数据
               </button>
             </div>
@@ -3367,10 +3376,10 @@
               actions={panelMode === "result" ? (
                 <>
                   <button className="history-btn" type="button" onClick={undoParsedChange} disabled={parsedUndoStack.length === 0}>
-                    <span className="mi" style={{ fontSize: 26 }}>undo</span>
+                    <MiIcon className="mi" style={{ fontSize: 26 }}>undo</MiIcon>
                   </button>
                   <button className="history-btn" type="button" onClick={redoParsedChange} disabled={parsedRedoStack.length === 0}>
-                    <span className="mi" style={{ fontSize: 26 }}>redo</span>
+                    <MiIcon className="mi" style={{ fontSize: 26 }}>redo</MiIcon>
                   </button>
                 </>
               ) : null}
@@ -3390,19 +3399,19 @@
                             event.stopPropagation();
                             removeAttachmentAt(index);
                           }}>
-                            <span className="mi" style={{ fontSize: 18 }}>close</span>
+                            <MiIcon className="mi" style={{ fontSize: 18 }}>close</MiIcon>
                           </button>
                         </div>
                       ))}
                       {attachments.length < MAX_ATTACHMENTS && (
                         <button className={"attach-item" + (attachments.length === 0 ? " attach-option" : "")} type="button" onClick={() => cameraInputRef.current && cameraInputRef.current.click()}>
-                          <span className="mi attach-icon">photo_camera</span>
+                          <MiIcon className="mi attach-icon">photo_camera</MiIcon>
                           {attachments.length === 0 && <span className="attach-label">拍照</span>}
                         </button>
                       )}
                       {attachments.length < MAX_ATTACHMENTS && (
                         <label className={"attach-item" + (attachments.length === 0 ? " attach-option" : "") }>
-                          <span className="mi attach-icon">photo_library</span>
+                          <MiIcon className="mi attach-icon">photo_library</MiIcon>
                           {attachments.length === 0 && <span className="attach-label">相册</span>}
                           <input ref={galleryInputRef} className="native-file-input" type="file" accept="image/*" multiple onChange={handlePickedFile} />
                         </label>
@@ -3415,7 +3424,7 @@
                       <span>
                         <div className="library-entry-title-main">历史食物</div>
                       </span>
-                      <span className="mi" style={{ fontSize: 18, color: "var(--text-muted)" }}>chevron_right</span>
+                      <MiIcon className="mi" style={{ fontSize: 18, color: "var(--text-muted)" }}>chevron_right</MiIcon>
                     </button>
                     <div className="library-entry-quick-row" onScroll={onQuickLibraryScroll}>
                       {foodLibrary.foods.length === 0 ? (
@@ -3454,7 +3463,7 @@
                       onClick={startParse}
                       disabled={parseTask.status === "parsing"}
                     >
-                      <span className="mi action-icon">{parseTask.status === "parsing" ? "progress_activity" : "arrow_upward"}</span>
+                      <MiIcon className="mi action-icon">{parseTask.status === "parsing" ? "progress_activity" : "arrow_upward"}</MiIcon>
                       <span>{parseTask.status === "parsing" ? "解析中…" : "发送"}</span>
                     </button>
                   </div>
@@ -3467,7 +3476,7 @@
                         <div className="parse-status loading">
                           <div className="parse-status-top">
                             <div className="parse-status-left">
-                              <span className="mi">progress_activity</span>
+                              <MiIcon className="mi">progress_activity</MiIcon>
                               <span>{parseTask.progressText || "AI 正在解析…"}</span>
                             </div>
                             <span className="parse-phase-chip">{parseTask.phase || "parsing"}</span>
@@ -3558,7 +3567,7 @@
                         <>
                           <button className="result-btn retry" type="button" onClick={() => setPanelMode("input")}>重试</button>
                           <button className="result-btn save" type="button" onClick={saveResults}>
-                            <span className="mi action-icon">check</span> 保存记录
+                            <MiIcon className="mi action-icon">check</MiIcon> 保存记录
                           </button>
                         </>
                       )}
@@ -3594,7 +3603,7 @@
                         <div className="library-list-meta">{normalizePortionText(food.portion)} · {food.kcal} 千卡</div>
                       </div>
                       <span className="library-list-check">
-                        <span className="mi" style={{ fontSize: 12 }}>check</span>
+                        <MiIcon className="mi" style={{ fontSize: 12 }}>check</MiIcon>
                       </span>
                     </button>
                   ))
@@ -3638,10 +3647,10 @@
               actions={(
                 <>
                   <button className="history-btn" type="button" onClick={undoEntryEdit} disabled={entryUndoStack.length === 0}>
-                    <span className="mi" style={{ fontSize: 26 }}>undo</span>
+                    <MiIcon className="mi" style={{ fontSize: 26 }}>undo</MiIcon>
                   </button>
                   <button className="history-btn" type="button" onClick={redoEntryEdit} disabled={entryRedoStack.length === 0}>
-                    <span className="mi" style={{ fontSize: 26 }}>redo</span>
+                    <MiIcon className="mi" style={{ fontSize: 26 }}>redo</MiIcon>
                   </button>
                 </>
               )}
@@ -3701,7 +3710,7 @@
                           删除
                         </button>
                         <button className="result-btn save" type="button" onClick={saveEditingEntry}>
-                          <span className="mi action-icon">check</span> 保存
+                          <MiIcon className="mi action-icon">check</MiIcon> 保存
                         </button>
                       </div>
                 </div>
@@ -3713,17 +3722,17 @@
                 <div className="image-preview-stage" onClick={(e) => e.stopPropagation()}>
                   {attachments.length > 1 && (
                     <button className="image-preview-nav prev" type="button" onClick={previewPrev} aria-label="上一张">
-                      <span className="mi" style={{ fontSize: 20 }}>chevron_left</span>
+                      <MiIcon className="mi" style={{ fontSize: 20 }}>chevron_left</MiIcon>
                     </button>
                   )}
                   <img className="image-preview-img" alt="" src={attachments[imagePreviewIndex].url} />
                   {attachments.length > 1 && (
                     <button className="image-preview-nav next" type="button" onClick={previewNext} aria-label="下一张">
-                      <span className="mi" style={{ fontSize: 20 }}>chevron_right</span>
+                      <MiIcon className="mi" style={{ fontSize: 20 }}>chevron_right</MiIcon>
                     </button>
                   )}
                   <button className="image-preview-close" type="button" onClick={closeImagePreview} aria-label="关闭预览">
-                    <span className="mi" style={{ fontSize: 20 }}>close</span>
+                    <MiIcon className="mi" style={{ fontSize: 20 }}>close</MiIcon>
                   </button>
                   <div className="image-preview-meta">{imagePreviewIndex + 1} / {attachments.length}</div>
                 </div>
