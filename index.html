@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="记饮食" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="theme-color" content="#eef4ee" />
+    <meta name="theme-color" content="#eef6ee" />
     <title>我的饮食</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,1,0" />
@@ -28,7 +28,8 @@
         --option-size: 14px;
         --option-weight: 400;
         --option-color: var(--text-secondary);
-        --nav-safe-height: calc(86px + env(safe-area-inset-top, 0px));
+        --nav-safe-height: calc(56px + env(safe-area-inset-top, 0px));
+        --top-bar-bg: #eef6ee;
       }
 
       * { box-sizing: border-box; }
@@ -48,6 +49,7 @@
       body {
         margin: 0;
         min-height: 100vh;
+        background-color: var(--top-bar-bg);
         background: var(--bg-glow);
         color: var(--text-main);
         font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
@@ -257,9 +259,9 @@
       .nav {
         height: var(--nav-safe-height);
         display: flex;
-        align-items: flex-end;
+        align-items: center;
         justify-content: center;
-        padding: env(safe-area-inset-top, 0px) 16px 14px;
+        padding: env(safe-area-inset-top, 0px) 16px 0;
         position: sticky;
         top: 0;
         z-index: 3;
@@ -275,9 +277,9 @@
         top: calc(-1 * env(safe-area-inset-top, 0px));
         bottom: 0;
         pointer-events: none;
-        background: rgba(255, 255, 255, 0.01);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
+        background: rgba(238, 246, 238, 0.08);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         z-index: -1;
       }
 
@@ -292,7 +294,7 @@
       .nav-settings {
         position: absolute;
         right: 14px;
-        bottom: 8px;
+        bottom: 11px;
         width: 34px;
         height: 34px;
         border: 0;
@@ -592,15 +594,24 @@
       .sheet-card {
         background: linear-gradient(180deg, #ffffff 0%, #fbfffd 100%);
         border-radius: 20px 20px 0 0;
-        overflow: visible;
+        overflow: hidden;
         box-shadow: 0 -20px 38px rgba(20, 42, 31, 0.14);
         padding-bottom: env(safe-area-inset-bottom, 0);
         transform-origin: bottom center;
         max-height: calc(100dvh - var(--nav-safe-height));
+        display: flex;
+        flex-direction: column;
       }
       .sheet-content-viewport {
-        overflow: hidden;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        min-height: 0;
+        max-height: calc(100dvh - var(--nav-safe-height) - 76px - env(safe-area-inset-bottom, 0px));
+        scrollbar-width: none;
+        -ms-overflow-style: none;
       }
+      .sheet-content-viewport::-webkit-scrollbar { display: none; width: 0; height: 0; }
       .sheet-content-viewport.fluid {
         transition: height 0.24s cubic-bezier(0.22, 0.9, 0.34, 1);
       }
@@ -933,16 +944,10 @@
       .attach-item:active { transform: scale(0.98); }
 
       .attach-item.has-image {
-        border: 0;
+        border: 1px solid rgba(0, 0, 0, 0.09);
       }
       .attach-item.has-image::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        box-shadow: inset 0 0 0 1.5px rgba(0, 0, 0, 0.18);
-        pointer-events: none;
-        z-index: 1;
+        content: none;
       }
 
       .attach-option { flex: 1 0 0; min-width: 0; padding: 0 16px; }
@@ -966,13 +971,13 @@
 
       .thumb-delete {
         position: absolute;
-        right: -10px;
-        top: -10px;
-        width: 20px;
-        height: 20px;
+        right: -12px;
+        top: -12px;
+        width: 32px;
+        height: 32px;
         border: 0;
         border-radius: 999px;
-        background: rgba(0, 0, 0, 0.58);
+        background: transparent;
         color: #fff;
         z-index: 2;
         display: inline-flex;
@@ -981,7 +986,17 @@
         padding: 0;
         line-height: 1;
       }
-      .thumb-delete .mi { font-size: 14px !important; }
+      .thumb-delete::before {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        border-radius: 999px;
+        background: rgba(36, 44, 40, 0.38);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+      }
+      .thumb-delete .mi { font-size: 12px !important; position: relative; z-index: 1; }
 
       .image-preview-overlay {
         position: fixed;
@@ -1231,6 +1246,11 @@
         flex-wrap: nowrap;
         align-items: center;
         gap: 8px;
+        position: sticky;
+        bottom: 0;
+        z-index: 2;
+        background: linear-gradient(180deg, rgba(251, 255, 253, 0.82) 0%, #fbfffd 22%);
+        border-top: 1px solid rgba(0, 0, 0, 0.04);
       }
 
       .result-error { padding: 0 16px 16px; color: #cb2f31; font-size: 13px; white-space: pre-wrap; }
