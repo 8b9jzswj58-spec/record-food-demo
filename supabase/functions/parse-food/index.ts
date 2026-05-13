@@ -62,9 +62,9 @@ Deno.serve(async (req) => {
     return jsonResponse({ ok: false, error: "Method not allowed" }, 405);
   }
 
-  const apiKey = Deno.env.get("GEMINI_API_KEY") || "";
+  const apiKey = Deno.env.get("DOUBAO_API_KEY") || Deno.env.get("ARK_API_KEY") || "";
   if (!apiKey) {
-    return jsonResponse({ ok: false, error: "Missing GEMINI_API_KEY in Supabase secrets" }, 500);
+    return jsonResponse({ ok: false, error: "Missing DOUBAO_API_KEY in Supabase secrets" }, 500);
   }
 
   let body: ParseRequest;
@@ -105,34 +105,33 @@ Deno.serve(async (req) => {
     "4) 无法识别时 items 返回空数组，并在 notes 写原因。",
   ].join("\n");
 
-  // Build Gemini content parts
-  const parts: Array<Record<string, unknown>> = [];
-
+  const userContent: Array<Record<string, unknown>> = [];
   if (text) {
-    parts.push({ text: `用户输入（餐次：${meal}）：${text}` });
+    userContent.push({ type: "text", text: `用户输入（餐次：${meal}）：${text}` });
   } else {
-    parts.push({ text: `用户输入为空，仅图片识别（餐次：${meal}）` });
+    userContent.push({ type: "text", text: `用户输入为空，仅图片识别（餐次：${meal}）` });
   }
-
   for (const item of images) {
     const mimeType = String(item?.mimeType || "image/jpeg");
     const base64 = String(item?.base64 || "");
     if (!base64) continue;
-    // Strip data URL prefix if present
-    const data = base64.replace(/^data:[^;]+;base64,/, "");
-    parts.push({ inline_data: { mime_type: mimeType, data } });
+    userContent.push({
+      type: "image_url",
+      image_url: { url: `data:${mimeType};base64,${base64}` },
+    });
   }
 
-  const model = Deno.env.get("GEMINI_MODEL") || "gemini-2.0-flash";
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  const model = Deno.env.get("DOUBAO_MODEL") || "Doubao-1.5-vision-pro";
+  const endpoint = Deno.env.get("DOUBAO_API_BASE_URL") || "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
 
   const reqBody = JSON.stringify({
-    system_instruction: { parts: [{ text: systemPrompt }] },
-    contents: [{ role: "user", parts }],
-    generation_config: {
-      temperature: 0.2,
-      response_mime_type: "application/json",
-    },
+    model,
+    temperature: 0.2,
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userContent },
+    ],
   });
 
   let upstream!: Response;
@@ -144,12 +143,15 @@ Deno.serve(async (req) => {
     try {
       upstream = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
         body: reqBody,
       });
     } catch (error) {
       if (attempt === 3) {
-        return jsonResponse({ ok: false, error: `Gemini request failed: ${String(error)}` }, 502);
+        return jsonResponse({ ok: false, error: `Doubao request failed: ${String(error)}` }, 502);
       }
       continue;
     }
@@ -159,7 +161,7 @@ Deno.serve(async (req) => {
 
   if (!upstream.ok) {
     return jsonResponse(
-      { ok: false, error: `Gemini API error (${upstream.status})`, details: rawText.slice(0, 800) },
+      { ok: false, error: `Doubao API error (${upstream.status})`, details: rawText.slice(0, 800) },
       502,
     );
   }
@@ -168,15 +170,12 @@ Deno.serve(async (req) => {
   try {
     payload = JSON.parse(rawText);
   } catch {
-    return jsonResponse({ ok: false, error: "Invalid Gemini response JSON", details: rawText.slice(0, 800) }, 502);
+    return jsonResponse({ ok: false, error: "Invalid Doubao response JSON", details: rawText.slice(0, 800) }, 502);
   }
 
-  // Extract text from Gemini response: candidates[0].content.parts[0].text
-  type GeminiCandidate = { content?: { parts?: Array<{ text?: string }> } };
   const content = String(
-    (payload?.candidates as GeminiCandidate[] | undefined)?.[0]?.content?.parts?.[0]?.text || "",
+    (payload?.choices as Array<{ message?: { content?: string } }> | undefined)?.[0]?.message?.content || "",
   );
-
   const parsed = extractJsonObject(content);
   if (!parsed) {
     return jsonResponse(
