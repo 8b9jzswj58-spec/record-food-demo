@@ -9,7 +9,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="theme-color" content="#eef6ee" />
     <title>我的饮食</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" />
+    <link rel="stylesheet" href="./assets/vendor/remixicon/remixicon.css" />
     <style>
       :root {
         --bg: #f5f6ef;
@@ -1456,10 +1456,10 @@
   <body>
     <div id="root"></div>
 
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./assets/vendor/react/react.production.min.js"></script>
+    <script src="./assets/vendor/react-dom/react-dom.production.min.js"></script>
+    <script src="./assets/vendor/babel/babel.min.js"></script>
+    <script src="./assets/vendor/supabase/supabase.min.js"></script>
 
     <script type="text/babel">
       const { useEffect, useMemo, useRef, useState } = React;
@@ -3521,7 +3521,7 @@
                         if (e.key === "Enter" && parseTask.status !== "parsing") startParse();
                       }}
                       type="text"
-                      placeholder="例：我今天中午吃了 1 个汉堡"
+                      placeholder="1 个麦当劳板烧鸡腿堡"
                     />
                     <button
                       className="send-wide"
