@@ -29,6 +29,7 @@
         --option-color: var(--text-secondary);
         --nav-safe-height: calc(56px + env(safe-area-inset-top, 0px));
         --top-bar-bg: #eef6ee;
+        --nav-scroll-progress: 0;
       }
 
       * { box-sizing: border-box; }
@@ -266,9 +267,9 @@
         top: calc(-1 * env(safe-area-inset-top, 0px));
         bottom: 0;
         pointer-events: none;
-        background: rgba(238, 246, 238, 0.08);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        background: rgba(255, 255, 255, calc(0.04 + var(--nav-scroll-progress) * 0.92));
+        backdrop-filter: blur(calc(4px + var(--nav-scroll-progress) * 12px));
+        -webkit-backdrop-filter: blur(calc(4px + var(--nav-scroll-progress) * 12px));
         z-index: -1;
       }
 
@@ -2073,6 +2074,27 @@
         const parsedEditSessionRef = useRef({ key: "", before: null });
         const parseAbortRef = useRef(null);
         const parseTaskRef = useRef(parseTask);
+
+        useEffect(() => {
+          const root = document.documentElement;
+          const themeMeta = document.querySelector('meta[name="theme-color"]');
+          const maxScroll = 64;
+          const updateTopBarProgress = () => {
+            const scrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+            const progress = Math.max(0, Math.min(1, scrollTop / maxScroll));
+            root.style.setProperty("--nav-scroll-progress", progress.toFixed(3));
+            if (themeMeta) {
+              const channel = Math.round(238 + (255 - 238) * progress);
+              const nextColor = `rgb(${channel}, ${channel}, ${channel})`;
+              if (themeMeta.getAttribute("content") !== nextColor) {
+                themeMeta.setAttribute("content", nextColor);
+              }
+            }
+          };
+          updateTopBarProgress();
+          window.addEventListener("scroll", updateTopBarProgress, { passive: true });
+          return () => window.removeEventListener("scroll", updateTopBarProgress);
+        }, []);
 
         const selectedDateTotalKcal = useMemo(() => {
           return records
