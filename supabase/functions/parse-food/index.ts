@@ -154,8 +154,7 @@ Deno.serve(async (req) => {
 
   const reqBody = JSON.stringify({
     model,
-    temperature: 0.2,
-    response_format: { type: "json_object" },
+    thinking: { type: "enabled" },
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userContent },
@@ -201,9 +200,15 @@ Deno.serve(async (req) => {
     return jsonResponse({ ok: false, error: "Invalid Doubao response JSON", details: rawText.slice(0, 800) }, 502);
   }
 
-  const content = String(
-    (payload?.choices as Array<{ message?: { content?: string } }> | undefined)?.[0]?.message?.content || "",
-  );
+  type ContentBlock = { type: string; text?: string };
+  type Choice = { message?: { content?: string | ContentBlock[] } };
+  const rawContent = (payload?.choices as Choice[] | undefined)?.[0]?.message?.content;
+  let content = "";
+  if (Array.isArray(rawContent)) {
+    content = rawContent.filter((b) => b.type === "text" && b.text).map((b) => b.text!).join("\n");
+  } else {
+    content = String(rawContent || "");
+  }
   const parsed = extractJsonObject(content);
   if (!parsed) {
     return jsonResponse(
