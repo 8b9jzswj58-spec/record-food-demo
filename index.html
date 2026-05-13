@@ -144,7 +144,6 @@
         font-weight: 500;
         line-height: 1;
       }
-
       .hero-meta {
         font-size: 12px;
         color: var(--text-secondary);
@@ -155,6 +154,7 @@
         border-radius: 999px;
         background: rgba(36, 179, 126, 0.1);
       }
+
       .hero-goal-row {
         margin-top: 10px;
         display: flex;
@@ -264,15 +264,141 @@
         flex: 1;
         min-width: 0;
       }
-
-      .hero-date-native {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        opacity: 0;
+      .calendar-sheet-body {
+        padding: 4px 12px 10px;
+        display: grid;
+        gap: 6px;
+      }
+      .calendar-month-head {
+        display: grid;
+        grid-template-columns: 36px auto 36px;
+        align-items: center;
+        justify-content: start;
+        gap: 0;
+      }
+      .calendar-month-head-title {
+        width: calc(100% - 32px);
+        max-width: calc(100vw - 128px);
+        margin-left: -6px;
+      }
+      .calendar-month-label {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-main);
+        text-align: center;
+        white-space: nowrap;
+        line-height: 1;
+      }
+      .calendar-month-switch {
+        width: 36px;
+        height: 36px;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: var(--text-main);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+      }
+      .calendar-month-switch .mi {
+        font-size: 22px;
+      }
+      .calendar-bubble-grid {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        grid-template-rows: repeat(6, 44px);
+        gap: 0;
+        height: 264px;
+        align-items: center;
+        justify-items: center;
+        overflow: visible;
+      }
+      .calendar-bubble-grid.slide-next {
+        animation: calendar-slide-next 0.24s cubic-bezier(0.22, 0.9, 0.34, 1);
+      }
+      .calendar-bubble-grid.slide-prev {
+        animation: calendar-slide-prev 0.24s cubic-bezier(0.22, 0.9, 0.34, 1);
+      }
+      @keyframes calendar-slide-next {
+        from {
+          opacity: 0.72;
+          transform: translateX(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      @keyframes calendar-slide-prev {
+        from {
+          opacity: 0.72;
+          transform: translateX(-16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      .calendar-day {
         border: 0;
         background: transparent;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        overflow: visible;
+        position: relative;
+      }
+      .calendar-bubble {
+        width: var(--bubble-size, 28px);
+        height: var(--bubble-size, 28px);
+        aspect-ratio: 1 / 1;
+        border-radius: 50%;
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: "tnum" 1;
+        color: #166c4b;
+        background: rgba(36, 179, 126, 0.22);
+        position: relative;
+        z-index: 1;
+      }
+      .calendar-bubble.danger {
+        color: #9f2f42;
+        background: rgba(240, 68, 68, 0.18);
+      }
+      .calendar-day-plain {
+        font-size: 12px;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: "tnum" 1;
+        color: rgba(24, 35, 31, 0.66);
+        font-weight: 600;
+        position: relative;
+        z-index: 1;
+      }
+      .calendar-day.current::before {
+        content: "";
+        position: absolute;
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        border: 1px solid rgba(24, 35, 31, 0.24);
+        pointer-events: none;
+      }
+      .calendar-day.current .calendar-day-plain {
+        color: var(--text-main);
+        font-weight: 700;
+      }
+      .calendar-day-empty {
+        pointer-events: none;
       }
 
       .nav {
@@ -501,13 +627,16 @@
       }
 
       .food {
-        flex: 1;
-        min-width: 0;
         color: var(--text-secondary);
         font-size: 14px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+      }
+
+      .food-wrap {
+        flex: 1;
+        min-width: 0;
       }
 
       .kcal {
@@ -720,6 +849,23 @@
       .library-entry-title-main {
         font-size: 15px;
         font-weight: 700;
+      }
+      .library-entry-title-main-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .selection-count-badge {
+        min-width: 18px;
+        height: 18px;
+        padding: 0 6px;
+        border-radius: 999px;
+        background: rgba(36, 179, 126, 0.15);
+        color: #0f4f37;
+        font-size: 11px;
+        line-height: 18px;
+        font-weight: 700;
+        text-align: center;
       }
 
       .library-entry-quick-row::-webkit-scrollbar { display: none; }
@@ -1486,11 +1632,13 @@
       const MEALS = ["早餐", "午餐", "晚餐"];
       const RECORDS_CACHE_KEY_PREFIX = "diet-records-cache-v1";
       const GOAL_KCAL_CACHE_KEY = "diet-goal-kcal-v1";
-      const SHEET_DRAFT_KEY_PREFIX = "diet-sheet-draft-v1";
       const ICON_COMPONENTS = {
         wb_twilight: "ri-sun-foggy-line",
+        wb_twilight_fill: "ri-sun-foggy-fill",
         light_mode: "ri-sun-line",
+        light_mode_fill: "ri-sun-fill",
         nightlight: "ri-moon-clear-line",
+        nightlight_fill: "ri-moon-clear-fill",
         delete: "ri-delete-bin-line",
         close: "ri-close-line",
         settings: "ri-settings-3-line",
@@ -1514,10 +1662,11 @@
         return <i {...rest} className={`${className} ${remixClass}`.trim()} style={style} aria-hidden="true" />;
       }
 
-      function getMealVisual(meal) {
-        if (meal === "早餐") return { cls: "breakfast", icon: "wb_twilight" };
-        if (meal === "午餐") return { cls: "lunch", icon: "light_mode" };
-        return { cls: "dinner", icon: "nightlight" };
+      function getMealVisual(meal, variant = "line") {
+        const fill = variant === "fill";
+        if (meal === "早餐") return { cls: "breakfast", icon: fill ? "wb_twilight_fill" : "wb_twilight" };
+        if (meal === "午餐") return { cls: "lunch", icon: fill ? "light_mode_fill" : "light_mode" };
+        return { cls: "dinner", icon: fill ? "nightlight_fill" : "nightlight" };
       }
 
       function getDefaultMealByTime() {
@@ -1553,13 +1702,33 @@
         d.setDate(d.getDate() + offsetDays);
         return getDateKey(d);
       }
+      function getMonthKeyFromDateKey(dateKey) {
+        return String(dateKey || getDateKey(Date.now())).slice(0, 7);
+      }
+      function shiftMonthKey(monthKey, offsetMonths) {
+        const d = new Date((monthKey || getMonthKeyFromDateKey(getDateKey(Date.now()))) + "-01T00:00:00");
+        d.setMonth(d.getMonth() + offsetMonths);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      }
+      function getMonthLabel(monthKey) {
+        const d = new Date((monthKey || getMonthKeyFromDateKey(getDateKey(Date.now()))) + "-01T00:00:00");
+        return `${d.getFullYear()} 年 ${d.getMonth() + 1} 月`;
+      }
+      function buildMonthDateKeys(monthKey) {
+        const [yearText, monthText] = String(monthKey || "").split("-");
+        const year = Number.parseInt(yearText || "0", 10);
+        const month = Number.parseInt(monthText || "0", 10);
+        if (!year || !month) return [];
+        const maxDay = new Date(year, month, 0).getDate();
+        const dateKeys = [];
+        for (let day = 1; day <= maxDay; day += 1) {
+          dateKeys.push(`${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`);
+        }
+        return dateKeys;
+      }
 
       function getRecordsCacheKey(userId) {
         return `${RECORDS_CACHE_KEY_PREFIX}:${userId || "guest"}`;
-      }
-
-      function getSheetDraftKey(userId) {
-        return `${SHEET_DRAFT_KEY_PREFIX}:${userId || "guest"}`;
       }
 
       function readCachedRecords(userId) {
@@ -1596,33 +1765,6 @@
           localStorage.setItem(GOAL_KCAL_CACHE_KEY, String(Math.max(1, Number.parseInt(String(value || "0"), 10) || 1600)));
         } catch (_error) {
           // ignore cache write errors
-        }
-      }
-
-      function readSheetDraft(userId) {
-        try {
-          const raw = localStorage.getItem(getSheetDraftKey(userId));
-          if (!raw) return null;
-          const parsed = JSON.parse(raw);
-          return parsed && typeof parsed === "object" ? parsed : null;
-        } catch (_error) {
-          return null;
-        }
-      }
-
-      function writeSheetDraft(userId, payload) {
-        try {
-          localStorage.setItem(getSheetDraftKey(userId), JSON.stringify(payload || {}));
-        } catch (_error) {
-          // ignore draft write errors
-        }
-      }
-
-      function clearSheetDraft(userId) {
-        try {
-          localStorage.removeItem(getSheetDraftKey(userId));
-        } catch (_error) {
-          // ignore draft remove errors
         }
       }
 
@@ -1785,21 +1927,6 @@
 
       function cloneParsedItems(srcItems) {
         return (Array.isArray(srcItems) ? srcItems : []).map((item) => ({ ...item }));
-      }
-
-      async function fileToDataUrl(file) {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(String(reader.result || ""));
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-      }
-
-      async function dataUrlToFile(dataUrl, name, mimeType) {
-        const res = await fetch(dataUrl);
-        const blob = await res.blob();
-        return new File([blob], name || "draft-image.jpg", { type: mimeType || blob.type || "image/jpeg" });
       }
 
       function MealTabs({ value, onChange, className = "" }) {
@@ -2091,6 +2218,9 @@
         const [parseTask, setParseTask] = useState(createIdleParseTask());
         const [goalKcal, setGoalKcal] = useState(readGoalKcal());
         const [goalSheetOpen, setGoalSheetOpen] = useState(false);
+        const [calendarSheetOpen, setCalendarSheetOpen] = useState(false);
+        const [calendarMonthKey, setCalendarMonthKey] = useState(getMonthKeyFromDateKey(getDateKey(Date.now())));
+        const [calendarSlideDirection, setCalendarSlideDirection] = useState("");
         const [goalDraft, setGoalDraft] = useState(String(readGoalKcal()));
         const [servingEditIndex, setServingEditIndex] = useState(-1);
         const [servingDraft, setServingDraft] = useState("");
@@ -2107,12 +2237,9 @@
         const [imagePreviewIndex, setImagePreviewIndex] = useState(0);
         const [editingMeal, setEditingMeal] = useState("早餐");
         const entryEditSessionRef = useRef({ key: "", before: null });
-        const draftHydratedRef = useRef(false);
-        const draftSaveTimerRef = useRef(0);
 
         const cameraInputRef = useRef(null);
         const galleryInputRef = useRef(null);
-        const dateInputRef = useRef(null);
         const touchStartXRef = useRef(null);
         const rowTouchRef = useRef({ key: "", x: 0, y: 0 });
         const pendingDeletionRef = useRef(null);
@@ -2121,6 +2248,7 @@
         const parsedEditSessionRef = useRef({ key: "", before: null });
         const parseAbortRef = useRef(null);
         const parseTaskRef = useRef(parseTask);
+        const calendarTouchRef = useRef({ x: 0, y: 0 });
 
         useEffect(() => {
           const root = document.documentElement;
@@ -2143,17 +2271,18 @@
           return () => window.removeEventListener("scroll", updateTopBarProgress);
         }, []);
 
-        const selectedDateTotalKcal = useMemo(() => {
-          return records
-            .filter((record) => getDateKey(record?.created_at) === currentDateKey)
-            .reduce((sum, record) => {
+        const totalKcalByDate = useMemo(() => {
+          const map = new Map();
+          records.forEach((record) => {
+            const dateKey = getDateKey(record?.created_at);
             const recordTotal = Array.isArray(record?.items)
               ? record.items.reduce((sub, item) => sub + (Number(item?.kcal) || 0), 0)
               : 0;
-            return sum + recordTotal;
-          }, 0);
-        }, [records, currentDateKey]);
-
+            map.set(dateKey, (map.get(dateKey) || 0) + recordTotal);
+          });
+          return map;
+        }, [records]);
+        const selectedDateTotalKcal = Number(totalKcalByDate.get(currentDateKey) || 0);
         const selectedDateRecordCount = useMemo(() => {
           return records
             .filter((record) => getDateKey(record?.created_at) === currentDateKey)
@@ -2186,6 +2315,38 @@
           });
           return grouped;
         }, [records, currentDateKey]);
+        const calendarDays = useMemo(() => {
+          const target = Math.max(1, Number(goalKcal) || 1600);
+          const standardSize = 54;
+          const days = buildMonthDateKeys(calendarMonthKey).map((dateKey) => {
+            const kcal = Math.max(0, Math.round(Number(totalKcalByDate.get(dateKey) || 0)));
+            const ratio = kcal / target;
+            const bubbleSize = kcal <= 0
+              ? 0
+              : Math.max(22, Math.min(74, Math.round(standardSize * Math.max(0.34, ratio))));
+            return {
+              dateKey,
+              day: Number.parseInt(dateKey.slice(-2), 10) || 0,
+              kcal,
+              ratio,
+              bubbleSize,
+              isDanger: ratio >= 1.2,
+              isCurrent: dateKey === currentDateKey
+            };
+          });
+          if (days.length >= 42) return days.slice(0, 42);
+          const placeholders = Array.from({ length: 42 - days.length }).map((_, index) => ({
+            dateKey: `placeholder-${calendarMonthKey}-${index}`,
+            day: 0,
+            kcal: 0,
+            ratio: 0,
+            bubbleSize: 0,
+            isDanger: false,
+            isCurrent: false,
+            isPlaceholder: true
+          }));
+          return [...days, ...placeholders];
+        }, [calendarMonthKey, goalKcal, totalKcalByDate, currentDateKey]);
 
         const foodLibrary = useMemo(() => {
           const singleMap = new Map();
@@ -2257,6 +2418,39 @@
         function startGoalEdit() {
           setGoalDraft(String(goalKcal));
           setGoalSheetOpen(true);
+        }
+        function openCalendarSheet() {
+          setCalendarMonthKey(getMonthKeyFromDateKey(currentDateKey));
+          setCalendarSlideDirection("");
+          setCalendarSheetOpen(true);
+        }
+        function closeCalendarSheet() {
+          setCalendarSheetOpen(false);
+          setCalendarSlideDirection("");
+        }
+        function shiftCalendarMonth(offset) {
+          setCalendarSlideDirection(offset > 0 ? "next" : "prev");
+          setCalendarMonthKey((prev) => shiftMonthKey(prev, offset));
+        }
+        function onCalendarTouchStart(event) {
+          const touch = event.touches && event.touches[0];
+          if (!touch) return;
+          calendarTouchRef.current = { x: touch.clientX, y: touch.clientY };
+        }
+        function onCalendarTouchEnd(event) {
+          const touch = event.changedTouches && event.changedTouches[0];
+          if (!touch) return;
+          const start = calendarTouchRef.current;
+          const dx = touch.clientX - start.x;
+          const dy = touch.clientY - start.y;
+          const absX = Math.abs(dx);
+          const absY = Math.abs(dy);
+          if (absX < 36 || absX < absY * 1.15) return;
+          shiftCalendarMonth(dx < 0 ? 1 : -1);
+        }
+        function pickCalendarDate(dateKey) {
+          setCurrentDateKey(dateKey);
+          setCalendarSheetOpen(false);
         }
         function saveGoalEdit() {
           const nextGoal = Math.max(1, Number.parseInt(String(goalDraft || "0"), 10) || 1600);
@@ -2332,7 +2526,7 @@
         }, [parseTask]);
 
         useEffect(() => {
-          const shouldLock = sheetOpen || librarySheetOpen || entryEditOpen || goalSheetOpen || imagePreviewOpen || authVisible;
+          const shouldLock = sheetOpen || librarySheetOpen || entryEditOpen || goalSheetOpen || calendarSheetOpen || imagePreviewOpen || authVisible;
           if (!shouldLock) return;
           const prevOverflow = document.body.style.overflow;
           const prevTouchAction = document.body.style.touchAction;
@@ -2342,7 +2536,7 @@
             document.body.style.overflow = prevOverflow;
             document.body.style.touchAction = prevTouchAction;
           };
-        }, [sheetOpen, librarySheetOpen, entryEditOpen, goalSheetOpen, imagePreviewOpen, authVisible]);
+        }, [sheetOpen, librarySheetOpen, entryEditOpen, goalSheetOpen, calendarSheetOpen, imagePreviewOpen, authVisible]);
 
         function getRestHeaders(sessionArg = currentSession) {
           const token = sessionArg?.access_token;
@@ -2811,51 +3005,6 @@
           setParseTask(createIdleParseTask());
           setImagePreviewOpen(false);
           setImagePreviewIndex(0);
-          clearSheetDraft(currentUser?.id || "guest");
-        }
-
-        async function restoreSheetDraftForUser(userId) {
-          const draft = readSheetDraft(userId);
-          if (!draft) {
-            draftHydratedRef.current = true;
-            return;
-          }
-          try {
-            const nextAttachmentsRaw = Array.isArray(draft.attachments) ? draft.attachments.slice(0, MAX_ATTACHMENTS) : [];
-            const nextAttachments = await Promise.all(
-              nextAttachmentsRaw.map(async (item, idx) => {
-                const dataUrl = String(item?.dataUrl || "");
-                const file = await dataUrlToFile(
-                  dataUrl,
-                  String(item?.name || `draft-${idx + 1}.jpg`),
-                  String(item?.mimeType || "image/jpeg")
-                );
-                return {
-                  file,
-                  url: dataUrl,
-                  originalSize: Number(item?.originalSize) || file.size,
-                  compressedSize: Number(item?.compressedSize) || file.size
-                };
-              })
-            );
-            cleanupAttachments(attachments);
-            setAttachments(nextAttachments);
-            setInputText(String(draft.inputText || ""));
-            const draftMeal = String(draft.selectedMeal || "");
-            if (MEALS.includes(draftMeal)) setSelectedMeal(draftMeal);
-            const draftQuickFoods = Array.isArray(draft.selectedQuickFoods) ? draft.selectedQuickFoods : [];
-            setSelectedQuickFoods(
-              draftQuickFoods
-                .map((food) => ({ key: getFoodSelectionKey(food), food }))
-                .filter((row) => row.key)
-            );
-            setLibraryLoadedCount((prev) => Math.max(20, prev, draftQuickFoods.length));
-          } catch (error) {
-            console.error("restore-sheet-draft-failed", error);
-            clearSheetDraft(userId);
-          } finally {
-            draftHydratedRef.current = true;
-          }
         }
 
         function openImagePreview(index) {
@@ -2981,8 +3130,6 @@
           setCurrentSession(nextSession);
           setCurrentUser(nextUser);
           setAuthVisible(TEST_MODE_AUTH_BYPASS ? false : !nextUser);
-          draftHydratedRef.current = false;
-          await restoreSheetDraftForUser(nextUser?.id || "guest");
           if (nextUser) await initBackendState(nextUser, nextSession);
         }
 
@@ -2997,8 +3144,6 @@
             setCurrentSession(nextSession);
             setCurrentUser(nextUser);
             setAuthVisible(TEST_MODE_AUTH_BYPASS ? false : !nextUser);
-            draftHydratedRef.current = false;
-            await restoreSheetDraftForUser(nextUser?.id || "guest");
             if (nextUser) {
               await initBackendState(nextUser, nextSession);
             } else {
@@ -3030,51 +3175,10 @@
         }, [imagePreviewOpen, attachments.length, imagePreviewIndex]);
 
         useEffect(() => {
-          if (!draftHydratedRef.current) return;
-          const userId = currentUser?.id || "guest";
-          if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
-          draftSaveTimerRef.current = setTimeout(async () => {
-            const hasDraftContent =
-              inputText.trim().length > 0 ||
-              attachments.length > 0 ||
-              selectedQuickFoods.length > 0 ||
-              (MEALS.includes(selectedMeal) && selectedMeal !== getDefaultMealByTime());
-            if (!hasDraftContent) {
-              clearSheetDraft(userId);
-              return;
-            }
-            if (panelMode !== "input" || parseTask.status === "parsing") return;
-            try {
-              const attachmentDrafts = await Promise.all(
-                attachments.map(async (item, idx) => {
-                  const dataUrl = String(item?.url || "").startsWith("data:")
-                    ? String(item.url)
-                    : await fileToDataUrl(item.file);
-                  return {
-                    dataUrl,
-                    name: item?.file?.name || `draft-${idx + 1}.jpg`,
-                    mimeType: item?.file?.type || "image/jpeg",
-                    originalSize: item?.originalSize || item?.file?.size || 0,
-                    compressedSize: item?.compressedSize || item?.file?.size || 0
-                  };
-                })
-              );
-              writeSheetDraft(userId, {
-                selectedMeal,
-                inputText,
-                selectedQuickFoods: selectedQuickFoods.map(({ food }) => food),
-                attachments: attachmentDrafts,
-                updatedAt: Date.now()
-              });
-            } catch (error) {
-              console.error("write-sheet-draft-failed", error);
-            }
-          }, 280);
-
-          return () => {
-            if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
-          };
-        }, [currentUser?.id, selectedMeal, inputText, selectedQuickFoods, attachments, panelMode, parseTask.status]);
+          if (!calendarSlideDirection) return;
+          const timer = window.setTimeout(() => setCalendarSlideDirection(""), 260);
+          return () => window.clearTimeout(timer);
+        }, [calendarSlideDirection]);
 
         useEffect(() => {
           if (records.length === 0) {
@@ -3344,18 +3448,9 @@
                     <MiIcon className="mi" style={{ fontSize: 18 }}>chevron_left</MiIcon>
                   </button>
                   <div className="hero-date-wrap">
-                    <button className="hero-date-btn" type="button">
+                    <button className="hero-date-btn" type="button" onClick={openCalendarSheet}>
                       {getDateLabel(currentDateKey)}
                     </button>
-                    <input
-                      ref={dateInputRef}
-                      className="hero-date-native"
-                      type="date"
-                      value={currentDateKey}
-                      max={getDateKey(Date.now())}
-                      onChange={(e) => setCurrentDateKey(e.target.value || getDateKey(Date.now()))}
-                      aria-label="选择日期"
-                    />
                   </div>
                   <button className="hero-nav-btn" type="button" onClick={goNextDate} aria-label="下一天">
                     <MiIcon className="mi" style={{ fontSize: 18 }}>chevron_right</MiIcon>
@@ -3368,7 +3463,7 @@
                   {MEALS.map((meal) => {
                     const items = currentDayMeals[meal] || [];
                     if (items.length === 0) return null;
-                    const visual = getMealVisual(meal);
+                    const visual = getMealVisual(meal, "fill");
                     const total = items.reduce((sum, entry) => sum + (Number(entry?.item?.kcal) || 0), 0);
                     return (
                       <article className="meal" key={currentDateKey + "-" + meal}>
@@ -3404,7 +3499,9 @@
                                 <button className="item-delete-btn" type="button" onClick={() => handleDeleteSavedItem(entry)}>删除</button>
                               </div>
                               <div className="item" onClick={() => onItemRowClick(entry, rowKey)}>
-                                <span className="food">{((item.emoji && String(item.emoji).trim()) || "🍽️") + " " + (item.name || "未命名食物") + " " + normalizePortionText(item.portion || "1份")}</span>
+                                <div className="food-wrap">
+                                  <span className="food">{((item.emoji && String(item.emoji).trim()) || "🍽️") + " " + (item.name || "未命名食物") + " " + normalizePortionText(item.portion || "1份")}</span>
+                                </div>
                                 <span className="kcal">{Number(item.kcal) || 0} 千卡 <MiIcon className="mi" style={{ fontSize: 14 }}>chevron_right</MiIcon></span>
                               </div>
                             </div>
@@ -3492,7 +3589,10 @@
                   <div className="library-entry">
                     <button className="library-entry-title" type="button" onClick={openLibrarySheet}>
                       <span>
-                        <div className="library-entry-title-main">历史食物</div>
+                        <div className="library-entry-title-main-wrap">
+                          <div className="library-entry-title-main">历史食物</div>
+                          <span className="selection-count-badge">{selectedQuickFoods.length}</span>
+                        </div>
                       </span>
                       <MiIcon className="mi" style={{ fontSize: 18, color: "var(--text-muted)" }}>chevron_right</MiIcon>
                     </button>
@@ -3652,7 +3752,12 @@
             <BottomSheet
               open={librarySheetOpen}
               onClose={closeLibrarySheet}
-              title="历史食物"
+              title={(
+                <span className="library-entry-title-main-wrap">
+                  <span>历史食物</span>
+                  <span className="selection-count-badge">{selectedLibraryFoods.length}</span>
+                </span>
+              )}
               overlayClassName="library-sheet-overlay"
               wrapClassName="library-sheet-wrap"
               cardClassName="library-sheet-card"
@@ -3706,6 +3811,51 @@
                 <div className="goal-sheet-actions">
                   <button className="result-btn retry" type="button" onClick={() => setGoalSheetOpen(false)}>取消</button>
                   <button className="hero-goal-save" style={{ flex: 1 }} type="button" onClick={saveGoalEdit}>保存目标</button>
+                </div>
+              </div>
+            </BottomSheet>
+
+            <BottomSheet
+              open={calendarSheetOpen}
+              onClose={closeCalendarSheet}
+              title={(
+                <div className="calendar-month-head calendar-month-head-title">
+                  <button className="calendar-month-switch" type="button" onClick={() => shiftCalendarMonth(-1)} aria-label="上个月">
+                    <MiIcon className="mi">chevron_left</MiIcon>
+                  </button>
+                  <div className="calendar-month-label">{getMonthLabel(calendarMonthKey)}</div>
+                  <button className="calendar-month-switch" type="button" onClick={() => shiftCalendarMonth(1)} aria-label="下个月">
+                    <MiIcon className="mi">chevron_right</MiIcon>
+                  </button>
+                </div>
+              )}
+            >
+              <div className="calendar-sheet-body" onTouchStart={onCalendarTouchStart} onTouchEnd={onCalendarTouchEnd}>
+                <div className={"calendar-bubble-grid" + (calendarSlideDirection ? ` slide-${calendarSlideDirection}` : "")}>
+                  {calendarDays.map((item) => (
+                    <button
+                      key={item.dateKey}
+                      className={
+                        "calendar-day" +
+                        (item.isCurrent ? " current" : "") +
+                        (item.isPlaceholder ? " calendar-day-empty" : "")
+                      }
+                      type="button"
+                      onClick={() => pickCalendarDate(item.dateKey)}
+                      disabled={Boolean(item.isPlaceholder)}
+                    >
+                      {item.kcal > 0 ? (
+                        <span
+                          className={"calendar-bubble" + (item.isDanger ? " danger" : "")}
+                          style={{ "--bubble-size": `${item.bubbleSize}px` }}
+                        >
+                          {item.day}
+                        </span>
+                      ) : item.isPlaceholder ? null : (
+                        <span className="calendar-day-plain">{item.day}</span>
+                      )}
+                    </button>
+                  ))}
                 </div>
               </div>
             </BottomSheet>
