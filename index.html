@@ -85,6 +85,7 @@
         padding-bottom: 138px;
         scrollbar-width: none;
         -ms-overflow-style: none;
+        overflow-x: hidden;
       }
       .page::-webkit-scrollbar { display: none; width: 0; height: 0; }
 
@@ -2221,6 +2222,8 @@
         const galleryInputRef = useRef(null);
         const dateInputRef = useRef(null);
         const touchStartXRef = useRef(null);
+        const contentRef = useRef(null);
+        const swipeDragRef = useRef({ active: false, startX: 0, startY: 0, locked: false });
         const rowTouchRef = useRef({ key: "", x: 0, y: 0 });
         const pendingDeletionRef = useRef(null);
         const rowPointerRef = useRef({ key: "", x: 0, y: 0, moved: false });
@@ -3191,22 +3194,72 @@
         function onSwipeStart(event) {
           if (event.target?.closest && event.target.closest(".item-swipe")) return;
           if (swipedItemKey) setSwipedItemKey("");
-          const x = event.touches?.[0]?.clientX;
-          if (typeof x === "number") touchStartXRef.current = x;
+          const touch = event.touches?.[0];
+          if (!touch) return;
+          touchStartXRef.current = touch.clientX;
+          swipeDragRef.current = { active: true, startX: touch.clientX, startY: touch.clientY, locked: false };
+          if (contentRef.current) {
+            contentRef.current.style.transition = "none";
+          }
+        }
+
+        function onSwipeMove(event) {
+          const drag = swipeDragRef.current;
+          if (!drag.active) return;
+          if (event.target?.closest && event.target.closest(".item-swipe")) return;
+          const touch = event.touches?.[0];
+          if (!touch) return;
+          const dx = touch.clientX - drag.startX;
+          const dy = touch.clientY - drag.startY;
+          if (!drag.locked) {
+            if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+            if (Math.abs(dy) > Math.abs(dx)) {
+              swipeDragRef.current = { ...drag, active: false };
+              return;
+            }
+            swipeDragRef.current = { ...drag, locked: true };
+          }
+          if (contentRef.current) {
+            contentRef.current.style.transform = `translateX(${dx}px)`;
+          }
         }
 
         function onSwipeEnd(event) {
-          if (event.target?.closest && event.target.closest(".item-swipe")) return;
-          const startX = touchStartXRef.current;
-          const endX = event.changedTouches?.[0]?.clientX;
+          const drag = swipeDragRef.current;
+          swipeDragRef.current = { active: false, startX: 0, startY: 0, locked: false };
           touchStartXRef.current = null;
-          if (typeof startX !== "number" || typeof endX !== "number") return;
-          const delta = endX - startX;
-          if (Math.abs(delta) < 42) return;
-          if (delta < 0) {
-            goPrevDate();
+          if (!drag.active || !drag.locked) {
+            if (contentRef.current) {
+              contentRef.current.style.transition = "";
+              contentRef.current.style.transform = "";
+            }
+            return;
+          }
+          if (event.target?.closest && event.target.closest(".item-swipe")) return;
+          const endX = event.changedTouches?.[0]?.clientX;
+          if (typeof endX !== "number") return;
+          const delta = endX - drag.startX;
+          const el = contentRef.current;
+          if (!el) return;
+          if (Math.abs(delta) >= 56) {
+            const vw = window.innerWidth;
+            el.style.transition = "transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+            el.style.transform = `translateX(${delta > 0 ? vw : -vw}px)`;
+            setTimeout(() => {
+              if (!contentRef.current) return;
+              contentRef.current.style.transition = "none";
+              contentRef.current.style.transform = "translateX(0)";
+              if (delta < 0) goPrevDate(); else goNextDate();
+            }, 200);
           } else {
-            goNextDate();
+            el.style.transition = "transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1)";
+            el.style.transform = "translateX(0)";
+            setTimeout(() => {
+              if (contentRef.current) {
+                contentRef.current.style.transition = "";
+                contentRef.current.style.transform = "";
+              }
+            }, 280);
           }
         }
 
@@ -3448,7 +3501,7 @@
                 </div>
               </section>
 
-              <section className="content" onTouchStart={onSwipeStart} onTouchEnd={onSwipeEnd}>
+              <section className="content" ref={contentRef} onTouchStart={onSwipeStart} onTouchMove={onSwipeMove} onTouchEnd={onSwipeEnd}>
                 <div className="day-group">
                   {MEALS.map((meal) => {
                     const items = currentDayMeals[meal] || [];
