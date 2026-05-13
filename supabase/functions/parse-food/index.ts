@@ -126,25 +126,37 @@ Deno.serve(async (req) => {
   const model = Deno.env.get("GEMINI_MODEL") || "gemini-2.0-flash";
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-  let upstream;
-  try {
-    upstream = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemPrompt }] },
-        contents: [{ role: "user", parts }],
-        generation_config: {
-          temperature: 0.2,
-          response_mime_type: "application/json",
-        },
-      }),
-    });
-  } catch (error) {
-    return jsonResponse({ ok: false, error: `Gemini request failed: ${String(error)}` }, 502);
+  const reqBody = JSON.stringify({
+    system_instruction: { parts: [{ text: systemPrompt }] },
+    contents: [{ role: "user", parts }],
+    generation_config: {
+      temperature: 0.2,
+      response_mime_type: "application/json",
+    },
+  });
+
+  let upstream!: Response;
+  let rawText = "";
+  for (let attempt = 0; attempt < 4; attempt++) {
+    if (attempt > 0) {
+      await new Promise((r) => setTimeout(r, 800 * 2 ** (attempt - 1)));
+    }
+    try {
+      upstream = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: reqBody,
+      });
+    } catch (error) {
+      if (attempt === 3) {
+        return jsonResponse({ ok: false, error: `Gemini request failed: ${String(error)}` }, 502);
+      }
+      continue;
+    }
+    rawText = await upstream.text();
+    if (upstream.status !== 429) break;
   }
 
-  const rawText = await upstream.text();
   if (!upstream.ok) {
     return jsonResponse(
       { ok: false, error: `Gemini API error (${upstream.status})`, details: rawText.slice(0, 800) },
