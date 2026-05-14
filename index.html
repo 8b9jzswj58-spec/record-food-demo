@@ -915,6 +915,9 @@
       .library-sheet-overlay.show .library-sheet-wrap {
         transform: translateY(0);
       }
+      .emoji-sheet-overlay {
+        z-index: 48;
+      }
 
       .library-sheet-card {
         background: #fff;
@@ -1104,10 +1107,17 @@
       .attach-item:active { transform: scale(0.98); }
 
       .attach-item.has-image {
-        border: 1px solid rgba(0, 0, 0, 0.09);
+        border: 0;
       }
       .attach-item.has-image::after {
-        content: none;
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        border: 1px solid rgba(255, 255, 255, 0.58);
+        box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+        pointer-events: none;
+        z-index: 1;
       }
 
       .attach-option { flex: 1 0 0; min-width: 0; padding: 0 16px; }
@@ -1125,6 +1135,7 @@
         object-fit: cover;
         border-radius: inherit;
         cursor: zoom-in;
+        z-index: 0;
       }
 
       .thumb-delete {
@@ -1327,12 +1338,14 @@
         width: 50px;
         height: 50px;
         border: 0;
+        padding: 0;
         border-radius: 8px;
         background: rgba(36, 179, 126, 0.1);
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 24px;
+        cursor: pointer;
         transition: transform 0.16s ease, background-color 0.2s ease;
       }
       .result-cover:active { transform: scale(0.96); }
@@ -1680,6 +1693,7 @@
     <script src="./assets/vendor/react-dom/react-dom.production.min.js"></script>
     <script src="./assets/vendor/babel/babel.min.js"></script>
     <script src="./assets/vendor/supabase/supabase.min.js"></script>
+    <script src="./local-dev-auth.js"></script>
 
     <script type="text/babel">
       const { useEffect, useMemo, useRef, useState } = React;
@@ -1691,11 +1705,21 @@
         apikey: SUPABASE_ANON_KEY,
         "Content-Type": "application/json"
       };
-      const DEV_AUTH_EMAIL = "localdev@example.com";
-      const DEV_AUTH_PASSWORD = "change-me-in-local-only";
-      const DEV_AUTH_BYPASS_ENABLED =
-        (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") &&
-        new URLSearchParams(window.location.search).get("devAuthBypass") === "1";
+      const IS_LOCAL_FILE_DEBUG = window.location.protocol === "file:";
+      const IS_LOCALHOST_DEBUG = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+      const DEV_AUTH_BYPASS_ENABLED = IS_LOCALHOST_DEBUG && new URLSearchParams(window.location.search).get("devAuthBypass") === "1";
+      const FILE_AUTO_LOGIN_ENABLED = IS_LOCAL_FILE_DEBUG;
+      const LOCAL_FILE_AUTH_FROM_SCRIPT =
+        window.__LOCAL_FILE_AUTH__ && typeof window.__LOCAL_FILE_AUTH__ === "object"
+          ? window.__LOCAL_FILE_AUTH__
+          : null;
+      // Keep this object empty in tracked code. Put real credentials in local-dev-auth.js (ignored by git).
+      const FILE_AUTO_LOGIN_FALLBACK = {
+        email: String(LOCAL_FILE_AUTH_FROM_SCRIPT?.email || "").trim(),
+        password: String(LOCAL_FILE_AUTH_FROM_SCRIPT?.password || "")
+      };
+      const FILE_AUTO_LOGIN_EMAIL_KEY = "diet-local-file-auto-login-email";
+      const FILE_AUTO_LOGIN_PASSWORD_KEY = "diet-local-file-auto-login-password";
       const REMOTE_TIMEZONE_LOOKUP_ENABLED = false;
 
       const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -1845,6 +1869,26 @@
         }
       }
 
+      function readLocalFileAutoLoginCreds() {
+        try {
+          const email = String(localStorage.getItem(FILE_AUTO_LOGIN_EMAIL_KEY) || "").trim();
+          const password = String(localStorage.getItem(FILE_AUTO_LOGIN_PASSWORD_KEY) || "");
+          if (!email || !password) return null;
+          return { email, password };
+        } catch (_error) {
+          return null;
+        }
+      }
+
+      function writeLocalFileAutoLoginCreds(email, password) {
+        try {
+          localStorage.setItem(FILE_AUTO_LOGIN_EMAIL_KEY, String(email || "").trim());
+          localStorage.setItem(FILE_AUTO_LOGIN_PASSWORD_KEY, String(password || ""));
+        } catch (_error) {
+          // ignore local debug credential cache errors
+        }
+      }
+
       function blobToBase64(blob) {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -1935,11 +1979,19 @@
         return data?.data || {};
       }
 
+      function extractSingleEmoji(rawText) {
+        const raw = String(rawText || "");
+        const emojiMatch = raw.match(
+          /(?:\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*|(?:\p{Regional_Indicator}{2})|[0-9#*]\uFE0F?\u20E3)/u
+        );
+        return emojiMatch?.[0] || "";
+      }
+
       function pickSingleEmoji(rawEmoji) {
         const raw = String(rawEmoji || "").trim();
         if (!raw) return "🍽️";
-        const emojiMatch = raw.match(/\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*/u);
-        return emojiMatch?.[0] || "🍽️";
+        const single = extractSingleEmoji(raw);
+        return single || "🍽️";
       }
 
       function normalizeAiItems(aiObject) {
@@ -2060,6 +2112,7 @@
         item,
         showDelete = false,
         onDelete = null,
+        onEmojiClick = null,
         nameValue,
         onNameFocus,
         onNameCompositionStart,
@@ -2080,7 +2133,9 @@
       }) {
         return (
           <div className="result-item" style={style}>
-            <div className="result-cover">{item.emoji}</div>
+            <button className="result-cover" type="button" onClick={onEmojiClick}>
+              {item.emoji}
+            </button>
             <div className="result-text">
               <div className="result-item-head">
                 <input
@@ -2208,6 +2263,45 @@
         );
       }
 
+      function SimpleEditSheet({
+        open,
+        onClose,
+        title,
+        value,
+        onChange,
+        placeholder,
+        note,
+        errorText = "",
+        onSave,
+        overlayClassName = "sheet-overlay",
+        inputType = "text",
+        inputMode = "text",
+        pattern = undefined
+      }) {
+        return (
+          <BottomSheet open={open} onClose={onClose} title={title} overlayClassName={overlayClassName}>
+            <div className="goal-sheet-body">
+              <input
+                className="hero-goal-input"
+                type={inputType}
+                inputMode={inputMode}
+                pattern={pattern}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder={placeholder}
+              />
+              <div className="goal-sheet-note" style={errorText ? { color: "#cb2f31" } : undefined}>
+                {errorText || note}
+              </div>
+              <div className="goal-sheet-actions">
+                <button className="result-btn retry" type="button" onClick={onClose}>取消</button>
+                <button className="hero-goal-save" style={{ flex: 1 }} type="button" onClick={onSave}>保存</button>
+              </div>
+            </div>
+          </BottomSheet>
+        );
+      }
+
       function buildSpinDigits(fromDigit, toDigit) {
         const start = Number(fromDigit);
         const end = Number(toDigit);
@@ -2324,6 +2418,10 @@
         const [parseTask, setParseTask] = useState(createIdleParseTask());
         const [goalKcal, setGoalKcal] = useState(readGoalKcal());
         const [goalSheetOpen, setGoalSheetOpen] = useState(false);
+        const [emojiSheetOpen, setEmojiSheetOpen] = useState(false);
+        const [emojiDraft, setEmojiDraft] = useState("");
+        const [emojiError, setEmojiError] = useState("");
+        const [emojiTarget, setEmojiTarget] = useState(null);
         const [calendarSheetOpen, setCalendarSheetOpen] = useState(false);
         const [calendarMonthKey, setCalendarMonthKey] = useState(getMonthKeyFromDateKey(getDateKey(Date.now())));
         const [calendarSlideDirection, setCalendarSlideDirection] = useState("");
@@ -2582,6 +2680,50 @@
           writeGoalKcal(nextGoal);
           setGoalSheetOpen(false);
         }
+        function openParsedEmojiEditor(index) {
+          const item = parsedResults[index];
+          if (!item) return;
+          setEmojiDraft(pickSingleEmoji(item.emoji));
+          setEmojiError("");
+          setEmojiTarget({ kind: "parsed", index });
+          setEmojiSheetOpen(true);
+        }
+        function openEntryEmojiEditor() {
+          if (!editingItem) return;
+          setEmojiDraft(pickSingleEmoji(editingItem.emoji));
+          setEmojiError("");
+          setEmojiTarget({ kind: "entry" });
+          setEmojiSheetOpen(true);
+        }
+        function closeEmojiSheet() {
+          setEmojiSheetOpen(false);
+          setEmojiDraft("");
+          setEmojiError("");
+          setEmojiTarget(null);
+        }
+        function onEmojiDraftChange(nextRaw) {
+          setEmojiDraft(String(nextRaw || ""));
+          if (emojiError) setEmojiError("");
+        }
+        function saveEmojiEdit() {
+          const nextEmoji = extractSingleEmoji(emojiDraft);
+          if (!nextEmoji) {
+            setEmojiError("请输入 1 个 emoji");
+            return;
+          }
+          if (!emojiTarget) {
+            closeEmojiSheet();
+            return;
+          }
+          if (emojiTarget.kind === "parsed" && Number.isInteger(emojiTarget.index)) {
+            commitParsedChange((prev) =>
+              prev.map((item, idx) => (idx === emojiTarget.index ? { ...item, emoji: nextEmoji } : item))
+            );
+          } else if (emojiTarget.kind === "entry") {
+            updateEditingItem({ emoji: nextEmoji });
+          }
+          closeEmojiSheet();
+        }
         function resetParsedHistory() {
           setParsedUndoStack([]);
           setParsedRedoStack([]);
@@ -2650,7 +2792,7 @@
         }, [parseTask]);
 
         useEffect(() => {
-          const shouldLock = sheetOpen || librarySheetOpen || entryEditOpen || goalSheetOpen || calendarSheetOpen || imagePreviewOpen || authVisible;
+          const shouldLock = sheetOpen || librarySheetOpen || entryEditOpen || goalSheetOpen || emojiSheetOpen || calendarSheetOpen || imagePreviewOpen || authVisible;
           if (!shouldLock) return;
           const prevOverflow = document.body.style.overflow;
           const prevTouchAction = document.body.style.touchAction;
@@ -2660,7 +2802,7 @@
             document.body.style.overflow = prevOverflow;
             document.body.style.touchAction = prevTouchAction;
           };
-        }, [sheetOpen, librarySheetOpen, entryEditOpen, goalSheetOpen, calendarSheetOpen, imagePreviewOpen, authVisible]);
+        }, [sheetOpen, librarySheetOpen, entryEditOpen, goalSheetOpen, emojiSheetOpen, calendarSheetOpen, imagePreviewOpen, authVisible]);
 
         function getRestHeaders(sessionArg = currentSession) {
           const token = sessionArg?.access_token;
@@ -3278,14 +3420,19 @@
           const { data } = await supabaseClient.auth.getSession();
           let nextSession = data?.session || null;
           let nextUser = nextSession?.user || null;
-          if (DEV_AUTH_BYPASS_ENABLED && !nextUser) {
-            const signInRes = await supabaseClient.auth.signInWithPassword({
-              email: DEV_AUTH_EMAIL,
-              password: DEV_AUTH_PASSWORD
-            });
-            if (!signInRes.error) {
-              nextSession = signInRes.data?.session || null;
-              nextUser = nextSession?.user || null;
+          if ((DEV_AUTH_BYPASS_ENABLED || FILE_AUTO_LOGIN_ENABLED) && !nextUser) {
+            const localFileCreds = FILE_AUTO_LOGIN_ENABLED ? readLocalFileAutoLoginCreds() : null;
+            const autoLoginEmail = localFileCreds?.email || String(FILE_AUTO_LOGIN_FALLBACK.email || "").trim();
+            const autoLoginPassword = localFileCreds?.password || String(FILE_AUTO_LOGIN_FALLBACK.password || "");
+            if (autoLoginEmail && autoLoginPassword) {
+              const signInRes = await supabaseClient.auth.signInWithPassword({
+                email: autoLoginEmail,
+                password: autoLoginPassword
+              });
+              if (!signInRes.error) {
+                nextSession = signInRes.data?.session || null;
+                nextUser = nextSession?.user || null;
+              }
             }
           }
           const cacheUserId = nextUser?.id || "guest";
@@ -3506,6 +3653,9 @@
           if (error) {
             console.error("sign-in-failed", error);
             return;
+          }
+          if (FILE_AUTO_LOGIN_ENABLED) {
+            writeLocalFileAutoLoginCreds(emailText, password);
           }
           const nextSession = data?.session || null;
           const nextUser = nextSession?.user || null;
@@ -3904,6 +4054,7 @@
                             commitParsedChange(next);
                             if (next.length === 0) setPanelMode("input");
                           }}
+                          onEmojiClick={() => openParsedEmojiEditor(index)}
                           nameValue={item.name}
                           onNameFocus={() => beginParsedEditSession("name-" + index)}
                           onNameCompositionStart={() => setNameComposingIndex(index)}
@@ -4029,24 +4180,34 @@
               </div>
             </BottomSheet>
 
-            <BottomSheet open={goalSheetOpen} onClose={() => setGoalSheetOpen(false)} title="编辑目标">
-              <div className="goal-sheet-body">
-                <input
-                  className="hero-goal-input"
-                  type="tel"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  value={goalDraft}
-                  onChange={(e) => setGoalDraft(String(e.target.value || "").replace(/[^\d]/g, ""))}
-                  placeholder="输入每日目标千卡"
-                />
-                <div className="goal-sheet-note">默认 1600 千卡，可随时修改</div>
-                <div className="goal-sheet-actions">
-                  <button className="result-btn retry" type="button" onClick={() => setGoalSheetOpen(false)}>取消</button>
-                  <button className="hero-goal-save" style={{ flex: 1 }} type="button" onClick={saveGoalEdit}>保存目标</button>
-                </div>
-              </div>
-            </BottomSheet>
+            <SimpleEditSheet
+              open={goalSheetOpen}
+              onClose={() => setGoalSheetOpen(false)}
+              title="编辑目标"
+              value={goalDraft}
+              onChange={(nextValue) => setGoalDraft(String(nextValue || "").replace(/[^\d]/g, ""))}
+              placeholder="输入每日目标千卡"
+              note="默认 1600 千卡，可随时修改"
+              onSave={saveGoalEdit}
+              inputType="tel"
+              inputMode="numeric"
+              pattern="[0-9]*"
+            />
+
+            <SimpleEditSheet
+              open={emojiSheetOpen}
+              onClose={closeEmojiSheet}
+              title="编辑 Emoji"
+              value={emojiDraft}
+              onChange={onEmojiDraftChange}
+              placeholder="🍽️"
+              note="仅支持输入 1 个 emoji"
+              errorText={emojiError}
+              onSave={saveEmojiEdit}
+              overlayClassName="sheet-overlay emoji-sheet-overlay"
+              inputType="text"
+              inputMode="text"
+            />
 
             <BottomSheet
               open={calendarSheetOpen}
@@ -4114,6 +4275,7 @@
                       <EditableFoodItem
                         item={editingItem}
                         style={{ paddingTop: 8 }}
+                        onEmojiClick={openEntryEmojiEditor}
                         nameValue={editingItem.name}
                         onNameFocus={() => beginEntryEditSession("name")}
                         onNameCompositionStart={() => {
