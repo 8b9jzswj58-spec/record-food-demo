@@ -7,9 +7,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="记饮食" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="theme-color" content="#eef6ee" />
+    <meta name="theme-color" content="#eef4ee" />
     <title>我的饮食</title>
-    <link rel="stylesheet" href="./assets/vendor/remixicon/remixicon.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,1,0" />
     <style>
       :root {
         --bg: #f5f6ef;
@@ -23,12 +24,11 @@
         --divider: rgba(15, 31, 24, 0.08);
         --green: #24b37e;
         --green-strong: #1ea772;
+        --shadow-soft: 0 12px 32px rgba(31, 67, 49, 0.08);
         --option-size: 14px;
         --option-weight: 400;
         --option-color: var(--text-secondary);
-        --nav-safe-height: calc(56px + env(safe-area-inset-top, 0px));
-        --top-bar-bg: #eef6ee;
-        --nav-scroll-progress: 0;
+        --nav-safe-height: calc(86px + env(safe-area-inset-top, 0px));
       }
 
       * { box-sizing: border-box; }
@@ -48,7 +48,6 @@
       body {
         margin: 0;
         min-height: 100vh;
-        background-color: var(--top-bar-bg);
         background: var(--bg-glow);
         color: var(--text-main);
         font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
@@ -59,14 +58,24 @@
       }
 
       .mi {
+        font-family: "Material Symbols Outlined";
+        font-weight: 400;
+        font-variation-settings: "wght" 400, "FILL" 0, "GRAD" 0, "opsz" 24;
         line-height: 1;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         vertical-align: middle;
       }
-      .icon-regular {}
-      .action-icon { font-size: 21px; }
+      .icon-regular {
+        font-weight: 400;
+        font-variation-settings: "wght" 400, "FILL" 0, "GRAD" 0, "opsz" 24;
+      }
+      .action-icon {
+        font-size: 21px;
+        font-weight: 400;
+        font-variation-settings: "wght" 400, "FILL" 0, "GRAD" 0, "opsz" 24;
+      }
 
       .page {
         max-width: 420px;
@@ -84,6 +93,7 @@
         padding: 16px;
         background: linear-gradient(140deg, rgba(255, 255, 255, 0.92) 0%, rgba(245, 253, 249, 0.9) 100%);
         border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: var(--shadow-soft);
       }
 
       .hero-title {
@@ -109,34 +119,6 @@
         gap: 4px;
         font-variant-numeric: tabular-nums;
       }
-      .slot-counter {
-        display: inline-flex;
-        align-items: baseline;
-        font-variant-numeric: tabular-nums;
-      }
-      .slot-char {
-        display: inline-block;
-        min-width: 0.58em;
-        text-align: center;
-      }
-      .slot-wheel {
-        position: relative;
-        display: inline-block;
-        height: 1em;
-        overflow: hidden;
-        min-width: 0.58em;
-        text-align: center;
-      }
-      .slot-track {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        will-change: transform;
-      }
-      .slot-digit {
-        height: 1em;
-        line-height: 1;
-      }
 
       .hero-kcal small {
         font-size: 14px;
@@ -144,6 +126,7 @@
         font-weight: 500;
         line-height: 1;
       }
+
       .hero-meta {
         font-size: 12px;
         color: var(--text-secondary);
@@ -154,7 +137,6 @@
         border-radius: 999px;
         background: rgba(36, 179, 126, 0.1);
       }
-
       .hero-goal-row {
         margin-top: 10px;
         display: flex;
@@ -223,9 +205,6 @@
         background: linear-gradient(130deg, var(--green) 0%, var(--green-strong) 100%);
         transition: width 0.24s ease;
       }
-      .hero-progress-fill.danger {
-        background: linear-gradient(130deg, #ff6767 0%, #f04444 100%);
-      }
 
       .hero-nav {
         margin-top: 12px;
@@ -264,149 +243,23 @@
         flex: 1;
         min-width: 0;
       }
-      .calendar-sheet-body {
-        padding: 4px 12px 10px;
-        display: grid;
-        gap: 6px;
-      }
-      .calendar-month-head {
-        display: grid;
-        grid-template-columns: 36px auto 36px;
-        align-items: center;
-        justify-content: start;
-        gap: 0;
-      }
-      .calendar-month-head-title {
-        width: calc(100% - 32px);
-        max-width: calc(100vw - 128px);
-        margin-left: -6px;
-      }
-      .calendar-month-label {
-        font-size: 16px;
-        font-weight: 600;
-        color: var(--text-main);
-        text-align: center;
-        white-space: nowrap;
-        line-height: 1;
-      }
-      .calendar-month-switch {
-        width: 36px;
-        height: 36px;
-        border: 0;
-        border-radius: 0;
-        background: transparent;
-        color: var(--text-main);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-      }
-      .calendar-month-switch .mi {
-        font-size: 22px;
-      }
-      .calendar-bubble-grid {
-        display: grid;
-        grid-template-columns: repeat(7, minmax(0, 1fr));
-        grid-template-rows: repeat(6, 44px);
-        gap: 0;
-        height: 264px;
-        align-items: center;
-        justify-items: center;
-        overflow: visible;
-      }
-      .calendar-bubble-grid.slide-next {
-        animation: calendar-slide-next 0.24s cubic-bezier(0.22, 0.9, 0.34, 1);
-      }
-      .calendar-bubble-grid.slide-prev {
-        animation: calendar-slide-prev 0.24s cubic-bezier(0.22, 0.9, 0.34, 1);
-      }
-      @keyframes calendar-slide-next {
-        from {
-          opacity: 0.72;
-          transform: translateX(16px);
-        }
-        to {
-          opacity: 1;
-          transform: translateX(0);
-        }
-      }
-      @keyframes calendar-slide-prev {
-        from {
-          opacity: 0.72;
-          transform: translateX(-16px);
-        }
-        to {
-          opacity: 1;
-          transform: translateX(0);
-        }
-      }
-      .calendar-day {
-        border: 0;
-        background: transparent;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 44px;
-        overflow: visible;
-        position: relative;
-      }
-      .calendar-bubble {
-        width: var(--bubble-size, 28px);
-        height: var(--bubble-size, 28px);
-        aspect-ratio: 1 / 1;
-        border-radius: 50%;
-        flex: 0 0 auto;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-        font-weight: 700;
-        line-height: 1;
-        font-variant-numeric: tabular-nums;
-        font-feature-settings: "tnum" 1;
-        color: #166c4b;
-        background: rgba(36, 179, 126, 0.22);
-        position: relative;
-        z-index: 1;
-      }
-      .calendar-bubble.danger {
-        color: #9f2f42;
-        background: rgba(240, 68, 68, 0.18);
-      }
-      .calendar-day-plain {
-        font-size: 12px;
-        line-height: 1;
-        font-variant-numeric: tabular-nums;
-        font-feature-settings: "tnum" 1;
-        color: rgba(24, 35, 31, 0.66);
-        font-weight: 600;
-        position: relative;
-        z-index: 1;
-      }
-      .calendar-day.current::before {
-        content: "";
+
+      .hero-date-native {
         position: absolute;
-        width: 54px;
-        height: 54px;
-        border-radius: 50%;
-        border: 1px solid rgba(24, 35, 31, 0.24);
-        pointer-events: none;
-      }
-      .calendar-day.current .calendar-day-plain {
-        color: var(--text-main);
-        font-weight: 700;
-      }
-      .calendar-day-empty {
-        pointer-events: none;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        border: 0;
+        background: transparent;
       }
 
       .nav {
         height: var(--nav-safe-height);
         display: flex;
-        align-items: center;
+        align-items: flex-end;
         justify-content: center;
-        padding: env(safe-area-inset-top, 0px) 16px 0;
+        padding: env(safe-area-inset-top, 0px) 16px 14px;
         position: sticky;
         top: 0;
         z-index: 3;
@@ -422,9 +275,9 @@
         top: calc(-1 * env(safe-area-inset-top, 0px));
         bottom: 0;
         pointer-events: none;
-        background: rgba(255, 255, 255, calc(0.04 + var(--nav-scroll-progress) * 0.92));
-        backdrop-filter: blur(calc(4px + var(--nav-scroll-progress) * 12px));
-        -webkit-backdrop-filter: blur(calc(4px + var(--nav-scroll-progress) * 12px));
+        background: rgba(255, 255, 255, 0.01);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
         z-index: -1;
       }
 
@@ -439,12 +292,13 @@
       .nav-settings {
         position: absolute;
         right: 14px;
-        bottom: 11px;
+        bottom: 8px;
         width: 34px;
         height: 34px;
         border: 0;
         border-radius: 999px;
         background: rgba(255, 255, 255, 0.86);
+        box-shadow: var(--shadow-soft);
         color: rgba(24, 35, 31, 0.76);
         display: inline-flex;
         align-items: center;
@@ -469,6 +323,7 @@
         background: rgba(255, 255, 255, 0.98);
         border: 1px solid rgba(0, 0, 0, 0.08);
         border-radius: 12px;
+        box-shadow: 0 18px 34px rgba(15, 27, 21, 0.14);
         padding: 6px;
         z-index: 26;
       }
@@ -516,13 +371,15 @@
         background: var(--card);
         border-radius: 16px;
         overflow: hidden;
+        box-shadow: var(--shadow-soft);
         border: 1px solid rgba(255, 255, 255, 0.75);
         animation: fadeInUp 0.35s ease both;
-        transition: transform 0.22s ease;
+        transition: transform 0.22s ease, box-shadow 0.22s ease;
       }
 
       .meal:hover {
         transform: translateY(-2px);
+        box-shadow: 0 16px 34px rgba(31, 67, 49, 0.12);
       }
 
       .meal-head {
@@ -544,6 +401,8 @@
         color: #fff;
       }
       .meal-icon .mi {
+        font-family: "Material Symbols Rounded" !important;
+        font-variation-settings: "wght" 400, "FILL" 1, "GRAD" 0, "opsz" 24 !important;
       }
 
       .breakfast { background: linear-gradient(140deg, #f0a240 0%, #ed8957 100%); }
@@ -627,16 +486,13 @@
       }
 
       .food {
+        flex: 1;
+        min-width: 0;
         color: var(--text-secondary);
         font-size: 14px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-      }
-
-      .food-wrap {
-        flex: 1;
-        min-width: 0;
       }
 
       .kcal {
@@ -700,12 +556,14 @@
         align-items: center;
         justify-content: center;
         gap: 8px;
+        box-shadow: 0 14px 30px rgba(36, 179, 126, 0.32);
         cursor: pointer;
-        transition: transform 0.2s ease;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
       }
 
       .btn:active {
         transform: translateY(1px) scale(0.99);
+        box-shadow: 0 10px 20px rgba(36, 179, 126, 0.24);
       }
 
       .sheet-overlay {
@@ -734,23 +592,15 @@
       .sheet-card {
         background: linear-gradient(180deg, #ffffff 0%, #fbfffd 100%);
         border-radius: 20px 20px 0 0;
-        overflow: hidden;
+        overflow: visible;
+        box-shadow: 0 -20px 38px rgba(20, 42, 31, 0.14);
         padding-bottom: env(safe-area-inset-bottom, 0);
         transform-origin: bottom center;
         max-height: calc(100dvh - var(--nav-safe-height));
-        display: flex;
-        flex-direction: column;
       }
       .sheet-content-viewport {
-        overflow-x: hidden;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        min-height: 0;
-        max-height: calc(100dvh - var(--nav-safe-height) - 76px - env(safe-area-inset-bottom, 0px));
-        scrollbar-width: none;
-        -ms-overflow-style: none;
+        overflow: hidden;
       }
-      .sheet-content-viewport::-webkit-scrollbar { display: none; width: 0; height: 0; }
       .sheet-content-viewport.fluid {
         transition: height 0.24s cubic-bezier(0.22, 0.9, 0.34, 1);
       }
@@ -850,23 +700,6 @@
         font-size: 15px;
         font-weight: 700;
       }
-      .library-entry-title-main-wrap {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .selection-count-badge {
-        min-width: 18px;
-        height: 18px;
-        padding: 0 6px;
-        border-radius: 999px;
-        background: rgba(36, 179, 126, 0.15);
-        color: #0f4f37;
-        font-size: 11px;
-        line-height: 18px;
-        font-weight: 700;
-        text-align: center;
-      }
 
       .library-entry-quick-row::-webkit-scrollbar { display: none; }
       .library-entry-quick-row {
@@ -954,6 +787,8 @@
       .meal-quick-tab:active { transform: scale(0.98); }
       .meal-quick-tab .meal-tab-icon {
         font-size: calc(var(--option-size) * 1.5);
+        font-weight: 400;
+        font-variation-settings: "wght" 400, "FILL" 0, "GRAD" 0, "opsz" 24;
         color: currentColor;
         line-height: 1;
       }
@@ -1034,12 +869,8 @@
       }
 
       .library-list-footer {
-        position: sticky;
-        bottom: 0;
-        z-index: 2;
-        background: #fff;
         border-top: 1px solid var(--divider);
-        padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+        padding: 10px 16px;
       }
 
       .library-add-btn {
@@ -1051,7 +882,8 @@
         background: linear-gradient(130deg, var(--green) 0%, var(--green-strong) 100%);
         font-size: 13px;
         font-weight: 600;
-        transition: transform 0.16s ease, opacity 0.2s ease;
+        transition: transform 0.16s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        box-shadow: 0 10px 20px rgba(36, 179, 126, 0.22);
       }
       .library-add-btn:active { transform: scale(0.985); }
 
@@ -1101,16 +933,24 @@
       .attach-item:active { transform: scale(0.98); }
 
       .attach-item.has-image {
-        border: 1px solid rgba(0, 0, 0, 0.09);
+        border: 0;
       }
       .attach-item.has-image::after {
-        content: none;
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        box-shadow: inset 0 0 0 1.5px rgba(0, 0, 0, 0.18);
+        pointer-events: none;
+        z-index: 1;
       }
 
       .attach-option { flex: 1 0 0; min-width: 0; padding: 0 16px; }
       .attach-label { font-size: var(--option-size); font-weight: var(--option-weight); color: var(--option-color); }
       .attach-icon {
         font-size: calc(var(--option-size) * 1.5);
+        font-weight: 400;
+        font-variation-settings: "wght" 400, "FILL" 0, "GRAD" 0, "opsz" 24;
         color: var(--option-color);
         line-height: 1;
       }
@@ -1126,13 +966,13 @@
 
       .thumb-delete {
         position: absolute;
-        right: -12px;
-        top: -12px;
-        width: 32px;
-        height: 32px;
+        right: -10px;
+        top: -10px;
+        width: 20px;
+        height: 20px;
         border: 0;
         border-radius: 999px;
-        background: transparent;
+        background: rgba(0, 0, 0, 0.58);
         color: #fff;
         z-index: 2;
         display: inline-flex;
@@ -1141,17 +981,7 @@
         padding: 0;
         line-height: 1;
       }
-      .thumb-delete::before {
-        content: "";
-        position: absolute;
-        width: 16px;
-        height: 16px;
-        border-radius: 999px;
-        background: rgba(36, 44, 40, 0.38);
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-      }
-      .thumb-delete .mi { font-size: 12px !important; position: relative; z-index: 1; }
+      .thumb-delete .mi { font-size: 14px !important; }
 
       .image-preview-overlay {
         position: fixed;
@@ -1261,7 +1091,8 @@
         align-items: center;
         justify-content: center;
         gap: 6px;
-        transition: transform 0.16s ease, opacity 0.2s ease;
+        transition: transform 0.16s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        box-shadow: 0 10px 22px rgba(36, 179, 126, 0.24);
       }
       .send-wide:active { transform: scale(0.985); }
 
@@ -1288,6 +1119,7 @@
         margin-bottom: 0;
         background: linear-gradient(130deg, var(--green) 0%, var(--green-strong) 100%);
         color: #fff;
+        box-shadow: 0 8px 16px rgba(36, 179, 126, 0.28);
       }
       .send:disabled { opacity: 0.62; }
 
@@ -1399,11 +1231,6 @@
         flex-wrap: nowrap;
         align-items: center;
         gap: 8px;
-        position: sticky;
-        bottom: 0;
-        z-index: 2;
-        background: linear-gradient(180deg, rgba(251, 255, 253, 0.82) 0%, #fbfffd 22%);
-        border-top: 1px solid rgba(0, 0, 0, 0.04);
       }
 
       .result-error { padding: 0 16px 16px; color: #cb2f31; font-size: 13px; white-space: pre-wrap; }
@@ -1515,6 +1342,7 @@
         background: rgba(255, 255, 255, 0.98);
         border-radius: 16px;
         padding: 18px;
+        box-shadow: 0 24px 56px rgba(18, 42, 30, 0.2);
       }
 
       .auth-title { font-size: 20px; font-weight: 700; }
@@ -1606,10 +1434,10 @@
   <body>
     <div id="root"></div>
 
-    <script src="./assets/vendor/react/react.production.min.js"></script>
-    <script src="./assets/vendor/react-dom/react-dom.production.min.js"></script>
-    <script src="./assets/vendor/babel/babel.min.js"></script>
-    <script src="./assets/vendor/supabase/supabase.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script type="text/babel">
       const { useEffect, useMemo, useRef, useState } = React;
@@ -1632,41 +1460,12 @@
       const MEALS = ["早餐", "午餐", "晚餐"];
       const RECORDS_CACHE_KEY_PREFIX = "diet-records-cache-v1";
       const GOAL_KCAL_CACHE_KEY = "diet-goal-kcal-v1";
-      const ICON_COMPONENTS = {
-        wb_twilight: "ri-sun-foggy-line",
-        wb_twilight_fill: "ri-sun-foggy-fill",
-        light_mode: "ri-sun-line",
-        light_mode_fill: "ri-sun-fill",
-        nightlight: "ri-moon-clear-line",
-        nightlight_fill: "ri-moon-clear-fill",
-        delete: "ri-delete-bin-line",
-        close: "ri-close-line",
-        settings: "ri-settings-3-line",
-        restaurant: "ri-restaurant-line",
-        edit: "ri-edit-line",
-        chevron_left: "ri-arrow-left-s-line",
-        chevron_right: "ri-arrow-right-s-line",
-        nutrition: "ri-heart-pulse-line",
-        undo: "ri-arrow-go-back-line",
-        redo: "ri-arrow-go-forward-line",
-        photo_camera: "ri-camera-line",
-        photo_library: "ri-image-line",
-        progress_activity: "ri-loader-4-line",
-        arrow_upward: "ri-arrow-up-line",
-        check: "ri-check-line"
-      };
+      const SHEET_DRAFT_KEY_PREFIX = "diet-sheet-draft-v1";
 
-      function MiIcon({ name, children, className = "", style = {}, ...rest }) {
-        const iconName = String(name || children || "");
-        const remixClass = ICON_COMPONENTS[iconName] || "ri-checkbox-blank-circle-line";
-        return <i {...rest} className={`${className} ${remixClass}`.trim()} style={style} aria-hidden="true" />;
-      }
-
-      function getMealVisual(meal, variant = "line") {
-        const fill = variant === "fill";
-        if (meal === "早餐") return { cls: "breakfast", icon: fill ? "wb_twilight_fill" : "wb_twilight" };
-        if (meal === "午餐") return { cls: "lunch", icon: fill ? "light_mode_fill" : "light_mode" };
-        return { cls: "dinner", icon: fill ? "nightlight_fill" : "nightlight" };
+      function getMealVisual(meal) {
+        if (meal === "早餐") return { cls: "breakfast", icon: "wb_twilight" };
+        if (meal === "午餐") return { cls: "lunch", icon: "light_mode" };
+        return { cls: "dinner", icon: "nightlight" };
       }
 
       function getDefaultMealByTime() {
@@ -1685,16 +1484,12 @@
       }
 
       function getDateLabel(dateKey) {
+        const todayKey = getDateKey(Date.now());
+        if (dateKey === todayKey) return "今天";
         const d = new Date(dateKey + "T00:00:00");
-        const now = new Date();
-        const weekMap = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
-        const month = d.getMonth() + 1;
-        const day = d.getDate();
-        const week = weekMap[d.getDay()];
-        if (d.getFullYear() !== now.getFullYear()) {
-          return `${d.getFullYear()}年${month}月${day}日 ${week}`;
-        }
-        return `${month}月${day}日 ${week}`;
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${d.getFullYear()}-${m}-${day}`;
       }
 
       function shiftDateKey(dateKey, offsetDays) {
@@ -1702,33 +1497,13 @@
         d.setDate(d.getDate() + offsetDays);
         return getDateKey(d);
       }
-      function getMonthKeyFromDateKey(dateKey) {
-        return String(dateKey || getDateKey(Date.now())).slice(0, 7);
-      }
-      function shiftMonthKey(monthKey, offsetMonths) {
-        const d = new Date((monthKey || getMonthKeyFromDateKey(getDateKey(Date.now()))) + "-01T00:00:00");
-        d.setMonth(d.getMonth() + offsetMonths);
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      }
-      function getMonthLabel(monthKey) {
-        const d = new Date((monthKey || getMonthKeyFromDateKey(getDateKey(Date.now()))) + "-01T00:00:00");
-        return `${d.getFullYear()} 年 ${d.getMonth() + 1} 月`;
-      }
-      function buildMonthDateKeys(monthKey) {
-        const [yearText, monthText] = String(monthKey || "").split("-");
-        const year = Number.parseInt(yearText || "0", 10);
-        const month = Number.parseInt(monthText || "0", 10);
-        if (!year || !month) return [];
-        const maxDay = new Date(year, month, 0).getDate();
-        const dateKeys = [];
-        for (let day = 1; day <= maxDay; day += 1) {
-          dateKeys.push(`${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`);
-        }
-        return dateKeys;
-      }
 
       function getRecordsCacheKey(userId) {
         return `${RECORDS_CACHE_KEY_PREFIX}:${userId || "guest"}`;
+      }
+
+      function getSheetDraftKey(userId) {
+        return `${SHEET_DRAFT_KEY_PREFIX}:${userId || "guest"}`;
       }
 
       function readCachedRecords(userId) {
@@ -1765,6 +1540,33 @@
           localStorage.setItem(GOAL_KCAL_CACHE_KEY, String(Math.max(1, Number.parseInt(String(value || "0"), 10) || 1600)));
         } catch (_error) {
           // ignore cache write errors
+        }
+      }
+
+      function readSheetDraft(userId) {
+        try {
+          const raw = localStorage.getItem(getSheetDraftKey(userId));
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          return parsed && typeof parsed === "object" ? parsed : null;
+        } catch (_error) {
+          return null;
+        }
+      }
+
+      function writeSheetDraft(userId, payload) {
+        try {
+          localStorage.setItem(getSheetDraftKey(userId), JSON.stringify(payload || {}));
+        } catch (_error) {
+          // ignore draft write errors
+        }
+      }
+
+      function clearSheetDraft(userId) {
+        try {
+          localStorage.removeItem(getSheetDraftKey(userId));
+        } catch (_error) {
+          // ignore draft remove errors
         }
       }
 
@@ -1929,6 +1731,21 @@
         return (Array.isArray(srcItems) ? srcItems : []).map((item) => ({ ...item }));
       }
 
+      async function fileToDataUrl(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ""));
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function dataUrlToFile(dataUrl, name, mimeType) {
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        return new File([blob], name || "draft-image.jpg", { type: mimeType || blob.type || "image/jpeg" });
+      }
+
       function MealTabs({ value, onChange, className = "" }) {
         return (
           <div className={"meal-quick-tabs" + (className ? " " + className : "")}>
@@ -1941,7 +1758,7 @@
                   type="button"
                   onClick={() => onChange(meal)}
                 >
-                  <MiIcon className="mi meal-tab-icon">{visual.icon}</MiIcon>
+                  <span className="mi meal-tab-icon">{visual.icon}</span>
                   <span>{meal}</span>
                 </button>
               );
@@ -1988,7 +1805,7 @@
                 />
                 {showDelete && (
                   <button className="result-del" type="button" onClick={onDelete}>
-                    <MiIcon className="mi" style={{ fontSize: 20 }}>delete</MiIcon>
+                    <span className="mi" style={{ fontSize: 20 }}>delete</span>
                   </button>
                 )}
               </div>
@@ -2086,7 +1903,7 @@
                   <div className="sheet-head-actions">
                     {actions}
                     <button className="close-btn" type="button" onClick={onClose}>
-                      <MiIcon className="mi icon-regular close-icon">close</MiIcon>
+                      <span className="mi icon-regular close-icon">close</span>
                     </button>
                   </div>
                 </div>
@@ -2102,79 +1919,58 @@
         );
       }
 
-      function buildSpinDigits(fromDigit, toDigit) {
-        const start = Number(fromDigit);
-        const end = Number(toDigit);
-        const seq = [start];
-        let current = start;
-        let guard = 0;
-        while (current !== end && guard < 24) {
-          current = (current + 1) % 10;
-          seq.push(current);
-          guard += 1;
-        }
-        if (seq.length === 1) return seq;
-        return seq;
+      function useElasticNumber(targetValue, duration = 420) {
+        const safeTarget = Math.max(0, Number(targetValue) || 0);
+        const [display, setDisplay] = useState(safeTarget);
+        const rafRef = useRef(0);
+        const startValueRef = useRef(safeTarget);
+        const startTimeRef = useRef(0);
+
+        useEffect(() => {
+          const from = Number(display) || 0;
+          const to = safeTarget;
+          if (from === to) return;
+          if (rafRef.current) cancelAnimationFrame(rafRef.current);
+          startValueRef.current = from;
+          startTimeRef.current = 0;
+
+          const easeOutBack = (t) => {
+            const c1 = 1.70158;
+            const c3 = c1 + 1;
+            return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+          };
+
+          const tick = (ts) => {
+            if (!startTimeRef.current) startTimeRef.current = ts;
+            const elapsed = ts - startTimeRef.current;
+            const progress = Math.min(1, elapsed / duration);
+            const eased = easeOutBack(progress);
+            const next = startValueRef.current + (to - startValueRef.current) * eased;
+            setDisplay(Math.max(0, Math.round(next)));
+            if (progress < 1) {
+              rafRef.current = requestAnimationFrame(tick);
+            }
+          };
+
+          rafRef.current = requestAnimationFrame(tick);
+
+          return () => {
+            if (rafRef.current) cancelAnimationFrame(rafRef.current);
+          };
+        }, [safeTarget, duration]);
+
+        useEffect(() => {
+          return () => {
+            if (rafRef.current) cancelAnimationFrame(rafRef.current);
+          };
+        }, []);
+
+        return display;
       }
 
-      function SlotDigit({ from, to, duration = 360, stepDelay = 0 }) {
-        const same = from === to;
-        const digits = useMemo(() => buildSpinDigits(from, to), [from, to]);
-        const [ready, setReady] = useState(false);
-        useEffect(() => {
-          setReady(false);
-          const id = requestAnimationFrame(() => setReady(true));
-          return () => cancelAnimationFrame(id);
-        }, [from, to]);
-        if (same) return <span className="slot-char">{to}</span>;
-        return (
-          <span className="slot-wheel">
-            <span
-              className="slot-track"
-              style={{
-                transform: ready ? `translateY(-${digits.length - 1}em)` : "translateY(0)",
-                transition: `transform ${duration}ms cubic-bezier(0.22, 0.9, 0.24, 1) ${stepDelay}ms`
-              }}
-            >
-              {digits.map((digit, idx) => (
-                <span className="slot-digit" key={idx}>{digit}</span>
-              ))}
-            </span>
-          </span>
-        );
-      }
-
-      function AnimatedKcalValue({ value, className, duration = 360 }) {
-        const safeValue = Math.max(0, Number(value) || 0);
-        const [prevValue, setPrevValue] = useState(safeValue);
-        const prevStrRaw = String(Math.max(0, Number(prevValue) || 0));
-        const nextStr = String(safeValue);
-        const len = nextStr.length;
-        const prevStr = prevStrRaw.padStart(len, "0").slice(-len);
-        useEffect(() => {
-          if (prevValue === safeValue) return;
-          const id = setTimeout(() => setPrevValue(safeValue), duration + 140);
-          return () => clearTimeout(id);
-        }, [prevValue, safeValue, duration]);
-        return (
-          <span className={`slot-counter ${className || ""}`}>
-            {nextStr.split("").map((char, idx) => {
-              const from = prevStr[idx];
-              const to = char;
-              const isDigit = /\d/.test(char) && /\d/.test(from);
-              if (!isDigit) return <span className="slot-char" key={idx}>{to}</span>;
-              return (
-                <SlotDigit
-                  key={`${idx}-${from}-${to}`}
-                  from={from}
-                  to={to}
-                  duration={duration}
-                  stepDelay={Math.min(idx * 24, 96)}
-                />
-              );
-            })}
-          </span>
-        );
+      function AnimatedKcalValue({ value, className }) {
+        const animated = useElasticNumber(value, 420);
+        return <span className={className}>{animated}</span>;
       }
 
       function createIdleParseTask() {
@@ -2218,9 +2014,6 @@
         const [parseTask, setParseTask] = useState(createIdleParseTask());
         const [goalKcal, setGoalKcal] = useState(readGoalKcal());
         const [goalSheetOpen, setGoalSheetOpen] = useState(false);
-        const [calendarSheetOpen, setCalendarSheetOpen] = useState(false);
-        const [calendarMonthKey, setCalendarMonthKey] = useState(getMonthKeyFromDateKey(getDateKey(Date.now())));
-        const [calendarSlideDirection, setCalendarSlideDirection] = useState("");
         const [goalDraft, setGoalDraft] = useState(String(readGoalKcal()));
         const [servingEditIndex, setServingEditIndex] = useState(-1);
         const [servingDraft, setServingDraft] = useState("");
@@ -2237,9 +2030,12 @@
         const [imagePreviewIndex, setImagePreviewIndex] = useState(0);
         const [editingMeal, setEditingMeal] = useState("早餐");
         const entryEditSessionRef = useRef({ key: "", before: null });
+        const draftHydratedRef = useRef(false);
+        const draftSaveTimerRef = useRef(0);
 
         const cameraInputRef = useRef(null);
         const galleryInputRef = useRef(null);
+        const dateInputRef = useRef(null);
         const touchStartXRef = useRef(null);
         const rowTouchRef = useRef({ key: "", x: 0, y: 0 });
         const pendingDeletionRef = useRef(null);
@@ -2248,41 +2044,18 @@
         const parsedEditSessionRef = useRef({ key: "", before: null });
         const parseAbortRef = useRef(null);
         const parseTaskRef = useRef(parseTask);
-        const calendarTouchRef = useRef({ x: 0, y: 0 });
 
-        useEffect(() => {
-          const root = document.documentElement;
-          const themeMeta = document.querySelector('meta[name="theme-color"]');
-          const maxScroll = 64;
-          const updateTopBarProgress = () => {
-            const scrollTop = window.scrollY || document.documentElement.scrollTop || 0;
-            const progress = Math.max(0, Math.min(1, scrollTop / maxScroll));
-            root.style.setProperty("--nav-scroll-progress", progress.toFixed(3));
-            if (themeMeta) {
-              const channel = Math.round(238 + (255 - 238) * progress);
-              const nextColor = `rgb(${channel}, ${channel}, ${channel})`;
-              if (themeMeta.getAttribute("content") !== nextColor) {
-                themeMeta.setAttribute("content", nextColor);
-              }
-            }
-          };
-          updateTopBarProgress();
-          window.addEventListener("scroll", updateTopBarProgress, { passive: true });
-          return () => window.removeEventListener("scroll", updateTopBarProgress);
-        }, []);
-
-        const totalKcalByDate = useMemo(() => {
-          const map = new Map();
-          records.forEach((record) => {
-            const dateKey = getDateKey(record?.created_at);
+        const selectedDateTotalKcal = useMemo(() => {
+          return records
+            .filter((record) => getDateKey(record?.created_at) === currentDateKey)
+            .reduce((sum, record) => {
             const recordTotal = Array.isArray(record?.items)
               ? record.items.reduce((sub, item) => sub + (Number(item?.kcal) || 0), 0)
               : 0;
-            map.set(dateKey, (map.get(dateKey) || 0) + recordTotal);
-          });
-          return map;
-        }, [records]);
-        const selectedDateTotalKcal = Number(totalKcalByDate.get(currentDateKey) || 0);
+            return sum + recordTotal;
+          }, 0);
+        }, [records, currentDateKey]);
+
         const selectedDateRecordCount = useMemo(() => {
           return records
             .filter((record) => getDateKey(record?.created_at) === currentDateKey)
@@ -2291,10 +2064,9 @@
 
         const goalProgressPercent = useMemo(() => {
           const target = Math.max(1, Number(goalKcal) || 1600);
-          return Math.max(0, Math.round((selectedDateTotalKcal / target) * 100));
+          return Math.max(0, Math.min(100, Math.round((selectedDateTotalKcal / target) * 100)));
         }, [selectedDateTotalKcal, goalKcal]);
-        const goalProgressBarPercent = Math.min(goalProgressPercent, 100);
-        const isGoalProgressDanger = goalProgressPercent >= 120;
+        const animatedHeroKcal = useElasticNumber(selectedDateTotalKcal, 460);
 
         const currentDayMeals = useMemo(() => {
           const target = records.filter((record) => getDateKey(record?.created_at) === currentDateKey);
@@ -2315,38 +2087,6 @@
           });
           return grouped;
         }, [records, currentDateKey]);
-        const calendarDays = useMemo(() => {
-          const target = Math.max(1, Number(goalKcal) || 1600);
-          const standardSize = 54;
-          const days = buildMonthDateKeys(calendarMonthKey).map((dateKey) => {
-            const kcal = Math.max(0, Math.round(Number(totalKcalByDate.get(dateKey) || 0)));
-            const ratio = kcal / target;
-            const bubbleSize = kcal <= 0
-              ? 0
-              : Math.max(22, Math.min(74, Math.round(standardSize * Math.max(0.34, ratio))));
-            return {
-              dateKey,
-              day: Number.parseInt(dateKey.slice(-2), 10) || 0,
-              kcal,
-              ratio,
-              bubbleSize,
-              isDanger: ratio >= 1.2,
-              isCurrent: dateKey === currentDateKey
-            };
-          });
-          if (days.length >= 42) return days.slice(0, 42);
-          const placeholders = Array.from({ length: 42 - days.length }).map((_, index) => ({
-            dateKey: `placeholder-${calendarMonthKey}-${index}`,
-            day: 0,
-            kcal: 0,
-            ratio: 0,
-            bubbleSize: 0,
-            isDanger: false,
-            isCurrent: false,
-            isPlaceholder: true
-          }));
-          return [...days, ...placeholders];
-        }, [calendarMonthKey, goalKcal, totalKcalByDate, currentDateKey]);
 
         const foodLibrary = useMemo(() => {
           const singleMap = new Map();
@@ -2418,39 +2158,6 @@
         function startGoalEdit() {
           setGoalDraft(String(goalKcal));
           setGoalSheetOpen(true);
-        }
-        function openCalendarSheet() {
-          setCalendarMonthKey(getMonthKeyFromDateKey(currentDateKey));
-          setCalendarSlideDirection("");
-          setCalendarSheetOpen(true);
-        }
-        function closeCalendarSheet() {
-          setCalendarSheetOpen(false);
-          setCalendarSlideDirection("");
-        }
-        function shiftCalendarMonth(offset) {
-          setCalendarSlideDirection(offset > 0 ? "next" : "prev");
-          setCalendarMonthKey((prev) => shiftMonthKey(prev, offset));
-        }
-        function onCalendarTouchStart(event) {
-          const touch = event.touches && event.touches[0];
-          if (!touch) return;
-          calendarTouchRef.current = { x: touch.clientX, y: touch.clientY };
-        }
-        function onCalendarTouchEnd(event) {
-          const touch = event.changedTouches && event.changedTouches[0];
-          if (!touch) return;
-          const start = calendarTouchRef.current;
-          const dx = touch.clientX - start.x;
-          const dy = touch.clientY - start.y;
-          const absX = Math.abs(dx);
-          const absY = Math.abs(dy);
-          if (absX < 36 || absX < absY * 1.15) return;
-          shiftCalendarMonth(dx < 0 ? 1 : -1);
-        }
-        function pickCalendarDate(dateKey) {
-          setCurrentDateKey(dateKey);
-          setCalendarSheetOpen(false);
         }
         function saveGoalEdit() {
           const nextGoal = Math.max(1, Number.parseInt(String(goalDraft || "0"), 10) || 1600);
@@ -2526,7 +2233,7 @@
         }, [parseTask]);
 
         useEffect(() => {
-          const shouldLock = sheetOpen || librarySheetOpen || entryEditOpen || goalSheetOpen || calendarSheetOpen || imagePreviewOpen || authVisible;
+          const shouldLock = sheetOpen || librarySheetOpen || entryEditOpen || goalSheetOpen || imagePreviewOpen || authVisible;
           if (!shouldLock) return;
           const prevOverflow = document.body.style.overflow;
           const prevTouchAction = document.body.style.touchAction;
@@ -2536,7 +2243,7 @@
             document.body.style.overflow = prevOverflow;
             document.body.style.touchAction = prevTouchAction;
           };
-        }, [sheetOpen, librarySheetOpen, entryEditOpen, goalSheetOpen, calendarSheetOpen, imagePreviewOpen, authVisible]);
+        }, [sheetOpen, librarySheetOpen, entryEditOpen, goalSheetOpen, imagePreviewOpen, authVisible]);
 
         function getRestHeaders(sessionArg = currentSession) {
           const token = sessionArg?.access_token;
@@ -3005,6 +2712,51 @@
           setParseTask(createIdleParseTask());
           setImagePreviewOpen(false);
           setImagePreviewIndex(0);
+          clearSheetDraft(currentUser?.id || "guest");
+        }
+
+        async function restoreSheetDraftForUser(userId) {
+          const draft = readSheetDraft(userId);
+          if (!draft) {
+            draftHydratedRef.current = true;
+            return;
+          }
+          try {
+            const nextAttachmentsRaw = Array.isArray(draft.attachments) ? draft.attachments.slice(0, MAX_ATTACHMENTS) : [];
+            const nextAttachments = await Promise.all(
+              nextAttachmentsRaw.map(async (item, idx) => {
+                const dataUrl = String(item?.dataUrl || "");
+                const file = await dataUrlToFile(
+                  dataUrl,
+                  String(item?.name || `draft-${idx + 1}.jpg`),
+                  String(item?.mimeType || "image/jpeg")
+                );
+                return {
+                  file,
+                  url: dataUrl,
+                  originalSize: Number(item?.originalSize) || file.size,
+                  compressedSize: Number(item?.compressedSize) || file.size
+                };
+              })
+            );
+            cleanupAttachments(attachments);
+            setAttachments(nextAttachments);
+            setInputText(String(draft.inputText || ""));
+            const draftMeal = String(draft.selectedMeal || "");
+            if (MEALS.includes(draftMeal)) setSelectedMeal(draftMeal);
+            const draftQuickFoods = Array.isArray(draft.selectedQuickFoods) ? draft.selectedQuickFoods : [];
+            setSelectedQuickFoods(
+              draftQuickFoods
+                .map((food) => ({ key: getFoodSelectionKey(food), food }))
+                .filter((row) => row.key)
+            );
+            setLibraryLoadedCount((prev) => Math.max(20, prev, draftQuickFoods.length));
+          } catch (error) {
+            console.error("restore-sheet-draft-failed", error);
+            clearSheetDraft(userId);
+          } finally {
+            draftHydratedRef.current = true;
+          }
         }
 
         function openImagePreview(index) {
@@ -3097,7 +2849,11 @@
                 confidence: Number(item.confidence) || 0,
                 emoji: String(item.emoji || "🍽️")
               })),
-              created_at: new Date().toISOString()
+              created_at: (() => {
+                const [y, m, d] = currentDateKey.split('-').map(Number);
+                const now = new Date();
+                return new Date(y, m - 1, d, now.getHours(), now.getMinutes(), now.getSeconds()).toISOString();
+              })()
             }
           ];
 
@@ -3130,6 +2886,8 @@
           setCurrentSession(nextSession);
           setCurrentUser(nextUser);
           setAuthVisible(TEST_MODE_AUTH_BYPASS ? false : !nextUser);
+          draftHydratedRef.current = false;
+          await restoreSheetDraftForUser(nextUser?.id || "guest");
           if (nextUser) await initBackendState(nextUser, nextSession);
         }
 
@@ -3144,6 +2902,8 @@
             setCurrentSession(nextSession);
             setCurrentUser(nextUser);
             setAuthVisible(TEST_MODE_AUTH_BYPASS ? false : !nextUser);
+            draftHydratedRef.current = false;
+            await restoreSheetDraftForUser(nextUser?.id || "guest");
             if (nextUser) {
               await initBackendState(nextUser, nextSession);
             } else {
@@ -3175,10 +2935,51 @@
         }, [imagePreviewOpen, attachments.length, imagePreviewIndex]);
 
         useEffect(() => {
-          if (!calendarSlideDirection) return;
-          const timer = window.setTimeout(() => setCalendarSlideDirection(""), 260);
-          return () => window.clearTimeout(timer);
-        }, [calendarSlideDirection]);
+          if (!draftHydratedRef.current) return;
+          const userId = currentUser?.id || "guest";
+          if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
+          draftSaveTimerRef.current = setTimeout(async () => {
+            const hasDraftContent =
+              inputText.trim().length > 0 ||
+              attachments.length > 0 ||
+              selectedQuickFoods.length > 0 ||
+              (MEALS.includes(selectedMeal) && selectedMeal !== getDefaultMealByTime());
+            if (!hasDraftContent) {
+              clearSheetDraft(userId);
+              return;
+            }
+            if (panelMode !== "input" || parseTask.status === "parsing") return;
+            try {
+              const attachmentDrafts = await Promise.all(
+                attachments.map(async (item, idx) => {
+                  const dataUrl = String(item?.url || "").startsWith("data:")
+                    ? String(item.url)
+                    : await fileToDataUrl(item.file);
+                  return {
+                    dataUrl,
+                    name: item?.file?.name || `draft-${idx + 1}.jpg`,
+                    mimeType: item?.file?.type || "image/jpeg",
+                    originalSize: item?.originalSize || item?.file?.size || 0,
+                    compressedSize: item?.compressedSize || item?.file?.size || 0
+                  };
+                })
+              );
+              writeSheetDraft(userId, {
+                selectedMeal,
+                inputText,
+                selectedQuickFoods: selectedQuickFoods.map(({ food }) => food),
+                attachments: attachmentDrafts,
+                updatedAt: Date.now()
+              });
+            } catch (error) {
+              console.error("write-sheet-draft-failed", error);
+            }
+          }, 280);
+
+          return () => {
+            if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
+          };
+        }, [currentUser?.id, selectedMeal, inputText, selectedQuickFoods, attachments, panelMode, parseTask.status]);
 
         useEffect(() => {
           if (records.length === 0) {
@@ -3417,7 +3218,7 @@
                 <h1 className="title">我的饮食</h1>
                 {!TEST_MODE_AUTH_BYPASS && (
                   <button className="nav-settings" type="button" onClick={() => setSettingsMenuOpen((prev) => !prev)} aria-label="设置">
-                    <MiIcon className="mi" style={{ fontSize: 18 }}>settings</MiIcon>
+                    <span className="mi" style={{ fontSize: 18 }}>settings</span>
                   </button>
                 )}
               </header>
@@ -3426,34 +3227,43 @@
                 <div className="hero-title">总摄入</div>
                 <div className="hero-main">
                   <div className="hero-kcal">
-                    <AnimatedKcalValue value={selectedDateTotalKcal} duration={360} />
+                    {animatedHeroKcal}
                     <small>千卡</small>
                   </div>
                   <div className="hero-meta">
-                    <MiIcon className="mi" style={{ fontSize: 14 }}>restaurant</MiIcon>
+                    <span className="mi" style={{ fontSize: 14 }}>restaurant</span>
                     {selectedDateRecordCount} 条记录
                   </div>
                 </div>
                 <div className="hero-goal-row">
                   <div className="hero-goal-text">目标 {goalKcal} 千卡 · 完成 {goalProgressPercent}%</div>
                   <button className="hero-goal-edit-btn" type="button" onClick={startGoalEdit} aria-label="编辑目标">
-                    <MiIcon className="mi icon-regular" style={{ fontSize: 14 }}>edit</MiIcon>
+                    <span className="mi icon-regular" style={{ fontSize: 14 }}>edit</span>
                   </button>
                 </div>
                 <div className="hero-progress" aria-label="摄入进度">
-                  <div className={"hero-progress-fill" + (isGoalProgressDanger ? " danger" : "")} style={{ width: goalProgressBarPercent + "%" }} />
+                  <div className="hero-progress-fill" style={{ width: goalProgressPercent + "%" }} />
                 </div>
                 <div className="hero-nav">
                   <button className="hero-nav-btn" type="button" onClick={goPrevDate} aria-label="上一天">
-                    <MiIcon className="mi" style={{ fontSize: 18 }}>chevron_left</MiIcon>
+                    <span className="mi" style={{ fontSize: 18 }}>chevron_left</span>
                   </button>
                   <div className="hero-date-wrap">
-                    <button className="hero-date-btn" type="button" onClick={openCalendarSheet}>
+                    <button className="hero-date-btn" type="button">
                       {getDateLabel(currentDateKey)}
                     </button>
+                    <input
+                      ref={dateInputRef}
+                      className="hero-date-native"
+                      type="date"
+                      value={currentDateKey}
+                      max={getDateKey(Date.now())}
+                      onChange={(e) => setCurrentDateKey(e.target.value || getDateKey(Date.now()))}
+                      aria-label="选择日期"
+                    />
                   </div>
                   <button className="hero-nav-btn" type="button" onClick={goNextDate} aria-label="下一天">
-                    <MiIcon className="mi" style={{ fontSize: 18 }}>chevron_right</MiIcon>
+                    <span className="mi" style={{ fontSize: 18 }}>chevron_right</span>
                   </button>
                 </div>
               </section>
@@ -3463,14 +3273,14 @@
                   {MEALS.map((meal) => {
                     const items = currentDayMeals[meal] || [];
                     if (items.length === 0) return null;
-                    const visual = getMealVisual(meal, "fill");
+                    const visual = getMealVisual(meal);
                     const total = items.reduce((sum, entry) => sum + (Number(entry?.item?.kcal) || 0), 0);
                     return (
                       <article className="meal" key={currentDateKey + "-" + meal}>
                         <div className="meal-head">
                           <div className="meal-type">
                             <span className={"meal-icon " + visual.cls}>
-                              <MiIcon className="mi" style={{ fontSize: 14 }}>{visual.icon}</MiIcon>
+                              <span className="mi" style={{ fontSize: 14 }}>{visual.icon}</span>
                             </span>
                             <span className="meal-name">{meal}</span>
                           </div>
@@ -3499,10 +3309,8 @@
                                 <button className="item-delete-btn" type="button" onClick={() => handleDeleteSavedItem(entry)}>删除</button>
                               </div>
                               <div className="item" onClick={() => onItemRowClick(entry, rowKey)}>
-                                <div className="food-wrap">
-                                  <span className="food">{((item.emoji && String(item.emoji).trim()) || "🍽️") + " " + (item.name || "未命名食物") + " " + normalizePortionText(item.portion || "1份")}</span>
-                                </div>
-                                <span className="kcal">{Number(item.kcal) || 0} 千卡 <MiIcon className="mi" style={{ fontSize: 14 }}>chevron_right</MiIcon></span>
+                                <span className="food">{((item.emoji && String(item.emoji).trim()) || "🍽️") + " " + (item.name || "未命名食物") + " " + normalizePortionText(item.portion || "1份")}</span>
+                                <span className="kcal">{Number(item.kcal) || 0} 千卡 <span className="mi" style={{ fontSize: 14 }}>chevron_right</span></span>
                               </div>
                             </div>
                           );
@@ -3515,7 +3323,7 @@
 
               {records.length === 0 && (
                 <div className="empty">
-                  <div><MiIcon className="mi">nutrition</MiIcon></div>
+                  <div><span className="mi">nutrition</span></div>
                   还没有饮食记录，点底部按钮添加一条。
                 </div>
               )}
@@ -3529,7 +3337,7 @@
                 </div>
               )}
               <button className="btn" type="button" onClick={openAddSheetPanel}>
-                <MiIcon className="mi" style={{ fontSize: 22 }}>edit</MiIcon>
+                <span className="mi" style={{ fontSize: 22 }}>edit</span>
                 添加数据
               </button>
             </div>
@@ -3543,10 +3351,10 @@
               actions={panelMode === "result" ? (
                 <>
                   <button className="history-btn" type="button" onClick={undoParsedChange} disabled={parsedUndoStack.length === 0}>
-                    <MiIcon className="mi" style={{ fontSize: 26 }}>undo</MiIcon>
+                    <span className="mi" style={{ fontSize: 26 }}>undo</span>
                   </button>
                   <button className="history-btn" type="button" onClick={redoParsedChange} disabled={parsedRedoStack.length === 0}>
-                    <MiIcon className="mi" style={{ fontSize: 26 }}>redo</MiIcon>
+                    <span className="mi" style={{ fontSize: 26 }}>redo</span>
                   </button>
                 </>
               ) : null}
@@ -3566,19 +3374,19 @@
                             event.stopPropagation();
                             removeAttachmentAt(index);
                           }}>
-                            <MiIcon className="mi" style={{ fontSize: 18 }}>close</MiIcon>
+                            <span className="mi" style={{ fontSize: 18 }}>close</span>
                           </button>
                         </div>
                       ))}
                       {attachments.length < MAX_ATTACHMENTS && (
                         <button className={"attach-item" + (attachments.length === 0 ? " attach-option" : "")} type="button" onClick={() => cameraInputRef.current && cameraInputRef.current.click()}>
-                          <MiIcon className="mi attach-icon">photo_camera</MiIcon>
+                          <span className="mi attach-icon">photo_camera</span>
                           {attachments.length === 0 && <span className="attach-label">拍照</span>}
                         </button>
                       )}
                       {attachments.length < MAX_ATTACHMENTS && (
                         <label className={"attach-item" + (attachments.length === 0 ? " attach-option" : "") }>
-                          <MiIcon className="mi attach-icon">photo_library</MiIcon>
+                          <span className="mi attach-icon">photo_library</span>
                           {attachments.length === 0 && <span className="attach-label">相册</span>}
                           <input ref={galleryInputRef} className="native-file-input" type="file" accept="image/*" multiple onChange={handlePickedFile} />
                         </label>
@@ -3589,12 +3397,9 @@
                   <div className="library-entry">
                     <button className="library-entry-title" type="button" onClick={openLibrarySheet}>
                       <span>
-                        <div className="library-entry-title-main-wrap">
-                          <div className="library-entry-title-main">历史食物</div>
-                          <span className="selection-count-badge">{selectedQuickFoods.length}</span>
-                        </div>
+                        <div className="library-entry-title-main">历史食物</div>
                       </span>
-                      <MiIcon className="mi" style={{ fontSize: 18, color: "var(--text-muted)" }}>chevron_right</MiIcon>
+                      <span className="mi" style={{ fontSize: 18, color: "var(--text-muted)" }}>chevron_right</span>
                     </button>
                     <div className="library-entry-quick-row" onScroll={onQuickLibraryScroll}>
                       {foodLibrary.foods.length === 0 ? (
@@ -3625,7 +3430,7 @@
                         if (e.key === "Enter" && parseTask.status !== "parsing") startParse();
                       }}
                       type="text"
-                      placeholder="1 个麦当劳板烧鸡腿堡"
+                      placeholder="例：我今天中午吃了 1 个汉堡"
                     />
                     <button
                       className="send-wide"
@@ -3633,7 +3438,7 @@
                       onClick={startParse}
                       disabled={parseTask.status === "parsing"}
                     >
-                      <MiIcon className="mi action-icon">{parseTask.status === "parsing" ? "progress_activity" : "arrow_upward"}</MiIcon>
+                      <span className="mi action-icon">{parseTask.status === "parsing" ? "progress_activity" : "arrow_upward"}</span>
                       <span>{parseTask.status === "parsing" ? "解析中…" : "发送"}</span>
                     </button>
                   </div>
@@ -3646,7 +3451,7 @@
                         <div className="parse-status loading">
                           <div className="parse-status-top">
                             <div className="parse-status-left">
-                              <MiIcon className="mi">progress_activity</MiIcon>
+                              <span className="mi">progress_activity</span>
                               <span>{parseTask.progressText || "AI 正在解析…"}</span>
                             </div>
                             <span className="parse-phase-chip">{parseTask.phase || "parsing"}</span>
@@ -3737,7 +3542,7 @@
                         <>
                           <button className="result-btn retry" type="button" onClick={() => setPanelMode("input")}>重试</button>
                           <button className="result-btn save" type="button" onClick={saveResults}>
-                            <MiIcon className="mi action-icon">check</MiIcon> 保存记录
+                            <span className="mi action-icon">check</span> 保存记录
                           </button>
                         </>
                       )}
@@ -3752,12 +3557,7 @@
             <BottomSheet
               open={librarySheetOpen}
               onClose={closeLibrarySheet}
-              title={(
-                <span className="library-entry-title-main-wrap">
-                  <span>历史食物</span>
-                  <span className="selection-count-badge">{selectedLibraryFoods.length}</span>
-                </span>
-              )}
+              title="历史食物"
               overlayClassName="library-sheet-overlay"
               wrapClassName="library-sheet-wrap"
               cardClassName="library-sheet-card"
@@ -3778,7 +3578,7 @@
                         <div className="library-list-meta">{normalizePortionText(food.portion)} · {food.kcal} 千卡</div>
                       </div>
                       <span className="library-list-check">
-                        <MiIcon className="mi" style={{ fontSize: 12 }}>check</MiIcon>
+                        <span className="mi" style={{ fontSize: 12 }}>check</span>
                       </span>
                     </button>
                   ))
@@ -3816,61 +3616,16 @@
             </BottomSheet>
 
             <BottomSheet
-              open={calendarSheetOpen}
-              onClose={closeCalendarSheet}
-              title={(
-                <div className="calendar-month-head calendar-month-head-title">
-                  <button className="calendar-month-switch" type="button" onClick={() => shiftCalendarMonth(-1)} aria-label="上个月">
-                    <MiIcon className="mi">chevron_left</MiIcon>
-                  </button>
-                  <div className="calendar-month-label">{getMonthLabel(calendarMonthKey)}</div>
-                  <button className="calendar-month-switch" type="button" onClick={() => shiftCalendarMonth(1)} aria-label="下个月">
-                    <MiIcon className="mi">chevron_right</MiIcon>
-                  </button>
-                </div>
-              )}
-            >
-              <div className="calendar-sheet-body" onTouchStart={onCalendarTouchStart} onTouchEnd={onCalendarTouchEnd}>
-                <div className={"calendar-bubble-grid" + (calendarSlideDirection ? ` slide-${calendarSlideDirection}` : "")}>
-                  {calendarDays.map((item) => (
-                    <button
-                      key={item.dateKey}
-                      className={
-                        "calendar-day" +
-                        (item.isCurrent ? " current" : "") +
-                        (item.isPlaceholder ? " calendar-day-empty" : "")
-                      }
-                      type="button"
-                      onClick={() => pickCalendarDate(item.dateKey)}
-                      disabled={Boolean(item.isPlaceholder)}
-                    >
-                      {item.kcal > 0 ? (
-                        <span
-                          className={"calendar-bubble" + (item.isDanger ? " danger" : "")}
-                          style={{ "--bubble-size": `${item.bubbleSize}px` }}
-                        >
-                          {item.day}
-                        </span>
-                      ) : item.isPlaceholder ? null : (
-                        <span className="calendar-day-plain">{item.day}</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </BottomSheet>
-
-            <BottomSheet
               open={entryEditOpen}
               onClose={closeEntryEdit}
               title="编辑记录"
               actions={(
                 <>
                   <button className="history-btn" type="button" onClick={undoEntryEdit} disabled={entryUndoStack.length === 0}>
-                    <MiIcon className="mi" style={{ fontSize: 26 }}>undo</MiIcon>
+                    <span className="mi" style={{ fontSize: 26 }}>undo</span>
                   </button>
                   <button className="history-btn" type="button" onClick={redoEntryEdit} disabled={entryRedoStack.length === 0}>
-                    <MiIcon className="mi" style={{ fontSize: 26 }}>redo</MiIcon>
+                    <span className="mi" style={{ fontSize: 26 }}>redo</span>
                   </button>
                 </>
               )}
@@ -3930,7 +3685,7 @@
                           删除
                         </button>
                         <button className="result-btn save" type="button" onClick={saveEditingEntry}>
-                          <MiIcon className="mi action-icon">check</MiIcon> 保存
+                          <span className="mi action-icon">check</span> 保存
                         </button>
                       </div>
                 </div>
@@ -3942,17 +3697,17 @@
                 <div className="image-preview-stage" onClick={(e) => e.stopPropagation()}>
                   {attachments.length > 1 && (
                     <button className="image-preview-nav prev" type="button" onClick={previewPrev} aria-label="上一张">
-                      <MiIcon className="mi" style={{ fontSize: 20 }}>chevron_left</MiIcon>
+                      <span className="mi" style={{ fontSize: 20 }}>chevron_left</span>
                     </button>
                   )}
                   <img className="image-preview-img" alt="" src={attachments[imagePreviewIndex].url} />
                   {attachments.length > 1 && (
                     <button className="image-preview-nav next" type="button" onClick={previewNext} aria-label="下一张">
-                      <MiIcon className="mi" style={{ fontSize: 20 }}>chevron_right</MiIcon>
+                      <span className="mi" style={{ fontSize: 20 }}>chevron_right</span>
                     </button>
                   )}
                   <button className="image-preview-close" type="button" onClick={closeImagePreview} aria-label="关闭预览">
-                    <MiIcon className="mi" style={{ fontSize: 20 }}>close</MiIcon>
+                    <span className="mi" style={{ fontSize: 20 }}>close</span>
                   </button>
                   <div className="image-preview-meta">{imagePreviewIndex + 1} / {attachments.length}</div>
                 </div>
