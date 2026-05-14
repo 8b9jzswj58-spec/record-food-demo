@@ -9,6 +9,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="theme-color" content="#eef6ee" />
     <title>我的饮食</title>
+    <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg" />
     <link rel="stylesheet" href="./assets/vendor/remixicon/remixicon.css" />
     <style>
       :root {
@@ -1407,6 +1408,73 @@
       }
 
       .result-error { padding: 0 16px 16px; color: #cb2f31; font-size: 13px; white-space: pre-wrap; }
+      .supplement-panel {
+        display: grid;
+        gap: 12px;
+        padding-top: 6px;
+      }
+      .supplement-head {
+        padding: 0 16px;
+        display: grid;
+        gap: 6px;
+      }
+      .supplement-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+      .supplement-sub {
+        font-size: 13px;
+        color: var(--text-muted);
+        line-height: 1.45;
+      }
+      .supplement-suspects {
+        display: grid;
+        gap: 8px;
+        padding: 0 16px;
+      }
+      .supplement-suspect-item {
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.84);
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 14px;
+      }
+      .supplement-confidence {
+        font-size: 12px;
+        color: #9b5c0a;
+        background: rgba(255, 190, 86, 0.2);
+        border-radius: 999px;
+        padding: 3px 8px;
+      }
+      .supplement-media,
+      .supplement-text {
+        padding: 0 16px;
+      }
+      .supplement-attach {
+        padding: 10px 0 0;
+      }
+      .supplement-textarea {
+        width: 100%;
+        min-height: 88px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 16px;
+        color: var(--text-main);
+        line-height: 1.5;
+        resize: none;
+        background: rgba(255, 255, 255, 0.92);
+      }
+      .supplement-actions {
+        padding: 0 16px 10px;
+        display: flex;
+        gap: 8px;
+      }
       .parse-status {
         margin: 2px 16px 12px;
         border-radius: 14px;
@@ -1630,6 +1698,8 @@
 
       const MAX_ATTACHMENTS = 5;
       const MEALS = ["早餐", "午餐", "晚餐"];
+      const SUPPLEMENT_CONFIDENCE_THRESHOLD = 0.8;
+      const FORCE_SUPPLEMENT_DEBUG = new URLSearchParams(window.location.search).get("forceSupplement") === "1";
       const RECORDS_CACHE_KEY_PREFIX = "diet-records-cache-v1";
       const GOAL_KCAL_CACHE_KEY = "diet-goal-kcal-v1";
       const ICON_COMPONENTS = {
@@ -1858,9 +1928,16 @@
           name: String(item?.name || "未命名食物").slice(0, 12),
           portion: normalizePortionText(String(item?.portion || "1份")),
           kcal: Math.max(0, Math.min(3000, Number.parseInt(item?.kcal, 10) || 0)),
-          confidence: Math.max(0, Math.min(1, Number(item?.confidence) || 0)),
+          confidence: normalizeConfidenceValue(item?.confidence),
           emoji: String(item?.emoji || "🍽️").trim() || "🍽️"
         }));
+      }
+
+      function normalizeConfidenceValue(rawConfidence) {
+        let value = Number(rawConfidence);
+        if (!Number.isFinite(value)) return 0;
+        if (value > 1) value = value / 100;
+        return Math.max(0, Math.min(1, value));
       }
 
       function normalizePortionText(rawPortion) {
@@ -1907,7 +1984,7 @@
           unitKcal,
           unitName,
           kcal,
-          confidence: Math.max(0, Math.min(1, Number(item?.confidence) || 0)),
+          confidence: normalizeConfidenceValue(item?.confidence),
           emoji: String(item?.emoji || "🍽️").trim() || "🍽️"
         };
       }
@@ -1928,6 +2005,14 @@
 
       function cloneParsedItems(srcItems) {
         return (Array.isArray(srcItems) ? srcItems : []).map((item) => ({ ...item }));
+      }
+
+      function getSupplementSuspectItems(items) {
+        return (Array.isArray(items) ? items : []).filter((item) => {
+          const confidence = Number(item?.confidence);
+          if (!Number.isFinite(confidence)) return true;
+          return confidence < SUPPLEMENT_CONFIDENCE_THRESHOLD;
+        });
       }
 
       function MealTabs({ value, onChange, className = "" }) {
@@ -2237,6 +2322,7 @@
         const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
         const [imagePreviewIndex, setImagePreviewIndex] = useState(0);
         const [editingMeal, setEditingMeal] = useState("早餐");
+        const [supplementText, setSupplementText] = useState("");
         const entryEditSessionRef = useRef({ key: "", before: null });
 
         const cameraInputRef = useRef(null);
@@ -2250,6 +2336,11 @@
         const parseAbortRef = useRef(null);
         const parseTaskRef = useRef(parseTask);
         const calendarTouchRef = useRef({ x: 0, y: 0 });
+
+        const supplementSuspects = useMemo(
+          () => getSupplementSuspectItems(parsedResults),
+          [parsedResults]
+        );
 
         useEffect(() => {
           const root = document.documentElement;
@@ -2403,6 +2494,10 @@
 
         function openAddSheetPanel() {
           setSheetOpen(true);
+          if (FORCE_SUPPLEMENT_DEBUG) {
+            setPanelMode("supplement");
+            return;
+          }
           if (parseTaskRef.current.status === "parsing") {
             setParseTask((prev) => ({ ...prev, backgrounded: false }));
             setPanelMode("result");
@@ -2411,9 +2506,17 @@
             parseTaskRef.current.backgrounded
           ) {
             setParseTask((prev) => ({ ...prev, backgrounded: false }));
-            setPanelMode("result");
+            setPanelMode(
+              FORCE_SUPPLEMENT_DEBUG || getSupplementSuspectItems(parsedResultsRef.current).length > 0
+                ? "supplement"
+                : "result"
+            );
           } else if (parseTaskRef.current.status === "success" && parsedResultsRef.current.length > 0) {
-            setPanelMode("result");
+            setPanelMode(
+              FORCE_SUPPLEMENT_DEBUG || getSupplementSuspectItems(parsedResultsRef.current).length > 0
+                ? "supplement"
+                : "result"
+            );
           }
         }
         function startGoalEdit() {
@@ -2667,7 +2770,11 @@
             applyParsedResults(quickItems);
             setParseError("");
             setParseTask(createIdleParseTask());
-            setPanelMode("result");
+            if (getSupplementSuspectItems(quickItems).length > 0) {
+              enterSupplementStep();
+            } else {
+              setPanelMode("result");
+            }
             return;
           }
 
@@ -2726,7 +2833,12 @@
                 setParseError("");
               }
             }
-            setPanelMode("result");
+            const mergedItems = [...normalized, ...quickItems];
+            if (FORCE_SUPPLEMENT_DEBUG || (mergedItems.length > 0 && getSupplementSuspectItems(mergedItems).length > 0)) {
+              enterSupplementStep();
+            } else {
+              setPanelMode("result");
+            }
             updateParseTaskFor(requestId, {
               status: "success",
               progressText: "解析完成",
@@ -2749,7 +2861,11 @@
               applyParsedResults([]);
               setParseError("解析失败：\n" + (error?.message || "未知错误"));
             }
-            setPanelMode("result");
+            if (FORCE_SUPPLEMENT_DEBUG) {
+              setPanelMode("supplement");
+            } else {
+              setPanelMode("result");
+            }
             updateParseTaskFor(requestId, {
               status: "error",
               progressText: "解析失败，可重试",
@@ -2994,10 +3110,23 @@
           setLibraryLoadedCount((prev) => Math.min(prev + 20, foodLibrary.foods.length));
         }
 
+        function enterSupplementStep() {
+          setPanelMode("supplement");
+        }
+
+        function submitSupplementAndContinue() {
+          setPanelMode("result");
+        }
+
+        function skipSupplementAndContinue() {
+          setPanelMode("result");
+        }
+
         function resetAddSheetContent() {
           cleanupAttachments(attachments);
           setAttachments([]);
           setInputText("");
+          setSupplementText("");
           applyParsedResults([]);
           setSelectedQuickFoods([]);
           setSelectedLibraryFoods([]);
@@ -3643,6 +3772,79 @@
                       <MiIcon className="mi action-icon">{parseTask.status === "parsing" ? "progress_activity" : "arrow_upward"}</MiIcon>
                       <span>{parseTask.status === "parsing" ? "解析中…" : "发送"}</span>
                     </button>
+                  </div>
+                </div>
+              ) : panelMode === "supplement" ? (
+                <div className="sheet-flow-view">
+                  <div className="supplement-panel">
+                    <div className="supplement-head">
+                      <div className="supplement-title">补充信息（可选）</div>
+                      <div className="supplement-sub">
+                        {supplementSuspects.length > 0
+                          ? `这几项有点不准：${supplementSuspects.map((item) => item.name).join("、")}。补点图片或文字会更准，也可以直接跳过。`
+                          : "可以补点图片或文字让结果更准，也可以直接跳过。"}
+                      </div>
+                    </div>
+
+                    <div className="supplement-suspects">
+                      {supplementSuspects.length > 0 && (
+                        supplementSuspects.map((item, index) => (
+                          <div className="supplement-suspect-item" key={`${item.name}-${index}`}>
+                            <span>{item.emoji || "🍽️"} {item.name}</span>
+                            <span className="supplement-confidence">{Math.round((Number(item.confidence) || 0) * 100)}%</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    <div className="supplement-media">
+                      <div className="input-section-title">补充图片（可选）</div>
+                      <div className={"attach supplement-attach" + (attachments.length === 0 ? " attach-empty" : "") }>
+                        {attachments.map((item, index) => (
+                          <div className="attach-item has-image" key={item.url + "-supplement"}>
+                            <img className="attach-thumb" alt="" src={item.url} onClick={() => openImagePreview(index)} />
+                            <button className="thumb-delete" type="button" onClick={(event) => {
+                              event.stopPropagation();
+                              removeAttachmentAt(index);
+                            }}>
+                              <MiIcon className="mi" style={{ fontSize: 18 }}>close</MiIcon>
+                            </button>
+                          </div>
+                        ))}
+                        {attachments.length < MAX_ATTACHMENTS && (
+                          <button className={"attach-item" + (attachments.length === 0 ? " attach-option" : "")} type="button" onClick={() => cameraInputRef.current && cameraInputRef.current.click()}>
+                            <MiIcon className="mi attach-icon">photo_camera</MiIcon>
+                            {attachments.length === 0 && <span className="attach-label">拍照</span>}
+                          </button>
+                        )}
+                        {attachments.length < MAX_ATTACHMENTS && (
+                          <label className={"attach-item" + (attachments.length === 0 ? " attach-option" : "") }>
+                            <MiIcon className="mi attach-icon">photo_library</MiIcon>
+                            {attachments.length === 0 && <span className="attach-label">相册</span>}
+                            <input ref={galleryInputRef} className="native-file-input" type="file" accept="image/*" multiple onChange={handlePickedFile} />
+                          </label>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="supplement-text">
+                      <div className="input-section-title">补充文字（可选）</div>
+                      <textarea
+                        className="supplement-textarea"
+                        value={supplementText}
+                        onChange={(e) => setSupplementText(e.target.value)}
+                        placeholder="例如：这是 250ml 的酸奶；煎蛋用了 2 个鸡蛋。"
+                      />
+                    </div>
+
+                    <div className="supplement-actions">
+                      <button className="result-btn save" type="button" onClick={submitSupplementAndContinue}>
+                        发送补充信息
+                      </button>
+                      <button className="result-btn retry" type="button" onClick={skipSupplementAndContinue}>
+                        跳过
+                      </button>
+                    </div>
                   </div>
                 </div>
               ) : (
