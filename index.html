@@ -3718,11 +3718,6 @@
             <main className="page">
               <header className="nav">
                 <h1 className="title">我的饮食</h1>
-                {!DEV_AUTH_BYPASS_ENABLED && (
-                  <button className="nav-settings" type="button" onClick={() => setSettingsMenuOpen((prev) => !prev)} aria-label="设置">
-                    <MiIcon className="mi" style={{ fontSize: 18 }}>settings</MiIcon>
-                  </button>
-                )}
               </header>
 
               <section className="hero">
