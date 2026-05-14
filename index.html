@@ -667,13 +667,14 @@
       }
 
       .footer {
+        --footer-pad-y: 18px;
         position: fixed;
         left: 50%;
         transform: translateX(-50%);
         bottom: 0;
         width: min(420px, 100vw);
         background: transparent;
-        padding: 18px 20px calc(40px + env(safe-area-inset-bottom, 0px));
+        padding: var(--footer-pad-y) 20px calc(var(--footer-pad-y) + env(safe-area-inset-bottom, 0px));
         z-index: 4;
         isolation: isolate;
       }
@@ -1684,14 +1685,18 @@
       const { useEffect, useMemo, useRef, useState } = React;
 
       const SUPABASE_URL = "https://fwwsoilsbgympvkajnih.supabase.co";
+      // Public key for browser clients only. Never put service_role or private secrets in frontend code.
       const SUPABASE_ANON_KEY = "sb_publishable_NJQJKRnn5mYgRZ6AErlyZg_dAfrmnmN";
       const SUPABASE_HEADERS = {
         apikey: SUPABASE_ANON_KEY,
         "Content-Type": "application/json"
       };
-      const TEST_MODE_AUTH_BYPASS = true;
-      const TEST_MODE_EMAIL = "787364959@qq.com";
-      const TEST_MODE_PASSWORD = "12345678";
+      const DEV_AUTH_EMAIL = "localdev@example.com";
+      const DEV_AUTH_PASSWORD = "change-me-in-local-only";
+      const DEV_AUTH_BYPASS_ENABLED =
+        (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") &&
+        new URLSearchParams(window.location.search).get("devAuthBypass") === "1";
+      const REMOTE_TIMEZONE_LOOKUP_ENABLED = false;
 
       const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
@@ -1912,7 +1917,14 @@
           method: "POST",
           headers: headers || { ...SUPABASE_HEADERS },
           signal,
-          body: JSON.stringify({ meal, text: inputText, images: imageParts })
+          body: JSON.stringify({
+            meal,
+            text: inputText,
+            images: imageParts,
+            outputRules: {
+              emoji: "exactly_one"
+            }
+          })
         });
 
         const data = await response.json();
@@ -1923,6 +1935,13 @@
         return data?.data || {};
       }
 
+      function pickSingleEmoji(rawEmoji) {
+        const raw = String(rawEmoji || "").trim();
+        if (!raw) return "🍽️";
+        const emojiMatch = raw.match(/\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*/u);
+        return emojiMatch?.[0] || "🍽️";
+      }
+
       function normalizeAiItems(aiObject) {
         const items = Array.isArray(aiObject?.items) ? aiObject.items : [];
         return items.map((item) => ({
@@ -1930,7 +1949,7 @@
           portion: normalizePortionText(String(item?.portion || "1份")),
           kcal: Math.max(0, Math.min(3000, Number.parseInt(item?.kcal, 10) || 0)),
           confidence: normalizeConfidenceValue(item?.confidence),
-          emoji: String(item?.emoji || "🍽️").trim() || "🍽️"
+          emoji: pickSingleEmoji(item?.emoji)
         }));
       }
 
@@ -1986,7 +2005,7 @@
           unitName,
           kcal,
           confidence: normalizeConfidenceValue(item?.confidence),
-          emoji: String(item?.emoji || "🍽️").trim() || "🍽️"
+          emoji: pickSingleEmoji(item?.emoji)
         };
       }
 
@@ -2000,7 +2019,7 @@
           unitName: String(item.unitName || "份"),
           kcal: Math.max(0, Math.round((Number(item.servings) || 1) * (Number(item.unitKcal) || 0))),
           confidence: Number(item.confidence) || 0,
-          emoji: String(item.emoji || "🍽️")
+          emoji: pickSingleEmoji(item.emoji)
         };
       }
 
@@ -2457,7 +2476,7 @@
                   portion: String(item?.portion || "1份"),
                   kcal: Math.max(0, Math.min(3000, Number.parseInt(item?.kcal, 10) || 0)),
                   confidence: Math.max(0, Math.min(1, Number(item?.confidence) || 0)),
-                  emoji: String(item?.emoji || "🍽️").trim() || "🍽️",
+                  emoji: pickSingleEmoji(item?.emoji),
                   meal: record?.meal || "早餐"
                 });
               });
@@ -2823,9 +2842,8 @@
             });
             const normalized = normalizeAiItems(aiObject).map(normalizeEditableFood);
             if (normalized.length === 0 && !hasQuick) {
-              const modelReason = String(aiObject?.notes || "").trim() || "模型未返回可用食物条目。";
               applyParsedResults([]);
-              setParseError("解析结果不可用：\n" + modelReason);
+              setParseError("解析结果不可用，请补充更清晰的文字或图片后重试。");
             } else {
               applyParsedResults([...normalized, ...quickItems]);
               if (normalized.length === 0 && hasQuick) {
@@ -2860,7 +2878,7 @@
               setParseError("AI 解析失败，已保留所选快捷项。");
             } else {
               applyParsedResults([]);
-              setParseError("解析失败：\n" + (error?.message || "未知错误"));
+              setParseError("解析失败，请稍后重试。");
             }
             if (FORCE_SUPPLEMENT_DEBUG) {
               setPanelMode("supplement");
@@ -3226,7 +3244,7 @@
                 unitName: String(item.unitName || "份"),
                 kcal: Math.max(0, Math.round((Number(item.servings) || 1) * (Number(item.unitKcal) || 0))),
                 confidence: Number(item.confidence) || 0,
-                emoji: String(item.emoji || "🍽️")
+                emoji: pickSingleEmoji(item.emoji)
               })),
               created_at: (() => {
                 const [y, m, d] = currentDateKey.split("-").map(Number);
@@ -3246,22 +3264,24 @@
         }
 
         async function bootstrapAuth() {
-          fetch("https://worldtimeapi.org/api/ip")
-            .then((r) => r.json())
-            .then((data) => {
-              if (data?.timezone) {
-                APP_TIMEZONE = data.timezone;
-                setCurrentDateKey(getDateKey(Date.now()));
-              }
-            })
-            .catch(() => {});
+          if (REMOTE_TIMEZONE_LOOKUP_ENABLED) {
+            fetch("https://worldtimeapi.org/api/ip")
+              .then((r) => r.json())
+              .then((data) => {
+                if (data?.timezone) {
+                  APP_TIMEZONE = data.timezone;
+                  setCurrentDateKey(getDateKey(Date.now()));
+                }
+              })
+              .catch(() => {});
+          }
           const { data } = await supabaseClient.auth.getSession();
           let nextSession = data?.session || null;
           let nextUser = nextSession?.user || null;
-          if (TEST_MODE_AUTH_BYPASS && !nextUser) {
+          if (DEV_AUTH_BYPASS_ENABLED && !nextUser) {
             const signInRes = await supabaseClient.auth.signInWithPassword({
-              email: TEST_MODE_EMAIL,
-              password: TEST_MODE_PASSWORD
+              email: DEV_AUTH_EMAIL,
+              password: DEV_AUTH_PASSWORD
             });
             if (!signInRes.error) {
               nextSession = signInRes.data?.session || null;
@@ -3273,7 +3293,7 @@
           setRecords(cached.length > 0 ? cached : []);
           setCurrentSession(nextSession);
           setCurrentUser(nextUser);
-          setAuthVisible(TEST_MODE_AUTH_BYPASS ? false : !nextUser);
+          setAuthVisible(!nextUser);
           if (nextUser) await initBackendState(nextUser, nextSession);
         }
 
@@ -3287,7 +3307,7 @@
             setRecords(cached.length > 0 ? cached : []);
             setCurrentSession(nextSession);
             setCurrentUser(nextUser);
-            setAuthVisible(TEST_MODE_AUTH_BYPASS ? false : !nextUser);
+            setAuthVisible(!nextUser);
             if (nextUser) {
               await initBackendState(nextUser, nextSession);
             } else {
@@ -3548,7 +3568,7 @@
             <main className="page">
               <header className="nav">
                 <h1 className="title">我的饮食</h1>
-                {!TEST_MODE_AUTH_BYPASS && (
+                {!DEV_AUTH_BYPASS_ENABLED && (
                   <button className="nav-settings" type="button" onClick={() => setSettingsMenuOpen((prev) => !prev)} aria-label="设置">
                     <MiIcon className="mi" style={{ fontSize: 18 }}>settings</MiIcon>
                   </button>
