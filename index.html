@@ -2405,7 +2405,37 @@
         contentKey = ""
       }) {
         const bodyRef = useRef(null);
+        const headRef = useRef(null);
+        const cardRef = useRef(null);
         const [contentHeight, setContentHeight] = useState(0);
+        const [dragY, setDragY] = useState(0);
+        const [isDragging, setIsDragging] = useState(false);
+        const dragStateRef = useRef({
+          pointerId: null,
+          active: false,
+          fromHead: false,
+          startY: 0,
+          startX: 0,
+          lastY: 0,
+          lastTime: 0,
+          velocityY: 0
+        });
+
+        useEffect(() => {
+          if (open) return;
+          setDragY(0);
+          setIsDragging(false);
+          dragStateRef.current = {
+            pointerId: null,
+            active: false,
+            fromHead: false,
+            startY: 0,
+            startX: 0,
+            lastY: 0,
+            lastTime: 0,
+            velocityY: 0
+          };
+        }, [open]);
 
         useEffect(() => {
           if (!fluidHeight || !open) return;
@@ -2427,6 +2457,78 @@
           };
         }, [open, fluidHeight, contentKey]);
 
+        function onSheetPointerDown(event) {
+          if (!open) return;
+          if (event.pointerType === "mouse" && event.button !== 0) return;
+          const viewport = bodyRef.current?.parentElement;
+          const fromHead = !!headRef.current?.contains(event.target);
+          const canStart = fromHead || (viewport && viewport.scrollTop <= 0);
+          if (!canStart) return;
+          dragStateRef.current = {
+            pointerId: event.pointerId,
+            active: true,
+            fromHead,
+            startY: event.clientY,
+            startX: event.clientX,
+            lastY: event.clientY,
+            lastTime: performance.now(),
+            velocityY: 0
+          };
+          if (cardRef.current?.setPointerCapture) {
+            try {
+              cardRef.current.setPointerCapture(event.pointerId);
+            } catch (_) {}
+          }
+        }
+
+        function onSheetPointerMove(event) {
+          const state = dragStateRef.current;
+          if (!state.active || state.pointerId !== event.pointerId) return;
+          const viewport = bodyRef.current?.parentElement;
+          const deltaX = event.clientX - state.startX;
+          const deltaY = event.clientY - state.startY;
+          if (!state.fromHead) {
+            if (Math.abs(deltaY) <= Math.abs(deltaX)) return;
+            if (!viewport || viewport.scrollTop > 0) return;
+            if (deltaY <= 0) return;
+          }
+
+          const now = performance.now();
+          const dt = Math.max(1, now - state.lastTime);
+          state.velocityY = (event.clientY - state.lastY) / dt;
+          state.lastY = event.clientY;
+          state.lastTime = now;
+
+          const resisted = deltaY <= 0 ? 0 : deltaY * 0.95;
+          if (!isDragging) setIsDragging(true);
+          setDragY(resisted);
+          event.preventDefault();
+        }
+
+        function finishSheetDrag(pointerId) {
+          const state = dragStateRef.current;
+          if (!state.active || (pointerId !== undefined && state.pointerId !== pointerId)) return;
+          const threshold = Math.min(180, Math.max(96, window.innerHeight * 0.18));
+          const shouldClose = dragY > threshold || state.velocityY > 0.9;
+          dragStateRef.current = {
+            pointerId: null,
+            active: false,
+            fromHead: false,
+            startY: 0,
+            startX: 0,
+            lastY: 0,
+            lastTime: 0,
+            velocityY: 0
+          };
+          setIsDragging(false);
+          if (shouldClose) {
+            setDragY(0);
+            onClose();
+            return;
+          }
+          setDragY(0);
+        }
+
         return (
           <div
             className={overlayClassName + (open ? " show" : "")}
@@ -2434,9 +2536,22 @@
               if (e.target === e.currentTarget) onClose();
             }}
           >
-            <div className={wrapClassName}>
-              <div className={cardClassName}>
-                <div className="sheet-head">
+            <div
+              className={wrapClassName}
+              style={{
+                transform: `translateY(${(open ? 0 : 24) + dragY}px)`,
+                transition: isDragging ? "none" : "transform 0.28s cubic-bezier(0.22, 0.9, 0.34, 1)"
+              }}
+            >
+              <div
+                ref={cardRef}
+                className={cardClassName}
+                onPointerDown={onSheetPointerDown}
+                onPointerMove={onSheetPointerMove}
+                onPointerUp={(event) => finishSheetDrag(event.pointerId)}
+                onPointerCancel={(event) => finishSheetDrag(event.pointerId)}
+              >
+                <div ref={headRef} className="sheet-head">
                   <div className="meal-prefix">{title}</div>
                   <div className="sheet-head-actions">
                     {actions}
