@@ -25,9 +25,16 @@
         --divider: rgba(15, 31, 24, 0.08);
         --green: #24b37e;
         --green-strong: #1ea772;
+        --token-progress-primary: var(--green);
+        --token-progress-primary-strong: var(--green-strong);
+        --token-progress-macro-protein: var(--token-progress-primary);
         --option-size: 14px;
         --option-weight: 400;
         --option-color: var(--text-secondary);
+        --small-text-size: 14px;
+        --small-text-weight: 400;
+        --small-text-color: var(--text-secondary);
+        --tiny-text-size: 12px;
         --nav-safe-height: calc(56px + env(safe-area-inset-top, 0px));
         --top-bar-bg: #eef6ee;
         --nav-scroll-progress: 0;
@@ -87,10 +94,16 @@
         background: linear-gradient(140deg, rgba(255, 255, 255, 0.92) 0%, rgba(245, 253, 249, 0.9) 100%);
         border: 1px solid rgba(255, 255, 255, 0.8);
       }
+      .hero-nav-shell {
+        margin: 0 12px;
+        padding: 0 6px;
+        display: none;
+      }
 
       .hero-title {
-        font-size: 13px;
-        color: var(--text-muted);
+        font-size: 14px;
+        font-weight: 400;
+        color: #98a1aa;
       }
 
       .hero-main {
@@ -142,13 +155,14 @@
 
       .hero-kcal small {
         font-size: 14px;
-        color: var(--text-muted);
-        font-weight: 500;
+        color: #98a1aa;
+        font-weight: 400;
         line-height: 1;
       }
       .hero-meta {
-        font-size: 12px;
-        color: var(--text-secondary);
+        font-size: 14px;
+        color: #98a1aa;
+        font-weight: 400;
         display: inline-flex;
         align-items: center;
         gap: 4px;
@@ -165,8 +179,9 @@
         gap: 10px;
       }
       .hero-goal-text {
-        font-size: 12px;
-        color: var(--text-secondary);
+        font-size: 14px;
+        color: #98a1aa;
+        font-weight: 400;
         display: inline-flex;
         align-items: center;
         gap: 6px;
@@ -222,15 +237,74 @@
       .hero-progress-fill {
         height: 100%;
         border-radius: inherit;
-        background: linear-gradient(130deg, var(--green) 0%, var(--green-strong) 100%);
+        background: linear-gradient(130deg, var(--token-progress-primary) 0%, var(--token-progress-primary-strong) 100%);
         transition: width 0.24s ease;
       }
       .hero-progress-fill.danger {
         background: linear-gradient(130deg, #ff6767 0%, #f04444 100%);
       }
+      .hero-macro-grid {
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 0;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 22px;
+      }
+      .hero-macro-card {
+        min-width: 0;
+      }
+      .hero-macro-name {
+        line-height: 1.2;
+      }
+      .hero-macro-track {
+        margin-top: 10px;
+        height: 6px;
+        border-radius: 999px;
+        background: rgba(18, 18, 18, 0.08);
+        overflow: hidden;
+      }
+      .hero-macro-fill {
+        height: 100%;
+        border-radius: inherit;
+        transition: width 0.25s ease;
+      }
+      .hero-macro-fill.carb,
+      .hero-macro-fill.fat {
+        background: #f26474;
+      }
+      .hero-macro-fill.protein {
+        background: var(--token-progress-macro-protein);
+      }
+      .hero-macro-fill.over {
+        background: #eb4a5f;
+      }
+      .hero-macro-fill.unknown {
+        background: rgba(24, 35, 31, 0.18);
+      }
+      .hero-macro-value {
+        margin-top: 12px;
+        display: flex;
+        align-items: baseline;
+        gap: 2px;
+        font-variant-numeric: tabular-nums;
+      }
+      .hero-macro-current {
+        line-height: 1;
+      }
+      .hero-macro-sep {
+        line-height: 1;
+      }
+      .hero-macro-target {
+        line-height: 1;
+      }
+      .hero-macro-unit {
+        margin-left: 2px;
+        line-height: 1;
+      }
 
       .hero-nav {
-        margin-top: 12px;
+        margin-top: 10px;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -242,7 +316,7 @@
         height: 34px;
         border: 0;
         border-radius: 999px;
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.72);
         color: var(--text-main);
         display: inline-flex;
         align-items: center;
@@ -250,21 +324,24 @@
       }
 
       .hero-date-btn {
-        width: 100%;
+        width: auto;
         border: 0;
         height: 34px;
         border-radius: 999px;
-        background: rgba(255, 255, 255, 0.92);
+        background: rgba(255, 255, 255, 0.72);
         color: var(--text-secondary);
-        font-size: 13px;
-        font-weight: 600;
-        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        font-weight: 400;
+        font-family: inherit;
+        opacity: 1;
+        padding: 0 18px;
+        white-space: nowrap;
       }
 
       .hero-date-wrap {
         position: relative;
-        flex: 1;
-        min-width: 0;
+        flex: 0 0 auto;
+        min-width: auto;
       }
       .calendar-sheet-body {
         padding: 4px 12px 10px;
@@ -408,7 +485,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: env(safe-area-inset-top, 0px) 16px 0;
+        gap: 8px;
+        padding: env(safe-area-inset-top, 0px) 12px 0;
         position: sticky;
         top: 0;
         z-index: 3;
@@ -567,8 +645,10 @@
         line-height: 1;
       }
       .head-value .muted {
-        color: var(--text-muted);
+        color: var(--small-text-color);
         line-height: 1;
+        font-size: var(--small-text-size);
+        font-weight: var(--small-text-weight);
       }
 
       .item {
@@ -636,6 +716,24 @@
         text-overflow: ellipsis;
       }
 
+      /* Keep top summary small text exactly aligned with list text style. */
+      .hero-title,
+      .hero-kcal small,
+      .hero-meta,
+      .hero-goal-text,
+      .hero-macro-name,
+      .hero-macro-current,
+      .hero-macro-current.unknown,
+      .hero-macro-sep,
+      .hero-macro-target,
+      .hero-macro-unit {
+        color: var(--text-secondary);
+        font-size: 12px;
+        font-weight: 400;
+        font-family: inherit;
+        opacity: 1;
+      }
+
       .food-wrap {
         flex: 1;
         min-width: 0;
@@ -643,8 +741,9 @@
 
       .kcal {
         flex-shrink: 0;
-        color: var(--text-muted);
-        font-size: 12px;
+        color: var(--small-text-color);
+        font-size: var(--small-text-size);
+        font-weight: var(--small-text-weight);
         display: flex;
         align-items: center;
         gap: 2px;
@@ -1374,6 +1473,12 @@
         display: grid;
         gap: 4px;
       }
+      .result-macro-grid {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
       .serving-unit-row {
         display: grid;
         grid-template-columns: 1fr 74px;
@@ -1405,6 +1510,9 @@
 
       @media (max-width: 390px) {
         .result-fields {
+          grid-template-columns: 1fr;
+        }
+        .result-macro-grid {
           grid-template-columns: 1fr;
         }
       }
@@ -1979,6 +2087,70 @@
         return data?.data || {};
       }
 
+      async function callMacroBackfill({ items, signal, headers }) {
+        const response = await fetch(SUPABASE_URL + "/functions/v1/parse-food-macros", {
+          method: "POST",
+          headers: headers || { ...SUPABASE_HEADERS },
+          signal,
+          body: JSON.stringify({
+            items: (Array.isArray(items) ? items : []).map((item) => ({
+              name: String(item?.name || ""),
+              portion: String(item?.portion || ""),
+              kcal: Math.max(0, Number(item?.kcal) || 0),
+              meal: String(item?.meal || "")
+            }))
+          })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data?.error || data?.message || "parse-food-macros request failed");
+        if (!data?.ok) throw new Error(data?.error || "parse-food-macros failed");
+        return Array.isArray(data?.data?.items) ? data.data.items : [];
+      }
+
+      function hasMissingMacros(item) {
+        return (
+          item?.carb_g === null || item?.carb_g === undefined ||
+          item?.protein_g === null || item?.protein_g === undefined ||
+          item?.fat_g === null || item?.fat_g === undefined
+        );
+      }
+
+      async function fillMissingMacrosByBackend({ items, meal, signal, headers }) {
+        const list = Array.isArray(items) ? items : [];
+        const targets = [];
+        list.forEach((item, idx) => {
+          if (hasMissingMacros(item)) {
+            targets.push({
+              idx,
+              payload: {
+                name: item?.name || "",
+                portion: item?.portion || "",
+                kcal: Math.max(0, Number(item?.kcal) || 0),
+                meal: meal || ""
+              }
+            });
+          }
+        });
+        if (targets.length === 0) return list;
+        const backfilled = await callMacroBackfill({
+          items: targets.map((target) => target.payload),
+          signal,
+          headers
+        });
+        const next = list.map((item) => ({ ...item }));
+        targets.forEach((target, i) => {
+          const patch = backfilled[i] || {};
+          const current = next[target.idx] || {};
+          next[target.idx] = normalizeEditableFood({
+            ...current,
+            carb_g: current.carb_g ?? normalizeMacroValue(patch?.carb_g),
+            protein_g: current.protein_g ?? normalizeMacroValue(patch?.protein_g),
+            fat_g: current.fat_g ?? normalizeMacroValue(patch?.fat_g)
+          });
+        });
+        return next;
+      }
+
       function extractSingleEmoji(rawText) {
         const raw = String(rawText || "");
         const emojiMatch = raw.match(
@@ -2001,7 +2173,10 @@
           portion: normalizePortionText(String(item?.portion || "1份")),
           kcal: Math.max(0, Math.min(3000, Number.parseInt(item?.kcal, 10) || 0)),
           confidence: normalizeConfidenceValue(item?.confidence),
-          emoji: pickSingleEmoji(item?.emoji)
+          emoji: pickSingleEmoji(item?.emoji),
+          carb_g: normalizeMacroValue(item?.carb_g),
+          protein_g: normalizeMacroValue(item?.protein_g),
+          fat_g: normalizeMacroValue(item?.fat_g)
         }));
       }
 
@@ -2044,11 +2219,58 @@
         return normalized;
       }
 
+      function hashSeed(input) {
+        const text = String(input || "");
+        let hash = 2166136261;
+        for (let i = 0; i < text.length; i += 1) {
+          hash ^= text.charCodeAt(i);
+          hash = Math.imul(hash, 16777619);
+        }
+        return hash >>> 0;
+      }
+
+      function seededRandom(seedValue) {
+        let state = (seedValue >>> 0) || 1;
+        state ^= state << 13;
+        state ^= state >>> 17;
+        state ^= state << 5;
+        return ((state >>> 0) % 10000) / 10000;
+      }
+
+      function clampInt(value, min, max) {
+        return Math.max(min, Math.min(max, Math.round(Number(value) || 0)));
+      }
+
+      function normalizeMacroValue(rawValue) {
+        if (rawValue === "" || rawValue === null || rawValue === undefined) return null;
+        const asNumber = Number(rawValue);
+        if (!Number.isFinite(asNumber)) return null;
+        return Math.max(0, Math.round(asNumber));
+      }
+
+      function buildMockMacrosForItem({ item, dateKey, meal }) {
+        const hasAllExistingMacros =
+          item?.carb_g !== null && item?.carb_g !== undefined &&
+          item?.protein_g !== null && item?.protein_g !== undefined &&
+          item?.fat_g !== null && item?.fat_g !== undefined;
+        if (hasAllExistingMacros) {
+          return {
+            carb_g: normalizeMacroValue(item?.carb_g),
+            protein_g: normalizeMacroValue(item?.protein_g),
+            fat_g: normalizeMacroValue(item?.fat_g)
+          };
+        }
+        return { carb_g: null, protein_g: null, fat_g: null };
+      }
+
       function normalizeEditableFood(item) {
         const servings = Math.max(0, Number(item?.servings) || 1);
         const unitKcal = Math.max(0, Number(item?.unitKcal) || Number(item?.kcal) || 0);
         const unitName = String(item?.unitName || "份").trim() || "份";
         const kcal = Math.max(0, Math.round(servings * unitKcal));
+        const carb = normalizeMacroValue(item?.carb_g);
+        const protein = normalizeMacroValue(item?.protein_g);
+        const fat = normalizeMacroValue(item?.fat_g);
         return {
           name: String(item?.name || "未命名食物").slice(0, 12),
           portion: normalizePortionText(String(item?.portion || "1份")),
@@ -2056,6 +2278,9 @@
           unitKcal,
           unitName,
           kcal,
+          carb_g: carb,
+          protein_g: protein,
+          fat_g: fat,
           confidence: normalizeConfidenceValue(item?.confidence),
           emoji: pickSingleEmoji(item?.emoji)
         };
@@ -2070,6 +2295,9 @@
           unitKcal: Number(item.unitKcal) || 0,
           unitName: String(item.unitName || "份"),
           kcal: Math.max(0, Math.round((Number(item.servings) || 1) * (Number(item.unitKcal) || 0))),
+          carb_g: normalizeMacroValue(item.carb_g),
+          protein_g: normalizeMacroValue(item.protein_g),
+          fat_g: normalizeMacroValue(item.fat_g),
           confidence: Number(item.confidence) || 0,
           emoji: pickSingleEmoji(item.emoji)
         };
@@ -2129,6 +2357,15 @@
         onKcalFocus,
         onKcalChange,
         onKcalBlur,
+        onCarbFocus,
+        onCarbChange,
+        onCarbBlur,
+        onProteinFocus,
+        onProteinChange,
+        onProteinBlur,
+        onFatFocus,
+        onFatChange,
+        onFatBlur,
         style = null
       }) {
         return (
@@ -2192,6 +2429,50 @@
                     placeholder="千卡"
                   />
                 </label>
+                <div className="result-macro-grid">
+                  <label className="result-field-wrap">
+                    <span className="result-field-label">碳水（克）</span>
+                    <input
+                      className="result-field"
+                      type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={item.carb_g === null || item.carb_g === undefined ? "" : Math.max(0, Number(item.carb_g) || 0)}
+                      onFocus={onCarbFocus}
+                      onChange={onCarbChange}
+                      onBlur={onCarbBlur}
+                      placeholder=""
+                    />
+                  </label>
+                  <label className="result-field-wrap">
+                    <span className="result-field-label">蛋白质（克）</span>
+                    <input
+                      className="result-field"
+                      type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={item.protein_g === null || item.protein_g === undefined ? "" : Math.max(0, Number(item.protein_g) || 0)}
+                      onFocus={onProteinFocus}
+                      onChange={onProteinChange}
+                      onBlur={onProteinBlur}
+                      placeholder=""
+                    />
+                  </label>
+                  <label className="result-field-wrap">
+                    <span className="result-field-label">脂肪（克）</span>
+                    <input
+                      className="result-field"
+                      type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={item.fat_g === null || item.fat_g === undefined ? "" : Math.max(0, Number(item.fat_g) || 0)}
+                      onFocus={onFatFocus}
+                      onChange={onFatChange}
+                      onBlur={onFatBlur}
+                      placeholder=""
+                    />
+                  </label>
+                </div>
               </div>
             </div>
           </div>
@@ -2505,6 +2786,14 @@
         }, [selectedDateTotalKcal, goalKcal]);
         const goalProgressBarPercent = Math.min(goalProgressPercent, 100);
         const isGoalProgressDanger = goalProgressPercent >= 120;
+        const macroTargets = useMemo(() => {
+          const kcalTarget = Math.max(1, Number(goalKcal) || 1600);
+          return {
+            carb: Math.max(0, Math.round((kcalTarget * 0.5) / 4)),
+            protein: Math.max(0, Math.round((kcalTarget * 0.2) / 4)),
+            fat: Math.max(0, Math.round((kcalTarget * 0.3) / 9))
+          };
+        }, [goalKcal]);
 
         const currentDayMeals = useMemo(() => {
           const target = records.filter((record) => getDateKey(record?.created_at) === currentDateKey);
@@ -2525,6 +2814,57 @@
           });
           return grouped;
         }, [records, currentDateKey]);
+        const selectedDateMacroSummary = useMemo(() => {
+          const summary = {
+            carb: { value: 0, knownCount: 0 },
+            protein: { value: 0, knownCount: 0 },
+            fat: { value: 0, knownCount: 0 }
+          };
+          Object.entries(currentDayMeals).forEach(([meal, entries]) => {
+            (Array.isArray(entries) ? entries : []).forEach((entry) => {
+              const macros = buildMockMacrosForItem({
+                item: entry?.item || {},
+                dateKey: currentDateKey,
+                meal
+              });
+              if (macros.carb_g !== null && macros.carb_g !== undefined) {
+                summary.carb.value += Number(macros.carb_g) || 0;
+                summary.carb.knownCount += 1;
+              }
+              if (macros.protein_g !== null && macros.protein_g !== undefined) {
+                summary.protein.value += Number(macros.protein_g) || 0;
+                summary.protein.knownCount += 1;
+              }
+              if (macros.fat_g !== null && macros.fat_g !== undefined) {
+                summary.fat.value += Number(macros.fat_g) || 0;
+                summary.fat.knownCount += 1;
+              }
+            });
+          });
+          return {
+            carb: summary.carb.knownCount > 0 ? Math.max(0, Math.round(summary.carb.value)) : null,
+            protein: summary.protein.knownCount > 0 ? Math.max(0, Math.round(summary.protein.value)) : null,
+            fat: summary.fat.knownCount > 0 ? Math.max(0, Math.round(summary.fat.value)) : null
+          };
+        }, [currentDayMeals, currentDateKey]);
+        const macroCards = useMemo(() => {
+          const cards = [
+            { key: "carb", label: "碳水", current: selectedDateMacroSummary.carb, target: macroTargets.carb, tone: "carb" },
+            { key: "protein", label: "蛋白质", current: selectedDateMacroSummary.protein, target: macroTargets.protein, tone: "protein" },
+            { key: "fat", label: "脂肪", current: selectedDateMacroSummary.fat, target: macroTargets.fat, tone: "fat" }
+          ];
+          return cards.map((card) => {
+            const safeTarget = Math.max(1, Number(card.target) || 1);
+            const hasKnown = card.current !== null && card.current !== undefined;
+            const ratio = hasKnown ? Math.max(0, Number(card.current) || 0) / safeTarget : 0;
+            return {
+              ...card,
+              hasKnown,
+              isOver: ratio > 1,
+              progress: Math.min(100, Math.round(ratio * 100))
+            };
+          });
+        }, [selectedDateMacroSummary, macroTargets]);
         const calendarDays = useMemo(() => {
           const target = Math.max(1, Number(goalKcal) || 1600);
           const standardSize = 54;
@@ -2683,14 +3023,14 @@
         function openParsedEmojiEditor(index) {
           const item = parsedResults[index];
           if (!item) return;
-          setEmojiDraft(pickSingleEmoji(item.emoji));
+          setEmojiDraft(extractSingleEmoji(item.emoji));
           setEmojiError("");
           setEmojiTarget({ kind: "parsed", index });
           setEmojiSheetOpen(true);
         }
         function openEntryEmojiEditor() {
           if (!editingItem) return;
-          setEmojiDraft(pickSingleEmoji(editingItem.emoji));
+          setEmojiDraft(extractSingleEmoji(editingItem.emoji));
           setEmojiError("");
           setEmojiTarget({ kind: "entry" });
           setEmojiSheetOpen(true);
@@ -2982,7 +3322,17 @@
               phase: "normalizing",
               progressText: "正在整理结果…"
             });
-            const normalized = normalizeAiItems(aiObject).map(normalizeEditableFood);
+            let normalized = normalizeAiItems(aiObject).map((item) => normalizeEditableFood(item));
+            try {
+              normalized = await fillMissingMacrosByBackend({
+                items: normalized,
+                meal: selectedMeal,
+                signal: controller.signal,
+                headers: getRestHeaders()
+              });
+            } catch (macroError) {
+              console.error("macro-backfill-failed", macroError);
+            }
             if (normalized.length === 0 && !hasQuick) {
               applyParsedResults([]);
               setParseError("解析结果不可用，请补充更清晰的文字或图片后重试。");
@@ -3039,13 +3389,14 @@
         }
 
         function useLibraryFood(food) {
-          applyParsedResults([normalizeEditableFood({
+          const normalized = normalizeEditableFood({
             name: food.name,
             portion: food.portion,
             kcal: food.kcal,
             confidence: food.confidence || 0,
             emoji: food.emoji || "🍽️"
-          })]);
+          });
+          applyParsedResults([normalized]);
           setParseError("");
           setPanelMode("result");
           setLibrarySheetOpen(false);
@@ -3072,13 +3423,15 @@
         }
 
         function buildQuickSelectedItems() {
-          const fromFoods = selectedQuickFoods.map(({ food }) => normalizeEditableFood({
-            name: food.name,
-            portion: food.portion,
-            kcal: food.kcal,
-            confidence: food.confidence || 0,
-            emoji: food.emoji || "🍽️"
-          }));
+          const fromFoods = selectedQuickFoods.map(({ food }) => {
+            return normalizeEditableFood({
+              name: food.name,
+              portion: food.portion,
+              kcal: food.kcal,
+              confidence: food.confidence || 0,
+              emoji: food.emoji || "🍽️"
+            });
+          });
           return [...fromFoods];
         }
 
@@ -3088,7 +3441,8 @@
 
         function openEntryEdit(entry) {
           setEditingEntry(entry);
-          setEditingItem(normalizeEditableFood(entry?.item || {}));
+          const normalized = normalizeEditableFood(entry?.item || {});
+          setEditingItem(normalized);
           setEditingMeal(String(entry?.meal || "早餐"));
           setEntryUndoStack([]);
           setEntryRedoStack([]);
@@ -3717,7 +4071,17 @@
 
             <main className="page">
               <header className="nav">
-                <h1 className="title">我的饮食</h1>
+                <button className="hero-nav-btn" type="button" onClick={goPrevDate} aria-label="上一天">
+                  <MiIcon className="mi" style={{ fontSize: 18 }}>chevron_left</MiIcon>
+                </button>
+                <div className="hero-date-wrap">
+                  <button className="hero-date-btn" type="button" onClick={openCalendarSheet}>
+                    {getDateLabel(currentDateKey)}
+                  </button>
+                </div>
+                <button className="hero-nav-btn" type="button" onClick={goNextDate} aria-label="下一天">
+                  <MiIcon className="mi" style={{ fontSize: 18 }}>chevron_right</MiIcon>
+                </button>
               </header>
 
               <section className="hero">
@@ -3741,18 +4105,24 @@
                 <div className="hero-progress" aria-label="摄入进度">
                   <div className={"hero-progress-fill" + (isGoalProgressDanger ? " danger" : "")} style={{ width: goalProgressBarPercent + "%" }} />
                 </div>
-                <div className="hero-nav">
-                  <button className="hero-nav-btn" type="button" onClick={goPrevDate} aria-label="上一天">
-                    <MiIcon className="mi" style={{ fontSize: 18 }}>chevron_left</MiIcon>
-                  </button>
-                  <div className="hero-date-wrap">
-                    <button className="hero-date-btn" type="button" onClick={openCalendarSheet}>
-                      {getDateLabel(currentDateKey)}
-                    </button>
-                  </div>
-                  <button className="hero-nav-btn" type="button" onClick={goNextDate} aria-label="下一天">
-                    <MiIcon className="mi" style={{ fontSize: 18 }}>chevron_right</MiIcon>
-                  </button>
+                <div className="hero-macro-grid" aria-label="三大营养素总览">
+                  {macroCards.map((macro) => (
+                    <div className="hero-macro-card" key={macro.key}>
+                      <div className="hero-macro-name">{macro.label}</div>
+                      <div className="hero-macro-track">
+                        <div
+                          className={"hero-macro-fill " + macro.tone + (macro.isOver ? " over" : "") + (!macro.hasKnown ? " unknown" : "")}
+                          style={{ width: `${macro.progress}%` }}
+                        />
+                      </div>
+                      <div className="hero-macro-value">
+                        <span className={"hero-macro-current" + (!macro.hasKnown ? " unknown" : "")}>{macro.hasKnown ? macro.current : "--"}</span>
+                        <span className="hero-macro-sep">/</span>
+                        <span className="hero-macro-target">{macro.target}</span>
+                        <span className="hero-macro-unit">克</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </section>
 
@@ -4096,6 +4466,36 @@
                             updateParsedItem(index, { unitKcal: nextUnitKcal });
                           }}
                           onKcalBlur={() => endParsedEditSession("kcal-" + index)}
+                          onCarbFocus={() => beginParsedEditSession("carb-" + index)}
+                          onCarbChange={(e) => {
+                            const onlyDigits = String(e.target.value || "").replace(/[^\d]/g, "");
+                            if (!onlyDigits) {
+                              updateParsedItem(index, { carb_g: null });
+                              return;
+                            }
+                            updateParsedItem(index, { carb_g: Math.max(0, Number.parseInt(onlyDigits, 10) || 0) });
+                          }}
+                          onCarbBlur={() => endParsedEditSession("carb-" + index)}
+                          onProteinFocus={() => beginParsedEditSession("protein-" + index)}
+                          onProteinChange={(e) => {
+                            const onlyDigits = String(e.target.value || "").replace(/[^\d]/g, "");
+                            if (!onlyDigits) {
+                              updateParsedItem(index, { protein_g: null });
+                              return;
+                            }
+                            updateParsedItem(index, { protein_g: Math.max(0, Number.parseInt(onlyDigits, 10) || 0) });
+                          }}
+                          onProteinBlur={() => endParsedEditSession("protein-" + index)}
+                          onFatFocus={() => beginParsedEditSession("fat-" + index)}
+                          onFatChange={(e) => {
+                            const onlyDigits = String(e.target.value || "").replace(/[^\d]/g, "");
+                            if (!onlyDigits) {
+                              updateParsedItem(index, { fat_g: null });
+                              return;
+                            }
+                            updateParsedItem(index, { fat_g: Math.max(0, Number.parseInt(onlyDigits, 10) || 0) });
+                          }}
+                          onFatBlur={() => endParsedEditSession("fat-" + index)}
                         />
                       ))}
                     </div>
@@ -4195,7 +4595,7 @@
               title="编辑 Emoji"
               value={emojiDraft}
               onChange={onEmojiDraftChange}
-              placeholder="🍽️"
+              placeholder=""
               note="仅支持输入 1 个 emoji"
               errorText={emojiError}
               onSave={saveEmojiEdit}
@@ -4314,6 +4714,36 @@
                           updateEditingItem({ unitKcal: nextUnitKcal });
                         }}
                         onKcalBlur={() => endEntryEditSession("kcal")}
+                        onCarbFocus={() => beginEntryEditSession("carb")}
+                        onCarbChange={(e) => {
+                          const onlyDigits = String(e.target.value || "").replace(/[^\d]/g, "");
+                          if (!onlyDigits) {
+                            updateEditingItem({ carb_g: null });
+                            return;
+                          }
+                          updateEditingItem({ carb_g: Math.max(0, Number.parseInt(onlyDigits, 10) || 0) });
+                        }}
+                        onCarbBlur={() => endEntryEditSession("carb")}
+                        onProteinFocus={() => beginEntryEditSession("protein")}
+                        onProteinChange={(e) => {
+                          const onlyDigits = String(e.target.value || "").replace(/[^\d]/g, "");
+                          if (!onlyDigits) {
+                            updateEditingItem({ protein_g: null });
+                            return;
+                          }
+                          updateEditingItem({ protein_g: Math.max(0, Number.parseInt(onlyDigits, 10) || 0) });
+                        }}
+                        onProteinBlur={() => endEntryEditSession("protein")}
+                        onFatFocus={() => beginEntryEditSession("fat")}
+                        onFatChange={(e) => {
+                          const onlyDigits = String(e.target.value || "").replace(/[^\d]/g, "");
+                          if (!onlyDigits) {
+                            updateEditingItem({ fat_g: null });
+                            return;
+                          }
+                          updateEditingItem({ fat_g: Math.max(0, Number.parseInt(onlyDigits, 10) || 0) });
+                        }}
+                        onFatBlur={() => endEntryEditSession("fat")}
                       />
                       <div className="result-actions">
                         <button className="result-btn" type="button" onClick={deleteFromEntryEdit} style={{ width: 88, background: "linear-gradient(160deg, #ff5a56 0%, #ea3f3f 100%)", color: "#fff" }}>
