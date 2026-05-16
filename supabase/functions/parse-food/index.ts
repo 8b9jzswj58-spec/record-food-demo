@@ -49,69 +49,147 @@ function pickEmojiByName(name: string): string {
   return "🍽️";
 }
 
+function extractJsonFromText(raw: string): any {
+  const text = String(raw || "").trim();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    // continue
+  }
+  const objMatch = text.match(/\{[\s\S]*\}/);
+  if (objMatch) {
+    try {
+      return JSON.parse(objMatch[0]);
+    } catch {
+      // continue
+    }
+  }
+  const arrMatch = text.match(/\[[\s\S]*\]/);
+  if (arrMatch) {
+    try {
+      return { items: JSON.parse(arrMatch[0]) };
+    } catch {
+      // continue
+    }
+  }
+  return null;
+}
+
+function normalizeItem(raw: any): ParsedItem {
+  const kcal = Math.max(0, Math.round(Number(raw?.kcal) || 0));
+  const macros = {
+    carb_g: clampIntOrNull(raw?.carb_g),
+    protein_g: clampIntOrNull(raw?.protein_g),
+    fat_g: clampIntOrNull(raw?.fat_g),
+  };
+  const estimated = estimateMacros(kcal);
+  return {
+    name: String(raw?.name || "未命名食物").trim().slice(0, 32) || "未命名食物",
+    portion: String(raw?.portion || "1份").trim().slice(0, 32) || "1份",
+    kcal,
+    emoji: String(raw?.emoji || pickEmojiByName(String(raw?.name || ""))).slice(0, 8),
+    carb_g: macros.carb_g ?? estimated.carb_g,
+    protein_g: macros.protein_g ?? estimated.protein_g,
+    fat_g: macros.fat_g ?? estimated.fat_g,
+  };
+}
+
 function parseKcal(text: string): number {
   const m = text.match(/(\d+(?:\.\d+)?)\s*(?:kcal|千卡|卡路里|大卡|卡)/i);
   if (!m) return 0;
   return Math.max(0, Math.round(Number(m[1]) || 0));
 }
 
-function cleanLine(text: string): string {
-  return String(text || "")
-    .replace(/[，；。]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 function parseNameAndPortion(line: string): { name: string; portion: string } {
-  const cleaned = cleanLine(line);
+  const cleaned = String(line || "").replace(/[，；。]/g, " ").replace(/\s+/g, " ").trim();
   const portionMatch = cleaned.match(/(\d+(?:\.\d+)?\s*(?:份|个|碗|盘|片|串|杯|瓶|听|ml|mL|g|kg|克|千克))/i);
   if (portionMatch) {
     const portion = portionMatch[1].replace(/\s+/g, "").toLowerCase();
     const name = cleaned.replace(portionMatch[1], "").trim() || "未命名食物";
     return { name: name.slice(0, 32), portion: portion.slice(0, 32) };
   }
-
-  const countMatch = cleaned.match(/(.+?)\s*(\d+(?:\.\d+)?)\s*份$/);
-  if (countMatch) {
-    return {
-      name: String(countMatch[1] || "未命名食物").trim().slice(0, 32),
-      portion: `${countMatch[2]}份`.slice(0, 32),
-    };
-  }
-
   return { name: cleaned.slice(0, 32) || "未命名食物", portion: "1份" };
 }
 
-function parseTextItems(inputText: string): ParsedItem[] {
+function parseTextFallback(inputText: string): ParsedItem[] {
   const raw = String(inputText || "").trim();
   if (!raw) return [];
-
-  const lines = raw
+  return raw
     .split(/\n+/)
     .flatMap((line) => line.split(/[;；]+/))
     .map((line) => line.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((line) => {
+      const kcal = parseKcal(line);
+      const { name, portion } = parseNameAndPortion(line.replace(/\d+(?:\.\d+)?\s*(?:kcal|千卡|卡路里|大卡|卡)/gi, "").trim());
+      const macros = estimateMacros(kcal);
+      return normalizeItem({ name, portion, kcal, emoji: pickEmojiByName(name), ...macros });
+    });
+}
 
-  const items = lines.map((line) => {
-    const kcal = parseKcal(line);
-    const { name, portion } = parseNameAndPortion(
-      line
-        .replace(/\d+(?:\.\d+)?\s*(?:kcal|千卡|卡路里|大卡|卡)/gi, "")
-        .trim()
-    );
-    const macros = estimateMacros(kcal);
-    return {
-      name,
-      portion,
-      kcal,
-      emoji: pickEmojiByName(name),
-      carb_g: clampIntOrNull(macros.carb_g),
-      protein_g: clampIntOrNull(macros.protein_g),
-      fat_g: clampIntOrNull(macros.fat_g),
-    } satisfies ParsedItem;
+async function callDoubaoParse(body: any): Promise<ParsedItem[]> {
+  const apiKey = Deno.env.get("DOUBAO_API_KEY") || "";
+  const model = Deno.env.get("DOUBAO_MODEL") || "";
+  const baseUrl = Deno.env.get("DOUBAO_BASE_URL") || "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
+  if (!apiKey || !model) {
+    throw new Error("doubao_secret_missing");
+  }
+
+  const text = String(body?.text || "").trim();
+  const meal = String(body?.meal || "").trim();
+  const images = Array.isArray(body?.images) ? body.images : [];
+
+  const userContent: any[] = [
+    {
+      type: "text",
+      text:
+        "你是饮食识别助手。请从用户文字和图片中识别食物，输出严格 JSON，不要 markdown。格式: {\"items\":[{\"name\":\"\",\"portion\":\"1份\",\"kcal\":120,\"emoji\":\"🍽️\",\"carb_g\":15,\"protein_g\":8,\"fat_g\":5}]}。无法判断的克数可返回 null。",
+    },
+  ];
+
+  if (meal) {
+    userContent.push({ type: "text", text: `餐别: ${meal}` });
+  }
+  if (text) {
+    userContent.push({ type: "text", text: `用户输入: ${text}` });
+  }
+
+  for (const image of images) {
+    const mime = String(image?.mimeType || "image/jpeg").trim() || "image/jpeg";
+    const base64 = String(image?.base64 || "").trim();
+    if (!base64) continue;
+    userContent.push({
+      type: "image_url",
+      image_url: { url: `data:${mime};base64,${base64}` },
+    });
+  }
+
+  const response = await fetch(baseUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      temperature: 0.2,
+      messages: [
+        { role: "system", content: "你擅长识别中国常见餐食并估算热量与三大营养素。" },
+        { role: "user", content: userContent },
+      ],
+    }),
   });
 
-  return items.filter((item) => item.name && item.name !== "未命名食物" || item.kcal > 0);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(`doubao_request_failed:${data?.error?.message || data?.message || response.status}`);
+  }
+
+  const content = data?.choices?.[0]?.message?.content;
+  const parsed = extractJsonFromText(typeof content === "string" ? content : JSON.stringify(content || {}));
+  const items = Array.isArray(parsed?.items) ? parsed.items : [];
+  return items.map(normalizeItem).filter((item) => item.name && item.name !== "未命名食物");
 }
 
 serve(async (req) => {
@@ -127,7 +205,13 @@ serve(async (req) => {
     const text = String(body?.text || "");
     const images = Array.isArray(body?.images) ? body.images : [];
 
-    let items = parseTextItems(text);
+    let items: ParsedItem[] = [];
+    try {
+      items = await callDoubaoParse(body);
+    } catch (llmError) {
+      console.error("doubao-parse-failed", llmError);
+      items = parseTextFallback(text);
+    }
 
     if (items.length === 0 && images.length > 0) {
       items = [

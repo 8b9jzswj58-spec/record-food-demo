@@ -38,6 +38,8 @@
         --nav-safe-height: calc(56px + env(safe-area-inset-top, 0px));
         --top-bar-bg: #eef6ee;
         --nav-scroll-progress: 0;
+        --sheet-motion-duration: 0.6s;
+        --sheet-motion-ease: cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       * { box-sizing: border-box; }
@@ -249,16 +251,17 @@
         border-top: 0;
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 22px;
+        gap: 44px;
       }
       .hero-macro-card {
         min-width: 0;
+        display: grid;
+        row-gap: 10px;
       }
       .hero-macro-name {
         line-height: 1.2;
       }
       .hero-macro-track {
-        margin-top: 10px;
         height: 6px;
         border-radius: 999px;
         background: rgba(18, 18, 18, 0.08);
@@ -283,7 +286,6 @@
         background: rgba(24, 35, 31, 0.18);
       }
       .hero-macro-value {
-        margin-top: 12px;
         display: flex;
         align-items: baseline;
         gap: 2px;
@@ -324,7 +326,7 @@
       }
 
       .hero-date-btn {
-        width: auto;
+        width: 176px;
         border: 0;
         height: 34px;
         border-radius: 999px;
@@ -334,14 +336,17 @@
         font-weight: 400;
         font-family: inherit;
         opacity: 1;
-        padding: 0 18px;
+        padding: 0 14px;
         white-space: nowrap;
+        text-align: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .hero-date-wrap {
         position: relative;
         flex: 0 0 auto;
-        min-width: auto;
+        min-width: 176px;
       }
       .calendar-sheet-body {
         padding: 4px 12px 10px;
@@ -788,6 +793,48 @@
         -webkit-backdrop-filter: blur(14px);
         z-index: -1;
       }
+      .return-today-fab {
+        position: absolute;
+        left: 50%;
+        bottom: calc(var(--footer-pad-y) + env(safe-area-inset-bottom, 0px) + 72px);
+        height: 34px;
+        padding: 0 14px;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.94);
+        color: rgba(24, 35, 31, 0.72);
+        font-size: 12px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        box-shadow: 0 6px 16px rgba(10, 20, 16, 0.08);
+        transform: translateX(-50%) translateY(56px) scale(0.84);
+        pointer-events: none;
+        z-index: 0;
+        transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        will-change: transform;
+      }
+      .return-today-fab.show {
+        transform: translateX(-50%) translateY(0) scale(1);
+        pointer-events: auto;
+        animation: return-today-pop 0.42s cubic-bezier(0.22, 0.9, 0.24, 1);
+      }
+      .return-today-fab:active {
+        transform: translateX(-50%) translateY(1px) scale(0.97);
+      }
+      @keyframes return-today-pop {
+        0% {
+          transform: translateX(-50%) translateY(56px) scale(0.84);
+        }
+        62% {
+          transform: translateX(-50%) translateY(-2px) scale(1.03);
+        }
+        100% {
+          transform: translateX(-50%) translateY(0) scale(1);
+        }
+      }
 
       .btn {
         width: 100%;
@@ -804,6 +851,8 @@
         gap: 8px;
         cursor: pointer;
         transition: transform 0.2s ease;
+        position: relative;
+        z-index: 1;
       }
 
       .btn:active {
@@ -813,25 +862,22 @@
       .sheet-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(12, 20, 16, 0.26);
+        background: rgba(12, 20, 16, 0);
         display: flex;
         justify-content: center;
         align-items: flex-end;
-        opacity: 0;
         pointer-events: none;
-        transition: opacity 0.22s ease;
+        transition: background var(--sheet-motion-duration) var(--sheet-motion-ease), backdrop-filter var(--sheet-motion-duration) var(--sheet-motion-ease);
         z-index: 20;
-        backdrop-filter: blur(2px);
+        backdrop-filter: blur(0px);
       }
 
-      .sheet-overlay.show { opacity: 1; pointer-events: auto; }
+      .sheet-overlay.show { background: rgba(12, 20, 16, 0.26); pointer-events: auto; backdrop-filter: blur(2px); }
       .sheet-wrap {
         width: min(420px, 100vw);
         max-height: calc(100dvh - var(--nav-safe-height));
-        transform: translateY(24px);
-        transition: transform 0.24s cubic-bezier(0.22, 0.9, 0.34, 1);
+        transition: transform var(--sheet-motion-duration) var(--sheet-motion-ease);
       }
-      .sheet-overlay.show .sheet-wrap { transform: translateY(0); }
 
       .sheet-card {
         background: linear-gradient(180deg, #ffffff 0%, #fbfffd 100%);
@@ -909,6 +955,32 @@
       }
       .close-btn:active {
         transform: scale(0.94);
+        background: rgba(0, 0, 0, 0.08);
+      }
+      .calendar-today-pill {
+        height: 30px;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.04);
+        color: rgba(0, 0, 0, 0.52);
+        padding: 0 10px;
+        font-size: 12px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transform: translateY(4px) scale(0.96);
+        pointer-events: none;
+        transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.22, 0.9, 0.34, 1), background-color 0.16s ease;
+      }
+      .calendar-today-pill.show {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+      }
+      .calendar-today-pill:active {
+        transform: scale(0.95);
         background: rgba(0, 0, 0, 0.08);
       }
 
@@ -1832,9 +1904,9 @@
         const day = d.getDate();
         const week = weekMap[d.getDay()];
         if (d.getFullYear() !== now.getFullYear()) {
-          return `${d.getFullYear()}年${month}月${day}日 ${week}`;
+          return `${d.getFullYear()} 年 ${month} 月 ${day} 日 ${week}`;
         }
-        return `${month}月${day}日 ${week}`;
+        return `${month} 月 ${day} 日 ${week}`;
       }
 
       function shiftDateKey(dateKey, offsetDays) {
@@ -2410,6 +2482,7 @@
         const [contentHeight, setContentHeight] = useState(0);
         const [dragY, setDragY] = useState(0);
         const [isDragging, setIsDragging] = useState(false);
+        const [closedOffset, setClosedOffset] = useState(1000);
         const dragStateRef = useRef({
           pointerId: null,
           active: false,
@@ -2438,6 +2511,15 @@
         }, [open]);
 
         useEffect(() => {
+          const updateOffset = () => {
+            setClosedOffset(Math.max(window.innerHeight || 0, 640));
+          };
+          updateOffset();
+          window.addEventListener("resize", updateOffset);
+          return () => window.removeEventListener("resize", updateOffset);
+        }, []);
+
+        useEffect(() => {
           if (!fluidHeight || !open) return;
           const node = bodyRef.current;
           if (!node) return;
@@ -2460,10 +2542,8 @@
         function onSheetPointerDown(event) {
           if (!open) return;
           if (event.pointerType === "mouse" && event.button !== 0) return;
-          const viewport = bodyRef.current?.parentElement;
           const fromHead = !!headRef.current?.contains(event.target);
-          const canStart = fromHead || (viewport && viewport.scrollTop <= 0);
-          if (!canStart) return;
+          if (!fromHead) return;
           dragStateRef.current = {
             pointerId: event.pointerId,
             active: true,
@@ -2474,24 +2554,15 @@
             lastTime: performance.now(),
             velocityY: 0
           };
-          if (cardRef.current?.setPointerCapture) {
-            try {
-              cardRef.current.setPointerCapture(event.pointerId);
-            } catch (_) {}
-          }
         }
 
         function onSheetPointerMove(event) {
           const state = dragStateRef.current;
           if (!state.active || state.pointerId !== event.pointerId) return;
-          const viewport = bodyRef.current?.parentElement;
           const deltaX = event.clientX - state.startX;
           const deltaY = event.clientY - state.startY;
-          if (!state.fromHead) {
-            if (Math.abs(deltaY) <= Math.abs(deltaX)) return;
-            if (!viewport || viewport.scrollTop > 0) return;
-            if (deltaY <= 0) return;
-          }
+          if (Math.abs(deltaY) <= Math.abs(deltaX)) return;
+          if (deltaY <= 0) return;
 
           const now = performance.now();
           const dt = Math.max(1, now - state.lastTime);
@@ -2539,19 +2610,24 @@
             <div
               className={wrapClassName}
               style={{
-                transform: `translateY(${(open ? 0 : 24) + dragY}px)`,
-                transition: isDragging ? "none" : "transform 0.28s cubic-bezier(0.22, 0.9, 0.34, 1)"
+                transform: `translateY(${(open ? 0 : closedOffset) + dragY}px)`,
+                transition: isDragging
+                  ? "none"
+                  : "transform var(--sheet-motion-duration) var(--sheet-motion-ease)"
               }}
             >
               <div
                 ref={cardRef}
                 className={cardClassName}
-                onPointerDown={onSheetPointerDown}
-                onPointerMove={onSheetPointerMove}
-                onPointerUp={(event) => finishSheetDrag(event.pointerId)}
-                onPointerCancel={(event) => finishSheetDrag(event.pointerId)}
               >
-                <div ref={headRef} className="sheet-head">
+                <div
+                  ref={headRef}
+                  className="sheet-head"
+                  onPointerDown={onSheetPointerDown}
+                  onPointerMove={onSheetPointerMove}
+                  onPointerUp={(event) => finishSheetDrag(event.pointerId)}
+                  onPointerCancel={(event) => finishSheetDrag(event.pointerId)}
+                >
                   <div className="meal-prefix">{title}</div>
                   <div className="sheet-head-actions">
                     {actions}
@@ -2762,6 +2838,7 @@
         const parseAbortRef = useRef(null);
         const parseTaskRef = useRef(parseTask);
         const calendarTouchRef = useRef({ x: 0, y: 0 });
+        const entryCloseCleanupTimerRef = useRef(null);
 
 
         useEffect(() => {
@@ -2802,6 +2879,8 @@
             .filter((record) => getDateKey(record?.created_at) === currentDateKey)
             .reduce((sum, record) => sum + (Array.isArray(record?.items) ? record.items.length : 0), 0);
         }, [records, currentDateKey]);
+        const todayDateKey = getDateKey(Date.now());
+        const isViewingNonToday = currentDateKey !== todayDateKey;
 
         const goalProgressPercent = useMemo(() => {
           const target = Math.max(1, Number(goalKcal) || 1600);
@@ -3023,6 +3102,15 @@
         function pickCalendarDate(dateKey) {
           setCurrentDateKey(dateKey);
           setCalendarSheetOpen(false);
+        }
+        function jumpToToday(closeCalendar = false) {
+          const todayKey = getDateKey(Date.now());
+          setCurrentDateKey(todayKey);
+          setCalendarMonthKey(getMonthKeyFromDateKey(todayKey));
+          if (closeCalendar) {
+            setCalendarSheetOpen(false);
+            setCalendarSlideDirection("");
+          }
         }
         function saveGoalEdit() {
           const nextGoal = Math.max(1, Number.parseInt(String(goalDraft || "0"), 10) || 1600);
@@ -3435,6 +3523,10 @@
         }
 
         function openEntryEdit(entry) {
+          if (entryCloseCleanupTimerRef.current) {
+            clearTimeout(entryCloseCleanupTimerRef.current);
+            entryCloseCleanupTimerRef.current = null;
+          }
           setEditingEntry(entry);
           const normalized = normalizeEditableFood(entry?.item || {});
           setEditingItem(normalized);
@@ -3449,15 +3541,22 @@
 
         function closeEntryEdit() {
           setEntryEditOpen(false);
-          setEditingEntry(null);
-          setEditingItem(null);
-          setEntryUndoStack([]);
-          setEntryRedoStack([]);
-          setEntryServingDraft("");
-          setEntryServingEditing(false);
-          setEntryNameComposing(false);
-          setEditingMeal("早餐");
-          entryEditSessionRef.current = { key: "", before: null };
+          if (entryCloseCleanupTimerRef.current) {
+            clearTimeout(entryCloseCleanupTimerRef.current);
+            entryCloseCleanupTimerRef.current = null;
+          }
+          entryCloseCleanupTimerRef.current = setTimeout(() => {
+            setEditingEntry(null);
+            setEditingItem(null);
+            setEntryUndoStack([]);
+            setEntryRedoStack([]);
+            setEntryServingDraft("");
+            setEntryServingEditing(false);
+            setEntryNameComposing(false);
+            setEditingMeal("早餐");
+            entryEditSessionRef.current = { key: "", before: null };
+            entryCloseCleanupTimerRef.current = null;
+          }, 620);
         }
 
         function getEntryEditSnapshot(nextItem = editingItem, nextMeal = editingMeal) {
@@ -3822,6 +3921,15 @@
           setLibraryLoadedCount((prev) => Math.min(Math.max(20, prev), Math.max(20, foodLibrary.foods.length)));
         }, [foodLibrary.foods.length]);
 
+        useEffect(() => {
+          return () => {
+            if (entryCloseCleanupTimerRef.current) {
+              clearTimeout(entryCloseCleanupTimerRef.current);
+              entryCloseCleanupTimerRef.current = null;
+            }
+          };
+        }, []);
+
         function goPrevDate() {
           setCurrentDateKey((prev) => shiftDateKey(prev, -1));
         }
@@ -4163,6 +4271,13 @@
             </main>
 
             <div className="footer">
+              <button
+                className={"return-today-fab" + (isViewingNonToday ? " show" : "")}
+                type="button"
+                onClick={() => jumpToToday(false)}
+              >
+                回到今日
+              </button>
               {(parseTask.status === "parsing" || (parseTask.backgrounded && (parseTask.status === "success" || parseTask.status === "error"))) && (
                 <div className="task-entry">
                   <span>{parseTask.status === "parsing" ? "AI 解析中…" : parseTask.status === "success" ? "解析完成，查看结果" : "解析失败，查看详情"}</span>
@@ -4507,6 +4622,15 @@
             <BottomSheet
               open={calendarSheetOpen}
               onClose={closeCalendarSheet}
+              actions={(
+                <button
+                  className={"calendar-today-pill" + (isViewingNonToday ? " show" : "")}
+                  type="button"
+                  onClick={() => jumpToToday(true)}
+                >
+                  回到今日
+                </button>
+              )}
               title={(
                 <div className="calendar-month-head calendar-month-head-title">
                   <button className="calendar-month-switch" type="button" onClick={() => shiftCalendarMonth(-1)} aria-label="上个月">
