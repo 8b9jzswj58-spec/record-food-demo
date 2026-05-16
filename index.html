@@ -3599,15 +3599,7 @@
             ...records,
             {
               meal: selectedMeal,
-              items: parsedResults.map((item) => ({
-                name: item.name,
-                portion: `${Number(item.servings) || 1}${item.unitName || "份"}`,
-                servings: Number(item.servings) || 1,
-                unitKcal: Number(item.unitKcal) || 0,
-                unitName: String(item.unitName || "份"),
-                kcal: Math.max(0, Math.round((Number(item.servings) || 1) * (Number(item.unitKcal) || 0))),
-                emoji: pickSingleEmoji(item.emoji)
-              })),
+              items: parsedResults.map((item) => buildStoredItemFromEditable(item)),
               created_at: (() => {
                 const [y, m, d] = currentDateKey.split("-").map(Number);
                 const now = new Date();
