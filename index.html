@@ -38,7 +38,7 @@
         --nav-safe-height: calc(56px + env(safe-area-inset-top, 0px));
         --top-bar-bg: #eef6ee;
         --nav-scroll-progress: 0;
-        --sheet-motion-duration: 0.45s;
+        --sheet-motion-duration: 0.3375s;
         --sheet-motion-ease: cubic-bezier(0.4, 0, 0.2, 1);
       }
 
@@ -274,7 +274,7 @@
       }
       .hero-macro-fill.carb,
       .hero-macro-fill.fat {
-        background: #f26474;
+        background: var(--token-progress-primary);
       }
       .hero-macro-fill.protein {
         background: var(--token-progress-macro-protein);
@@ -1842,7 +1842,7 @@
       const MAX_ATTACHMENTS = 5;
       const MEALS = ["早餐", "午餐", "晚餐"];
       const RECORDS_CACHE_KEY_PREFIX = "diet-records-cache-v1";
-      const GOAL_KCAL_CACHE_KEY = "diet-goal-kcal-v1";
+      const GOAL_KCAL_CACHE_KEY_PREFIX = "diet-goal-kcal-v1";
       const ICON_COMPONENTS = {
         wb_twilight: "ri-sun-foggy-line",
         wb_twilight_fill: "ri-sun-foggy-fill",
@@ -1962,9 +1962,13 @@
         }
       }
 
-      function readGoalKcal() {
+      function getGoalKcalCacheKey(userId) {
+        return `${GOAL_KCAL_CACHE_KEY_PREFIX}:${userId || "guest"}`;
+      }
+
+      function readGoalKcal(userId) {
         try {
-          const raw = localStorage.getItem(GOAL_KCAL_CACHE_KEY);
+          const raw = localStorage.getItem(getGoalKcalCacheKey(userId));
           const value = Number.parseInt(String(raw || ""), 10);
           return Number.isFinite(value) && value > 0 ? value : 1600;
         } catch (_error) {
@@ -1972,9 +1976,12 @@
         }
       }
 
-      function writeGoalKcal(value) {
+      function writeGoalKcal(userId, value) {
         try {
-          localStorage.setItem(GOAL_KCAL_CACHE_KEY, String(Math.max(1, Number.parseInt(String(value || "0"), 10) || 1600)));
+          localStorage.setItem(
+            getGoalKcalCacheKey(userId),
+            String(Math.max(1, Number.parseInt(String(value || "0"), 10) || 1600))
+          );
         } catch (_error) {
           // ignore cache write errors
         }
@@ -2801,7 +2808,7 @@
         const [selectedQuickFoods, setSelectedQuickFoods] = useState([]);
         const [parseError, setParseError] = useState("");
         const [parseTask, setParseTask] = useState(createIdleParseTask());
-        const [goalKcal, setGoalKcal] = useState(readGoalKcal());
+        const [goalKcal, setGoalKcal] = useState(readGoalKcal("guest"));
         const [goalSheetOpen, setGoalSheetOpen] = useState(false);
         const [emojiSheetOpen, setEmojiSheetOpen] = useState(false);
         const [emojiDraft, setEmojiDraft] = useState("");
@@ -2810,7 +2817,7 @@
         const [calendarSheetOpen, setCalendarSheetOpen] = useState(false);
         const [calendarMonthKey, setCalendarMonthKey] = useState(getMonthKeyFromDateKey(getDateKey(Date.now())));
         const [calendarSlideDirection, setCalendarSlideDirection] = useState("");
-        const [goalDraft, setGoalDraft] = useState(String(readGoalKcal()));
+        const [goalDraft, setGoalDraft] = useState(String(readGoalKcal("guest")));
         const [servingEditIndex, setServingEditIndex] = useState(-1);
         const [servingDraft, setServingDraft] = useState("");
         const [nameComposingIndex, setNameComposingIndex] = useState(-1);
@@ -2829,7 +2836,14 @@
 
         const cameraInputRef = useRef(null);
         const galleryInputRef = useRef(null);
-        const touchStartXRef = useRef(null);
+        const [pageSwipeOffsetX, setPageSwipeOffsetX] = useState(0);
+        const [isPageSwiping, setIsPageSwiping] = useState(false);
+        const pageSwipeRef = useRef({
+          startX: 0,
+          startY: 0,
+          active: false,
+          horizontal: false
+        });
         const rowTouchRef = useRef({ key: "", x: 0, y: 0 });
         const pendingDeletionRef = useRef(null);
         const rowPointerRef = useRef({ key: "", x: 0, y: 0, moved: false });
@@ -3112,10 +3126,18 @@
             setCalendarSlideDirection("");
           }
         }
-        function saveGoalEdit() {
+        async function saveGoalEdit() {
           const nextGoal = Math.max(1, Number.parseInt(String(goalDraft || "0"), 10) || 1600);
           setGoalKcal(nextGoal);
-          writeGoalKcal(nextGoal);
+          const cacheUserId = currentUser?.id || "guest";
+          writeGoalKcal(cacheUserId, nextGoal);
+          if (currentUser?.id) {
+            try {
+              await saveGoalKcalToBackend(nextGoal);
+            } catch (error) {
+              console.error("save-goal-failed", error);
+            }
+          }
           setGoalSheetOpen(false);
         }
         function openParsedEmojiEditor(index) {
@@ -3271,6 +3293,7 @@
 
         async function initBackendState(nextUser = currentUser, nextSession = currentSession) {
           const cacheUserId = nextUser?.id || "guest";
+          setGoalKcal(readGoalKcal(cacheUserId));
           const cached = readCachedRecords(cacheUserId);
           if (cached.length > 0) {
             setRecords(cached);
@@ -3290,9 +3313,37 @@
               setRecords(nextRecords);
               writeCachedRecords(nextUser.id, nextRecords);
             }
+            const goalRes = await fetch(
+              SUPABASE_URL + "/rest/v1/diet_user_settings?select=goal_kcal&user_id=eq." + encodeURIComponent(nextUser.id) + "&limit=1",
+              { headers: getRestHeaders(nextSession) }
+            );
+            if (goalRes.ok) {
+              const goalRows = await goalRes.json();
+              const backendGoal = Number(goalRows?.[0]?.goal_kcal);
+              const safeGoal = Number.isFinite(backendGoal) && backendGoal > 0 ? Math.round(backendGoal) : readGoalKcal(nextUser.id);
+              setGoalKcal(safeGoal);
+              writeGoalKcal(nextUser.id, safeGoal);
+            }
           } catch (error) {
             console.error("init-backend-failed", error);
           }
+        }
+
+        async function saveGoalKcalToBackend(nextGoal, sessionArg = currentSession, userArg = currentUser) {
+          const userId = userArg?.id;
+          if (!userId) return false;
+          const url = new URL(SUPABASE_URL + "/rest/v1/diet_user_settings");
+          url.searchParams.set("on_conflict", "user_id");
+          const payload = [{ user_id: userId, goal_kcal: nextGoal }];
+          const res = await fetch(url.toString(), {
+            method: "POST",
+            headers: { ...getRestHeaders(sessionArg), Prefer: "resolution=merge-duplicates,return=minimal" },
+            body: JSON.stringify(payload)
+          });
+          if (!res.ok) {
+            throw new Error("save goal failed");
+          }
+          return true;
         }
 
         async function saveStoredRecords(nextRecords) {
@@ -3863,6 +3914,7 @@
           }
           const cacheUserId = nextUser?.id || "guest";
           const cached = readCachedRecords(cacheUserId);
+          setGoalKcal(readGoalKcal(cacheUserId));
           setRecords(cached.length > 0 ? cached : []);
           setCurrentSession(nextSession);
           setCurrentUser(nextUser);
@@ -3877,6 +3929,7 @@
             const nextUser = nextSession?.user || null;
             const cacheUserId = nextUser?.id || "guest";
             const cached = readCachedRecords(cacheUserId);
+            setGoalKcal(readGoalKcal(cacheUserId));
             setRecords(cached.length > 0 ? cached : []);
             setCurrentSession(nextSession);
             setCurrentUser(nextUser);
@@ -3945,23 +3998,73 @@
         function onSwipeStart(event) {
           if (event.target?.closest && event.target.closest(".item-swipe")) return;
           if (swipedItemKey) setSwipedItemKey("");
-          const x = event.touches?.[0]?.clientX;
-          if (typeof x === "number") touchStartXRef.current = x;
+          const touch = event.touches?.[0];
+          if (!touch) return;
+          pageSwipeRef.current = {
+            startX: touch.clientX,
+            startY: touch.clientY,
+            active: true,
+            horizontal: false
+          };
+          setIsPageSwiping(false);
+        }
+
+        function onSwipeMove(event) {
+          if (event.target?.closest && event.target.closest(".item-swipe")) return;
+          const touch = event.touches?.[0];
+          const state = pageSwipeRef.current;
+          if (!touch || !state.active) return;
+          const dx = touch.clientX - state.startX;
+          const dy = touch.clientY - state.startY;
+          if (!state.horizontal) {
+            if (Math.abs(dx) < 10) return;
+            if (Math.abs(dx) <= Math.abs(dy) * 1.1) return;
+            state.horizontal = true;
+            setIsPageSwiping(true);
+          }
+          if (!state.horizontal) return;
+          const resistedDx = dx * 0.95;
+          setPageSwipeOffsetX(resistedDx);
+          event.preventDefault();
         }
 
         function onSwipeEnd(event) {
-          if (event.target?.closest && event.target.closest(".item-swipe")) return;
-          const startX = touchStartXRef.current;
-          const endX = event.changedTouches?.[0]?.clientX;
-          touchStartXRef.current = null;
-          if (typeof startX !== "number" || typeof endX !== "number") return;
-          const delta = endX - startX;
-          if (Math.abs(delta) < 42) return;
-          if (delta < 0) {
-            goPrevDate();
-          } else {
-            goNextDate();
+          const state = pageSwipeRef.current;
+          pageSwipeRef.current = { startX: 0, startY: 0, active: false, horizontal: false };
+          if (!state.active || !state.horizontal) {
+            setIsPageSwiping(false);
+            setPageSwipeOffsetX(0);
+            return;
           }
+          const endX = event.changedTouches?.[0]?.clientX;
+          if (typeof endX !== "number") {
+            setIsPageSwiping(false);
+            setPageSwipeOffsetX(0);
+            return;
+          }
+          const delta = endX - state.startX;
+          const absDelta = Math.abs(delta);
+          const threshold = 56;
+          if (absDelta < threshold) {
+            setIsPageSwiping(false);
+            setPageSwipeOffsetX(0);
+            return;
+          }
+
+          const direction = delta < 0 ? -1 : 1;
+          const travel = Math.max(86, Math.round(window.innerWidth * 0.24)) * direction;
+          setIsPageSwiping(true);
+          setPageSwipeOffsetX(travel);
+
+          setTimeout(() => {
+            if (direction < 0) {
+              goPrevDate();
+            } else {
+              goNextDate();
+            }
+            setPageSwipeOffsetX(0);
+            setIsPageSwiping(false);
+          }, 120);
         }
 
         async function commitPendingDeletion(target) {
@@ -4110,6 +4213,7 @@
           setCurrentSession(null);
           setCurrentUser(null);
           setRecords([]);
+          setGoalKcal(readGoalKcal("guest"));
           setAuthVisible(true);
         }
 
@@ -4150,7 +4254,17 @@
               </div>
             )}
 
-            <main className="page">
+            <main
+              className="page"
+              onTouchStart={onSwipeStart}
+              onTouchMove={onSwipeMove}
+              onTouchEnd={onSwipeEnd}
+              onTouchCancel={onSwipeEnd}
+              style={{
+                transform: `translateX(${pageSwipeOffsetX}px)`,
+                transition: isPageSwiping ? "none" : "transform 0.24s cubic-bezier(0.22, 0.9, 0.34, 1)"
+              }}
+            >
               <header className="nav">
                 <button className="hero-nav-btn" type="button" onClick={goPrevDate} aria-label="上一天">
                   <MiIcon className="mi" style={{ fontSize: 18 }}>chevron_left</MiIcon>
@@ -4207,7 +4321,7 @@
                 </div>
               </section>
 
-              <section className="content" onTouchStart={onSwipeStart} onTouchEnd={onSwipeEnd}>
+              <section className="content">
                 <div className="day-group">
                   {MEALS.map((meal) => {
                     const items = currentDayMeals[meal] || [];
@@ -4270,7 +4384,7 @@
               )}
             </main>
 
-            <div className="footer">
+            <div className="footer" onTouchStart={onSwipeStart} onTouchMove={onSwipeMove} onTouchEnd={onSwipeEnd} onTouchCancel={onSwipeEnd}>
               <button
                 className={"return-today-fab" + (isViewingNonToday ? " show" : "")}
                 type="button"
