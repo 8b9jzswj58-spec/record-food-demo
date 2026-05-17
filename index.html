@@ -2836,14 +2836,6 @@
 
         const cameraInputRef = useRef(null);
         const galleryInputRef = useRef(null);
-        const [pageSwipeOffsetX, setPageSwipeOffsetX] = useState(0);
-        const [isPageSwiping, setIsPageSwiping] = useState(false);
-        const pageSwipeRef = useRef({
-          startX: 0,
-          startY: 0,
-          active: false,
-          horizontal: false
-        });
         const rowTouchRef = useRef({ key: "", x: 0, y: 0 });
         const pendingDeletionRef = useRef(null);
         const rowPointerRef = useRef({ key: "", x: 0, y: 0, moved: false });
@@ -3995,77 +3987,6 @@
           });
         }
 
-        function onSwipeStart(event) {
-          if (event.target?.closest && event.target.closest(".item-swipe")) return;
-          if (swipedItemKey) setSwipedItemKey("");
-          const touch = event.touches?.[0];
-          if (!touch) return;
-          pageSwipeRef.current = {
-            startX: touch.clientX,
-            startY: touch.clientY,
-            active: true,
-            horizontal: false
-          };
-          setIsPageSwiping(false);
-        }
-
-        function onSwipeMove(event) {
-          if (event.target?.closest && event.target.closest(".item-swipe")) return;
-          const touch = event.touches?.[0];
-          const state = pageSwipeRef.current;
-          if (!touch || !state.active) return;
-          const dx = touch.clientX - state.startX;
-          const dy = touch.clientY - state.startY;
-          if (!state.horizontal) {
-            if (Math.abs(dx) < 10) return;
-            if (Math.abs(dx) <= Math.abs(dy) * 1.1) return;
-            state.horizontal = true;
-            setIsPageSwiping(true);
-          }
-          if (!state.horizontal) return;
-          const resistedDx = dx * 0.95;
-          setPageSwipeOffsetX(resistedDx);
-          event.preventDefault();
-        }
-
-        function onSwipeEnd(event) {
-          const state = pageSwipeRef.current;
-          pageSwipeRef.current = { startX: 0, startY: 0, active: false, horizontal: false };
-          if (!state.active || !state.horizontal) {
-            setIsPageSwiping(false);
-            setPageSwipeOffsetX(0);
-            return;
-          }
-          const endX = event.changedTouches?.[0]?.clientX;
-          if (typeof endX !== "number") {
-            setIsPageSwiping(false);
-            setPageSwipeOffsetX(0);
-            return;
-          }
-          const delta = endX - state.startX;
-          const absDelta = Math.abs(delta);
-          const threshold = 56;
-          if (absDelta < threshold) {
-            setIsPageSwiping(false);
-            setPageSwipeOffsetX(0);
-            return;
-          }
-
-          const direction = delta < 0 ? -1 : 1;
-          const travel = Math.max(86, Math.round(window.innerWidth * 0.24)) * direction;
-          setIsPageSwiping(true);
-          setPageSwipeOffsetX(travel);
-
-          setTimeout(() => {
-            if (direction < 0) {
-              goPrevDate();
-            } else {
-              goNextDate();
-            }
-            setPageSwipeOffsetX(0);
-            setIsPageSwiping(false);
-          }, 120);
-        }
 
         async function commitPendingDeletion(target) {
           if (!target) return;
@@ -4254,17 +4175,7 @@
               </div>
             )}
 
-            <main
-              className="page"
-              onTouchStart={onSwipeStart}
-              onTouchMove={onSwipeMove}
-              onTouchEnd={onSwipeEnd}
-              onTouchCancel={onSwipeEnd}
-              style={{
-                transform: `translateX(${pageSwipeOffsetX}px)`,
-                transition: isPageSwiping ? "none" : "transform 0.24s cubic-bezier(0.22, 0.9, 0.34, 1)"
-              }}
-            >
+            <main className="page">
               <header className="nav">
                 <button className="hero-nav-btn" type="button" onClick={goPrevDate} aria-label="上一天">
                   <MiIcon className="mi" style={{ fontSize: 18 }}>chevron_left</MiIcon>
@@ -4384,7 +4295,7 @@
               )}
             </main>
 
-            <div className="footer" onTouchStart={onSwipeStart} onTouchMove={onSwipeMove} onTouchEnd={onSwipeEnd} onTouchCancel={onSwipeEnd}>
+            <div className="footer">
               <button
                 className={"return-today-fab" + (isViewingNonToday ? " show" : "")}
                 type="button"
