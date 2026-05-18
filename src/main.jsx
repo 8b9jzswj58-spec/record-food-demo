@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { createClient } from "@supabase/supabase-js";
-import { useDrag } from "@use-gesture/react";
 
       const SUPABASE_URL = "https://fwwsoilsbgympvkajnih.supabase.co";
       // Public key for browser clients only. Never put service_role or private secrets in frontend code.
@@ -997,8 +996,6 @@ import { useDrag } from "@use-gesture/react";
         const [pendingDeletion, setPendingDeletion] = useState(null);
         const [undoToast, setUndoToast] = useState(null);
         const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
-        const [pageDragX, setPageDragX] = useState(0);
-        const [isPageDragging, setIsPageDragging] = useState(false);
         const [librarySheetOpen, setLibrarySheetOpen] = useState(false);
         const [libraryLoadedCount, setLibraryLoadedCount] = useState(20);
         const [selectedLibraryFoods, setSelectedLibraryFoods] = useState([]);
@@ -2238,49 +2235,6 @@ import { useDrag } from "@use-gesture/react";
           });
         }
 
-        const pageSwipeBind = useDrag(
-          ({ active, movement: [mx, my], direction: [dx], velocity: [vx], last, cancel, event }) => {
-            const target = event?.target;
-            if (!(target instanceof Element)) return;
-            if (
-              target.closest(".item-swipe") ||
-              target.closest(".item-delete-btn") ||
-              target.closest(".bottom-sheet-overlay") ||
-              target.closest(".bottom-sheet-panel") ||
-              target.closest(".calendar-sheet-body")
-            ) {
-              return;
-            }
-            if (active && Math.abs(my) > Math.abs(mx) + 10) {
-              if (cancel) cancel();
-              return;
-            }
-            const clamped = Math.max(-72, Math.min(72, mx));
-            if (active) {
-              setIsPageDragging(true);
-              setPageDragX(clamped);
-              return;
-            }
-            if (!last) return;
-            const passedDistance = Math.abs(mx) > 54;
-            const passedVelocity = Math.abs(vx) > 0.42 && Math.abs(mx) > 20;
-            if (passedDistance || passedVelocity) {
-              if (dx > 0) {
-                goPrevDate();
-              } else if (dx < 0) {
-                goNextDate();
-              }
-            }
-            setIsPageDragging(false);
-            setPageDragX(0);
-          },
-          {
-            axis: "x",
-            filterTaps: true,
-            preventScroll: true,
-            pointer: { touch: true }
-          }
-        );
 
 
         async function commitPendingDeletion(target) {
@@ -2471,11 +2425,6 @@ import { useDrag } from "@use-gesture/react";
             )}
 
             <main className="page">
-              <div
-                className={"page-swipe-stage" + (isPageDragging ? " dragging" : "")}
-                style={{ transform: `translateX(${pageDragX}px)` }}
-                {...pageSwipeBind()}
-              >
               <header className="nav">
                 <button className="hero-nav-btn" type="button" onClick={goPrevDate} aria-label="上一天">
                   <MiIcon className="mi" style={{ fontSize: 18 }}>chevron_left</MiIcon>
@@ -2593,7 +2542,6 @@ import { useDrag } from "@use-gesture/react";
                   还没有饮食记录，点底部按钮添加一条。
                 </div>
               )}
-              </div>
             </main>
 
             <div className="footer">
