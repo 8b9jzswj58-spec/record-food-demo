@@ -23,6 +23,61 @@ const CORS_HEADERS = {
   "access-control-allow-headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const MAX_INPUT_TEXT_LENGTH = 200;
+const MAX_IMAGES = 5;
+const MAX_IMAGE_BASE64_LENGTH = 3_500_000;
+const QUOTA_BUCKET = "parse_food";
+const QUOTA_LIMIT_PER_10_MIN = 8;
+const QUOTA_WINDOW_SECONDS = 600;
+
+async function getAuthedUserId(req: Request): Promise<string> {
+  const authHeader = req.headers.get("authorization") || "";
+  const apikey = req.headers.get("apikey") || Deno.env.get("SUPABASE_ANON_KEY") || "";
+  if (!authHeader.toLowerCase().startsWith("bearer ")) {
+    throw new Error("unauthorized_missing_bearer");
+  }
+  if (!apikey) {
+    throw new Error("server_missing_anon_key");
+  }
+  const res = await fetch(`${Deno.env.get("SUPABASE_URL")}/auth/v1/user`, {
+    method: "GET",
+    headers: {
+      apikey,
+      authorization: authHeader,
+    },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data?.id) {
+    throw new Error("unauthorized_invalid_token");
+  }
+  return String(data.id);
+}
+
+async function consumeQuota(req: Request) {
+  const authHeader = req.headers.get("authorization") || "";
+  const apikey = req.headers.get("apikey") || Deno.env.get("SUPABASE_ANON_KEY") || "";
+  const rpcUrl = `${Deno.env.get("SUPABASE_URL")}/rest/v1/rpc/check_and_consume_api_quota`;
+  const res = await fetch(rpcUrl, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      apikey,
+      authorization: authHeader,
+    },
+    body: JSON.stringify({
+      p_bucket: QUOTA_BUCKET,
+      p_limit: QUOTA_LIMIT_PER_10_MIN,
+      p_window_seconds: QUOTA_WINDOW_SECONDS,
+      p_consume: 1,
+    }),
+  });
+  const payload = await res.json().catch(() => []);
+  const row = Array.isArray(payload) ? payload[0] : null;
+  if (!res.ok || !row?.allowed) {
+    throw new Error("quota_exceeded");
+  }
+}
+
 function clampIntOrNull(v: unknown): number | null {
   if (v === null || v === undefined || v === "") return null;
   const n = Number(v);
@@ -144,7 +199,7 @@ async function callDoubaoParse(body: any): Promise<ParsedItem[]> {
     {
       type: "text",
       text:
-        "你是饮食识别助手。请从用户文字和图片中识别食物，输出严格 JSON，不要 markdown。格式: {\"items\":[{\"name\":\"\",\"portion\":\"1份\",\"kcal\":120,\"emoji\":\"🍽️\",\"carb_g\":15,\"protein_g\":8,\"fat_g\":5}]}。无法判断的克数可返回 null。",
+        "你是饮食识别助手。请从用户文字和图片中识别食物，输出严格 JSON，不要 markdown。格式: {\"items\":[{\"name\":\"\",\"portion\":\"1份\",\"kcal\":120,\"emoji\":\"🍽️\",\"carb_g\":15,\"protein_g\":8,\"fat_g\":5}]}。规则：1) 若用户文字或图片里出现明确热量数字（营养成分表/包装标签/文本指定），kcal使用该明确值；2) 若没有明确证据，给保守估算值；3) kcal可为整数，不要机械凑整到50/100；4) 无法判断的克数可返回 null。",
     },
   ];
 
@@ -189,10 +244,12 @@ async function callDoubaoParse(body: any): Promise<ParsedItem[]> {
   const content = data?.choices?.[0]?.message?.content;
   const parsed = extractJsonFromText(typeof content === "string" ? content : JSON.stringify(content || {}));
   const items = Array.isArray(parsed?.items) ? parsed.items : [];
-  return items.map(normalizeItem).filter((item) => item.name && item.name !== "未命名食物");
+  return items.map(normalizeItem).filter((item: ParsedItem) => item.name && item.name !== "未命名食物");
 }
 
 serve(async (req) => {
+  const startAt = Date.now();
+  let userId = "";
   try {
     if (req.method === "OPTIONS") {
       return new Response("ok", { status: 200, headers: CORS_HEADERS });
@@ -200,14 +257,23 @@ serve(async (req) => {
     if (req.method !== "POST") {
       return new Response(JSON.stringify({ ok: false, error: "method_not_allowed" }), { status: 405, headers: CORS_HEADERS });
     }
+    userId = await getAuthedUserId(req);
+    await consumeQuota(req);
 
     const body = await req.json().catch(() => ({}));
-    const text = String(body?.text || "");
+    const text = String(body?.text || "").slice(0, MAX_INPUT_TEXT_LENGTH);
     const images = Array.isArray(body?.images) ? body.images : [];
+    if (images.length > MAX_IMAGES) {
+      return new Response(JSON.stringify({ ok: false, error: "too_many_images" }), { status: 400, headers: CORS_HEADERS });
+    }
+    const hasOversizedImage = images.some((img: any) => String(img?.base64 || "").length > MAX_IMAGE_BASE64_LENGTH);
+    if (hasOversizedImage) {
+      return new Response(JSON.stringify({ ok: false, error: "image_too_large" }), { status: 400, headers: CORS_HEADERS });
+    }
 
     let items: ParsedItem[] = [];
     try {
-      items = await callDoubaoParse(body);
+      items = await callDoubaoParse({ ...body, text, images });
     } catch (llmError) {
       console.error("doubao-parse-failed", llmError);
       items = parseTextFallback(text);
@@ -231,13 +297,37 @@ serve(async (req) => {
       ok: true,
       data: { items },
     };
+    console.log(
+      JSON.stringify({
+        event: "parse_food_success",
+        user_id: userId,
+        text_len: text.length,
+        images_count: images.length,
+        items_count: items.length,
+        duration_ms: Date.now() - startAt,
+      })
+    );
 
     return new Response(JSON.stringify(response), { status: 200, headers: CORS_HEADERS });
   } catch (error) {
+    console.error(
+      JSON.stringify({
+        event: "parse_food_error",
+        user_id: userId || null,
+        error: error instanceof Error ? error.message : "unknown_error",
+        duration_ms: Date.now() - startAt,
+      })
+    );
     const response: ParseFoodResponse = {
       ok: false,
       error: error instanceof Error ? error.message : "unknown_error",
     };
-    return new Response(JSON.stringify(response), { status: 500, headers: CORS_HEADERS });
+    const message = error instanceof Error ? error.message : "unknown_error";
+    const status = message.startsWith("unauthorized")
+      ? 401
+      : message === "quota_exceeded"
+      ? 429
+      : 500;
+    return new Response(JSON.stringify(response), { status, headers: CORS_HEADERS });
   }
 });
