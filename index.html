@@ -352,6 +352,19 @@
         display: grid;
         gap: 6px;
       }
+      .calendar-week-header {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        align-items: center;
+        justify-items: center;
+        padding: 0 0 2px;
+      }
+      .calendar-week-day {
+        font-size: 11px;
+        line-height: 1;
+        font-weight: 600;
+        color: rgba(24, 35, 31, 0.46);
+      }
       .calendar-month-head {
         display: grid;
         grid-template-columns: 36px auto 36px;
@@ -1797,7 +1810,7 @@
         .page { max-width: 100vw; }
       }
     </style>
-    <script type="module" crossorigin src="./assets/index-CUrL1q6L.js"></script>
+    <script type="module" src="/src/main.jsx"></script>
   </head>
   <body>
     <div id="root"></div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { createClient } from "@supabase/supabase-js";
+import "remixicon/fonts/remixicon.css";
 
       const SUPABASE_URL = "https://fwwsoilsbgympvkajnih.supabase.co";
       // Public key for browser clients only. Never put service_role or private secrets in frontend code.
@@ -32,6 +33,7 @@ import { createClient } from "@supabase/supabase-js";
 
       const MAX_ATTACHMENTS = 5;
       const MEALS = ["早餐", "午餐", "晚餐"];
+      const CALENDAR_WEEK_LABELS = ["一", "二", "三", "四", "五", "六", "日"];
       const RECORDS_CACHE_KEY_PREFIX = "diet-records-cache-v1";
       const GOAL_KCAL_CACHE_KEY_PREFIX = "diet-goal-kcal-v1";
       const ICON_COMPONENTS = {
@@ -128,6 +130,11 @@ import { createClient } from "@supabase/supabase-js";
           dateKeys.push(`${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`);
         }
         return dateKeys;
+      }
+
+      function getMondayFirstWeekdayIndex(dateKey) {
+        const jsDay = new Date(`${dateKey}T00:00:00`).getDay();
+        return (jsDay + 6) % 7;
       }
 
       function getRecordsCacheKey(userId) {
@@ -1170,7 +1177,20 @@ import { createClient } from "@supabase/supabase-js";
         const calendarDays = useMemo(() => {
           const target = Math.max(1, Number(goalKcal) || 1600);
           const standardSize = 54;
-          const days = buildMonthDateKeys(calendarMonthKey).map((dateKey) => {
+          const monthDateKeys = buildMonthDateKeys(calendarMonthKey);
+          const firstDateKey = monthDateKeys[0];
+          const leadingCount = firstDateKey ? getMondayFirstWeekdayIndex(firstDateKey) : 0;
+          const leadingPlaceholders = Array.from({ length: leadingCount }).map((_, index) => ({
+            dateKey: `leading-placeholder-${calendarMonthKey}-${index}`,
+            day: 0,
+            kcal: 0,
+            ratio: 0,
+            bubbleSize: 0,
+            isDanger: false,
+            isCurrent: false,
+            isPlaceholder: true
+          }));
+          const days = monthDateKeys.map((dateKey) => {
             const kcal = Math.max(0, Math.round(Number(totalKcalByDate.get(dateKey) || 0)));
             const ratio = kcal / target;
             const bubbleSize = kcal <= 0
@@ -1186,8 +1206,9 @@ import { createClient } from "@supabase/supabase-js";
               isCurrent: dateKey === currentDateKey
             };
           });
-          if (days.length >= 42) return days.slice(0, 42);
-          const placeholders = Array.from({ length: 42 - days.length }).map((_, index) => ({
+          const mergedDays = [...leadingPlaceholders, ...days];
+          if (mergedDays.length >= 42) return mergedDays.slice(0, 42);
+          const placeholders = Array.from({ length: 42 - mergedDays.length }).map((_, index) => ({
             dateKey: `placeholder-${calendarMonthKey}-${index}`,
             day: 0,
             kcal: 0,
@@ -1197,7 +1218,7 @@ import { createClient } from "@supabase/supabase-js";
             isCurrent: false,
             isPlaceholder: true
           }));
-          return [...days, ...placeholders];
+          return [...mergedDays, ...placeholders];
         }, [calendarMonthKey, goalKcal, totalKcalByDate, currentDateKey]);
 
         const foodLibrary = useMemo(() => {
@@ -2918,6 +2939,11 @@ import { createClient } from "@supabase/supabase-js";
               )}
             >
               <div className="calendar-sheet-body" onTouchStart={onCalendarTouchStart} onTouchEnd={onCalendarTouchEnd}>
+                <div className="calendar-week-header">
+                  {CALENDAR_WEEK_LABELS.map((label) => (
+                    <span key={label} className="calendar-week-day">{label}</span>
+                  ))}
+                </div>
                 <div className={"calendar-bubble-grid" + (calendarSlideDirection ? ` slide-${calendarSlideDirection}` : "")}>
                   {calendarDays.map((item) => (
                     <button
